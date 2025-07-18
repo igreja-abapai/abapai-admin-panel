@@ -48,6 +48,13 @@
       </div>
 
       <div class="p-6">
+        <div
+          v-if="error"
+          class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
+        >
+          {{ error }}
+        </div>
+
         <div v-if="loading" class="text-center py-8">
           <div
             class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"
@@ -139,21 +146,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { PlusIcon, MagnifyingGlassIcon, HeartIcon } from '@heroicons/vue/24/outline'
-
-interface PrayerRequest {
-  id: string
-  title: string
-  description: string
-  memberName: string
-  status: 'pending' | 'answered' | 'closed'
-  createdAt: string
-  prayerCount: number
-}
+import { prayerRequestsService, type PrayerRequest } from '@/services/prayer-requests'
 
 const loading = ref(false)
 const requests = ref<PrayerRequest[]>([])
 const searchTerm = ref('')
 const statusFilter = ref('')
+const error = ref('')
 
 const filteredRequests = computed(() => {
   let filtered = requests.value
@@ -197,63 +196,40 @@ function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('pt-BR')
 }
 
-function toggleAnswered(request: PrayerRequest) {
-  request.status = request.status === 'answered' ? 'pending' : 'answered'
+async function toggleAnswered(request: PrayerRequest) {
+  try {
+    const newStatus = request.status === 'answered' ? 'pending' : 'answered'
+    await prayerRequestsService.updatePrayerRequest(request.id, { status: newStatus })
+    request.status = newStatus
+  } catch (err: any) {
+    console.error('Error updating prayer request:', err)
+  }
 }
 
-function closeRequest(request: PrayerRequest) {
-  request.status = 'closed'
+async function closeRequest(request: PrayerRequest) {
+  try {
+    await prayerRequestsService.updatePrayerRequest(request.id, { status: 'closed' })
+    request.status = 'closed'
+  } catch (err: any) {
+    console.error('Error closing prayer request:', err)
+  }
 }
 
-onMounted(async () => {
+async function loadPrayerRequests() {
   loading.value = true
+  error.value = ''
 
   try {
-    // TODO: Fetch real data from API
-    await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
-
-    requests.value = [
-      {
-        id: '1',
-        title: 'Cura para minha mãe',
-        description: 'Minha mãe está doente e precisa de oração para sua recuperação.',
-        memberName: 'João Silva',
-        status: 'pending',
-        createdAt: '2024-01-15T10:30:00Z',
-        prayerCount: 5,
-      },
-      {
-        id: '2',
-        title: 'Emprego',
-        description: 'Preciso de um novo emprego para sustentar minha família.',
-        memberName: 'Maria Santos',
-        status: 'answered',
-        createdAt: '2024-01-14T15:45:00Z',
-        prayerCount: 12,
-      },
-      {
-        id: '3',
-        title: 'Problemas familiares',
-        description: 'Estamos passando por dificuldades em nossa família.',
-        memberName: 'Pedro Oliveira',
-        status: 'closed',
-        createdAt: '2024-01-13T09:20:00Z',
-        prayerCount: 8,
-      },
-      {
-        id: '4',
-        title: 'Estudos',
-        description: 'Preciso de foco e sabedoria para meus estudos.',
-        memberName: 'Ana Costa',
-        status: 'pending',
-        createdAt: '2024-01-12T14:15:00Z',
-        prayerCount: 3,
-      },
-    ]
-  } catch (error) {
-    console.error('Error loading prayer requests:', error)
+    requests.value = await prayerRequestsService.getPrayerRequests()
+  } catch (err: any) {
+    console.error('Error loading prayer requests:', err)
+    error.value = err.response?.data?.message || 'Erro ao carregar pedidos de oração'
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  loadPrayerRequests()
 })
 </script>

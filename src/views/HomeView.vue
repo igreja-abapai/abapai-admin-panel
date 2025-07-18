@@ -1,13 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { PlusIcon, UserGroupIcon, UserIcon, HeartIcon, ClockIcon } from '@heroicons/vue/24/outline'
-
-interface Member {
-  id: string
-  givenName: string
-  familyName: string
-  email: string
-}
+import { membersService, type Member } from '@/services/members'
 
 const stats = ref({
   totalMembers: 0,
@@ -18,39 +12,33 @@ const stats = ref({
 
 const recentMembers = ref<Member[]>([])
 
-function getInitials(givenName?: string, familyName?: string): string {
-  return `${givenName?.[0] || ''}${familyName?.[0] || ''}`.toUpperCase()
+function getInitials(name?: string): string {
+  if (!name) return ''
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
 }
 
 onMounted(async () => {
-  // TODO: Fetch real data from API
-  stats.value = {
-    totalMembers: 156,
-    activeMembers: 142,
-    prayerRequests: 23,
-    recentActivities: 8,
-  }
+  try {
+    // Load real members data
+    const members = await membersService.getMembers()
 
-  recentMembers.value = [
-    {
-      id: '1',
-      givenName: 'João',
-      familyName: 'Silva',
-      email: 'joao.silva@email.com',
-    },
-    {
-      id: '2',
-      givenName: 'Maria',
-      familyName: 'Santos',
-      email: 'maria.santos@email.com',
-    },
-    {
-      id: '3',
-      givenName: 'Pedro',
-      familyName: 'Oliveira',
-      email: 'pedro.oliveira@email.com',
-    },
-  ]
+    stats.value = {
+      totalMembers: members.length,
+      activeMembers: members.filter((m) => m.isBaptized).length,
+      prayerRequests: 0, // TODO: Implement prayer requests count
+      recentActivities: 0, // TODO: Implement recent activities count
+    }
+
+    // Get recent members (last 3)
+    recentMembers.value = members.slice(-3).reverse()
+  } catch (error) {
+    console.error('Error loading dashboard data:', error)
+  }
 })
 </script>
 
@@ -139,11 +127,11 @@ onMounted(async () => {
               <div
                 class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-medium"
               >
-                {{ getInitials(member.givenName, member.familyName) }}
+                {{ getInitials(member.name) }}
               </div>
               <div class="ml-4">
                 <p class="font-medium text-neutral-900">
-                  {{ member.givenName }} {{ member.familyName }}
+                  {{ member.name }}
                 </p>
                 <p class="text-sm text-neutral-600">{{ member.email }}</p>
               </div>

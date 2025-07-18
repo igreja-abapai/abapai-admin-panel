@@ -2,14 +2,35 @@
   <div>
     <!-- Header -->
     <div class="w-full flex justify-between mb-8">
-      <h1 class="text-neutral-900 font-medium text-[28px]">Cadastrar Novo Membro</h1>
-      <router-link to="/membros" class="btn btn-secondary">
+      <h1 class="text-neutral-900 font-medium text-[28px]">Editar Membro</h1>
+      <router-link :to="`/membros/detalhes/${memberId}`" class="btn btn-secondary">
         <ArrowLeftIcon class="w-4 h-4 mr-2" />
         Voltar
       </router-link>
     </div>
 
-    <form @submit.prevent="handleSubmit" class="space-y-6">
+    <!-- Loading State -->
+    <div v-if="loading && !member" class="bg-white rounded-lg shadow p-6">
+      <div class="text-center py-8">
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"
+        ></div>
+        <p class="text-neutral-500">Carregando dados do membro...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="bg-white rounded-lg shadow p-6">
+      <div class="text-center py-8">
+        <ExclamationTriangleIcon class="w-12 h-12 text-red-400 mx-auto mb-4" />
+        <h3 class="text-lg font-medium text-neutral-900 mb-2">Erro ao carregar membro</h3>
+        <p class="text-neutral-500">{{ error }}</p>
+        <button @click="loadMember" class="btn btn-primary mt-4">Tentar Novamente</button>
+      </div>
+    </div>
+
+    <!-- Edit Form -->
+    <form v-else-if="member" @submit.prevent="handleSubmit" class="space-y-6">
       <!-- Personal Information -->
       <div class="bg-white rounded-lg shadow p-6">
         <h3 class="text-lg font-medium text-neutral-900 mb-6">Informações Pessoais</h3>
@@ -40,7 +61,9 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Data de Nascimento *</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2"
+              >Data de Nascimento *</label
+            >
             <input
               v-model="form.birthdate"
               type="date"
@@ -256,7 +279,9 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Profissão/Ocupação *</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2"
+              >Profissão/Ocupação *</label
+            >
             <input
               v-model="form.occupation"
               type="text"
@@ -287,7 +312,9 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Último Cargo Exercido</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2"
+              >Último Cargo Exercido</label
+            >
             <input
               v-model="form.lastPositionHeld"
               type="text"
@@ -342,7 +369,10 @@
               id="isBaptizedInTheHolySpirit"
               class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 rounded focus:ring-primary-500 focus:ring-2"
             />
-            <label for="isBaptizedInTheHolySpirit" class="ml-2 text-sm font-medium text-neutral-700">
+            <label
+              for="isBaptizedInTheHolySpirit"
+              class="ml-2 text-sm font-medium text-neutral-700"
+            >
               É batizado no Espírito Santo
             </label>
           </div>
@@ -363,37 +393,45 @@
 
       <!-- Submit Button -->
       <div class="flex justify-end space-x-4">
-        <router-link to="/membros" class="btn btn-secondary">
+        <router-link :to="`/membros/detalhes/${memberId}`" class="btn btn-secondary">
           Cancelar
         </router-link>
-        <button
-          type="submit"
-          :disabled="loading"
-          class="btn btn-primary"
-        >
-          <span v-if="loading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-          {{ loading ? 'Salvando...' : 'Cadastrar Membro' }}
+        <button type="submit" :disabled="submitting" class="btn btn-primary">
+          <span
+            v-if="submitting"
+            class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
+          ></span>
+          {{ submitting ? 'Salvando...' : 'Salvar Alterações' }}
         </button>
       </div>
     </form>
 
     <!-- Error Message -->
-    <div v-if="error" class="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-      {{ error }}
+    <div
+      v-if="submitError"
+      class="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
+    >
+      {{ submitError }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
-import { membersService } from '@/services/members'
-import { addressService, type CreateAddressRequest } from '@/services/address'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { ArrowLeftIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
+import { membersService, type Member } from '@/services/members'
+import { addressService, type Address } from '@/services/address'
 
+const route = useRoute()
 const router = useRouter()
+const member = ref<Member | null>(null)
 const loading = ref(false)
+const submitting = ref(false)
 const error = ref('')
+const submitError = ref('')
+
+const memberId = computed(() => route.params.id as string)
 
 const form = reactive({
   name: '',
@@ -419,7 +457,7 @@ const form = reactive({
   areaOfInterest: '',
 })
 
-const addressForm = reactive<CreateAddressRequest>({
+const addressForm = reactive({
   city: '',
   country: '',
   district: '',
@@ -429,29 +467,87 @@ const addressForm = reactive<CreateAddressRequest>({
   state: '',
 })
 
-async function handleSubmit() {
+function populateForm() {
+  if (!member.value) return
+
+  // Populate member form
+  Object.assign(form, {
+    name: member.value.name,
+    gender: member.value.gender,
+    birthdate: member.value.birthdate.split('T')[0], // Convert to YYYY-MM-DD format
+    nationality: member.value.nationality,
+    phone: member.value.phone,
+    email: member.value.email || '',
+    maritalStatus: member.value.maritalStatus,
+    spouseName: member.value.spouseName || '',
+    educationLevel: member.value.educationLevel,
+    yearOfConversion: member.value.yearOfConversion || '',
+    occupation: member.value.occupation,
+    rg: member.value.rg,
+    issuingBody: member.value.issuingBody,
+    cpf: member.value.cpf,
+    lastChurch: member.value.lastChurch || '',
+    lastPositionHeld: member.value.lastPositionHeld || '',
+    isBaptized: member.value.isBaptized,
+    isBaptizedInTheHolySpirit: member.value.isBaptizedInTheHolySpirit || false,
+    currentPosition: member.value.currentPosition || '',
+    wantsToBeAVolunteer: member.value.wantsToBeAVolunteer || false,
+    areaOfInterest: member.value.areaOfInterest || '',
+  })
+
+  // Populate address form
+  if (member.value.address) {
+    Object.assign(addressForm, {
+      city: member.value.address.city,
+      country: member.value.address.country,
+      district: member.value.address.district,
+      postalCode: member.value.address.postalCode || '',
+      streetName: member.value.address.streetName,
+      streetNumber: member.value.address.streetNumber,
+      state: member.value.address.state,
+    })
+  }
+}
+
+async function loadMember() {
   loading.value = true
   error.value = ''
 
   try {
-    // First create the address
-    const address = await addressService.createAddress(addressForm)
-
-    // Then create the member with the address ID
-    const memberData = {
-      ...form,
-      addressId: parseInt(address.id),
-    }
-
-    await membersService.createMember(memberData)
-
-    // Redirect to members list
-    router.push('/membros')
+    member.value = await membersService.getMember(memberId.value)
+    populateForm()
   } catch (err: any) {
-    console.error('Error creating member:', err)
-    error.value = err.response?.data?.message || 'Erro ao cadastrar membro'
+    console.error('Error loading member:', err)
+    error.value = err.response?.data?.message || 'Erro ao carregar dados do membro'
   } finally {
     loading.value = false
   }
 }
+
+async function handleSubmit() {
+  submitting.value = true
+  submitError.value = ''
+
+  try {
+    // Update address first
+    if (member.value?.address) {
+      await addressService.updateAddress(member.value.address.id, addressForm)
+    }
+
+    // Update member
+    await membersService.updateMember(memberId.value, form)
+
+    // Redirect to member details
+    router.push(`/membros/detalhes/${memberId.value}`)
+  } catch (err: any) {
+    console.error('Error updating member:', err)
+    submitError.value = err.response?.data?.message || 'Erro ao atualizar membro'
+  } finally {
+    submitting.value = false
+  }
+}
+
+onMounted(() => {
+  loadMember()
+})
 </script>

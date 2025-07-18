@@ -64,6 +64,11 @@ class HttpService {
     return response.data
   }
 
+  async patch<T>(url: string, data?: any, config?: any): Promise<T> {
+    const response = await this.http.patch<T>(url, data, config)
+    return response.data
+  }
+
   async delete<T>(url: string, config?: any): Promise<T> {
     const response = await this.http.delete<T>(url, config)
     return response.data
