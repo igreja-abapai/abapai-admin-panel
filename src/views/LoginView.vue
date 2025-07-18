@@ -4,8 +4,8 @@
   >
     <div class="max-w-md w-full space-y-8">
       <div>
-        <div class="mx-auto h-20 w-20 bg-primary-600 rounded-lg flex items-center justify-center">
-          <span class="text-white text-2xl font-bold">A</span>
+        <div class="mx-auto flex items-center justify-center">
+          <img :src="abapaiLogo" alt="Abapai Logo" class="w-24 h-24 object-contain rounded-lg" />
         </div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-neutral-900">
           Entrar na sua conta
@@ -90,6 +90,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { authService } from '@/services/auth'
+import abapaiLogo from '@/assets/images/abapai_logo.png'
 
 const router = useRouter()
 const loading = ref(false)
