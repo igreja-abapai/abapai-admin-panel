@@ -40,7 +40,9 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Data de Nascimento *</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2"
+              >Data de Nascimento *</label
+            >
             <input
               v-model="form.birthdate"
               type="date"
@@ -256,7 +258,9 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Profissão/Ocupação *</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2"
+              >Profissão/Ocupação *</label
+            >
             <input
               v-model="form.occupation"
               type="text"
@@ -287,7 +291,9 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Último Cargo Exercido</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2"
+              >Último Cargo Exercido</label
+            >
             <input
               v-model="form.lastPositionHeld"
               type="text"
@@ -342,7 +348,10 @@
               id="isBaptizedInTheHolySpirit"
               class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 rounded focus:ring-primary-500 focus:ring-2"
             />
-            <label for="isBaptizedInTheHolySpirit" class="ml-2 text-sm font-medium text-neutral-700">
+            <label
+              for="isBaptizedInTheHolySpirit"
+              class="ml-2 text-sm font-medium text-neutral-700"
+            >
               É batizado no Espírito Santo
             </label>
           </div>
@@ -363,22 +372,22 @@
 
       <!-- Submit Button -->
       <div class="flex justify-end space-x-4">
-        <router-link to="/membros" class="btn btn-secondary">
-          Cancelar
-        </router-link>
-        <button
-          type="submit"
-          :disabled="loading"
-          class="btn btn-primary"
-        >
-          <span v-if="loading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+        <router-link to="/membros" class="btn btn-secondary"> Cancelar </router-link>
+        <button type="submit" :disabled="loading" class="btn btn-primary">
+          <span
+            v-if="loading"
+            class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
+          ></span>
           {{ loading ? 'Salvando...' : 'Cadastrar Membro' }}
         </button>
       </div>
     </form>
 
     <!-- Error Message -->
-    <div v-if="error" class="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+    <div
+      v-if="error"
+      class="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
+    >
       {{ error }}
     </div>
   </div>

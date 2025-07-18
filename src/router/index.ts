@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { authGuard, publicGuard } from '@/guards/auth'
 import { authService } from '@/services/auth'
+import { useAuthStore } from '@/stores/auth'
 import LoginView from '@/views/LoginView.vue'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 
@@ -34,55 +35,55 @@ const routes: RouteRecordRaw[] = [
         path: 'membros',
         name: 'members',
         component: () => import('@/views/MembersView.vue'),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, permission: 'visualizar_membros' },
       },
       {
         path: 'membros/detalhes/:id',
         name: 'member-details',
         component: () => import('@/views/MemberDetailsView.vue'),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, permission: 'visualizar_membros' },
       },
       {
         path: 'membros/editar/:id',
         name: 'edit-member',
         component: () => import('@/views/EditMemberView.vue'),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, permission: 'editar_membros' },
       },
       {
         path: 'membros/cadastro',
         name: 'create-member',
         component: () => import('@/views/CreateMemberView.vue'),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, permission: 'criar_membros' },
       },
       {
         path: 'pedidos-de-oracao',
         name: 'prayer-requests',
         component: () => import('@/views/PrayerRequestsView.vue'),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, permission: 'visualizar_pedidos_oracao' },
       },
       {
         path: 'pedidos-de-oracao/novo',
         name: 'create-prayer-request',
         component: () => import('@/views/CreatePrayerRequestView.vue'),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, permission: 'criar_pedidos_oracao' },
       },
       {
         path: 'usuarios',
         name: 'users',
         component: () => import('@/views/UsersView.vue'),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, permission: 'visualizar_usuarios' },
       },
       {
         path: 'usuarios/novo',
         name: 'create-user',
         component: () => import('@/views/CreateUserView.vue'),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, permission: 'criar_usuarios' },
       },
       {
         path: 'usuarios/editar/:id',
         name: 'edit-user',
         component: () => import('@/views/EditUserView.vue'),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, permission: 'editar_usuarios' },
       },
     ],
     meta: { requiresAuth: true },
@@ -104,6 +105,11 @@ const router = createRouter({
 // Initialize auth on app start
 router.beforeEach(async (to, from, next) => {
   await authService.init()
+  const authStore = useAuthStore()
+  const requiredPermission = to.meta.permission
+  if (requiredPermission && !authStore.hasPermission(requiredPermission)) {
+    return next('/forbidden')
+  }
   next()
 })
 

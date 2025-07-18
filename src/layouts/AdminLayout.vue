@@ -11,7 +11,7 @@
     <!-- Top Navigation Bar - Full Width -->
     <header class="fixed top-0 left-0 right-0 z-30 bg-white shadow-sm border-b border-neutral-200">
       <div
-        class="flex items-center justify-between px-6 py-4"
+        class="flex items-center justify-between px-6 py-2"
         :class="{
           'lg:pl-64': sidebarOpen && !sidebarCollapsed,
           'lg:pl-20': sidebarOpen && sidebarCollapsed,
@@ -21,9 +21,9 @@
         <div class="flex items-center">
           <button
             @click="toggleHamburger"
-            class="p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
+            class="p-2 ml-5 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
           >
-            <Bars3Icon class="w-5 h-5" />
+            <Bars3Icon class="w-7 h-7" />
           </button>
         </div>
 
@@ -33,8 +33,8 @@
           <button
             class="relative p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
           >
-            <BellIcon class="w-5 h-5" />
-            <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            <BellIcon class="w-[24px] h-[24px]" />
+            <!-- <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span> -->
           </button>
 
           <!-- User Profile Dropdown -->
@@ -45,7 +45,7 @@
             >
               <div class="flex items-center space-x-3">
                 <div
-                  class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-medium"
+                  class="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-medium"
                 >
                   {{ authStore.userInitials }}
                 </div>
@@ -71,6 +71,12 @@
                   {{ authStore.user?.firstName }} {{ authStore.user?.lastName }}
                 </p>
                 <p class="text-xs text-neutral-500">{{ authStore.user?.email }}</p>
+                <p
+                  v-if="authStore.userRole"
+                  class="text-xs text-primary-600 font-medium capitalize"
+                >
+                  {{ authStore.userRole }}
+                </p>
               </div>
               <button
                 @click="showChangePasswordModal = true"
@@ -108,78 +114,103 @@
     <!-- Sidebar -->
     <nav
       :class="[
-        'fixed inset-y-0 left-0 z-40 bg-white shadow-lg transition-all duration-300 ease-in-out pt-20 flex flex-col',
-        sidebarOpen ? (sidebarCollapsed ? 'w-20' : 'w-64') : 'w-0',
+        'fixed inset-y-0 left-0 z-40 bg-white shadow-lg transition-all duration-300 ease-in-out pt-20 flex flex-col overflow-visible px-3',
+        !sidebarOpen ? 'w-0' : sidebarCollapsed ? 'w-20' : 'w-64',
       ]"
     >
       <div class="flex flex-col h-full">
         <!-- Logo -->
-        <div class="flex items-center justify-center mb-12 mx-6 gap-3" v-if="sidebarOpen">
-          <router-link to="/home">
-            <div
-              :class="[
-                sidebarCollapsed ? 'w-10 h-10' : 'w-[70px] h-[70px]',
-                'bg-primary-600 rounded-lg flex items-center justify-center',
-              ]"
-            >
-              <span class="text-white text-xl font-bold">A</span>
-            </div>
+        <div
+          class="flex items-center justify-center mb-12"
+          v-if="sidebarOpen"
+          :class="sidebarCollapsed ? 'w-14 h-14' : ''"
+        >
+          <router-link to="/home" class="flex items-center justify-center w-[80%] h-full">
+            <img
+              :src="logoSrc"
+              :class="sidebarCollapsed ? 'w-12 h-12' : 'w-[85px] h-[85px]'"
+              class="object-contain rounded-lg"
+              alt="Abapai Logo"
+            />
           </router-link>
         </div>
-
         <!-- Navigation Menu -->
-        <div class="flex flex-col justify-between h-full pb-6 space-y-10">
-          <ul class="space-y-2">
-            <li>
-              <router-link
-                to="/home"
-                :class="[
-                  'menu-item flex items-center transition-all duration-200',
-                  sidebarCollapsed ? 'justify-center' : 'justify-start pl-6',
-                  { active: $route.path === '/home' },
-                ]"
-              >
-                <HomeIcon class="w-5 h-5" />
-                <span v-if="!sidebarCollapsed" class="label ml-3">Home</span>
+        <div class="flex flex-col justify-between h-full pb-6">
+          <ul class="space-y-2 px-0">
+            <li class="flex">
+              <router-link to="/home" class="w-full">
+                <span
+                  :class="[
+                    'flex items-center px-4 py-2 rounded-xl transition-all duration-200',
+                    $route.path === '/home'
+                      ? 'bg-blue-100 text-blue-700 shadow-sm'
+                      : 'hover:bg-neutral-100',
+                    sidebarCollapsed ? 'justify-center' : 'justify-start',
+                    'w-full',
+                  ]"
+                >
+                  <span class="flex items-center justify-center w-10 h-10">
+                    <HomeIcon class="w-5 h-5" />
+                  </span>
+                  <span v-show="!sidebarCollapsed" class="label">Home</span>
+                </span>
               </router-link>
             </li>
-            <li>
-              <router-link
-                to="/membros"
-                :class="[
-                  'menu-item flex items-center transition-all duration-200',
-                  sidebarCollapsed ? 'justify-center' : 'justify-start pl-6',
-                  { active: $route.path.startsWith('/membros') },
-                ]"
-              >
-                <UserGroupIcon class="w-5 h-5" />
-                <span v-if="!sidebarCollapsed" class="label ml-3">Membros</span>
+            <li v-if="authStore.hasPermission('visualizar_membros')" class="flex">
+              <router-link to="/membros" class="w-full">
+                <span
+                  :class="[
+                    'flex items-center px-4 py-2 rounded-xl transition-all duration-200',
+                    $route.path.startsWith('/membros')
+                      ? 'bg-blue-100 text-blue-700 shadow-sm'
+                      : 'hover:bg-neutral-100',
+                    sidebarCollapsed ? 'justify-center' : 'justify-start',
+                    'w-full',
+                  ]"
+                >
+                  <span class="flex items-center justify-center w-10 h-10">
+                    <UserGroupIcon class="w-5 h-5" />
+                  </span>
+                  <span v-show="!sidebarCollapsed" class="label">Membros</span>
+                </span>
               </router-link>
             </li>
-            <li>
-              <router-link
-                to="/pedidos-de-oracao"
-                :class="[
-                  'menu-item flex items-center transition-all duration-200',
-                  sidebarCollapsed ? 'justify-center' : 'justify-start pl-6',
-                  { active: $route.path === '/pedidos-de-oracao' },
-                ]"
-              >
-                <HeartIcon class="w-5 h-5" />
-                <span v-if="!sidebarCollapsed" class="label ml-3">Oração</span>
+            <li v-if="authStore.hasPermission('visualizar_pedidos_oracao')" class="flex">
+              <router-link to="/pedidos-de-oracao" class="w-full">
+                <span
+                  :class="[
+                    'flex items-center px-4 py-2 rounded-xl transition-all duration-200',
+                    $route.path === '/pedidos-de-oracao'
+                      ? 'bg-blue-100 text-blue-700 shadow-sm'
+                      : 'hover:bg-neutral-100',
+                    sidebarCollapsed ? 'justify-center' : 'justify-start',
+                    'w-full',
+                  ]"
+                >
+                  <span class="flex items-center justify-center w-10 h-10">
+                    <HeartIcon class="w-5 h-5" />
+                  </span>
+                  <span v-show="!sidebarCollapsed" class="label">Oração</span>
+                </span>
               </router-link>
             </li>
-            <li>
-              <router-link
-                to="/usuarios"
-                :class="[
-                  'menu-item flex items-center transition-all duration-200',
-                  sidebarCollapsed ? 'justify-center' : 'justify-start pl-6',
-                  { active: $route.path.startsWith('/usuarios') },
-                ]"
-              >
-                <UsersIcon class="w-5 h-5" />
-                <span v-if="!sidebarCollapsed" class="label ml-3">Usuários do Sistema</span>
+            <li v-if="authStore.hasPermission('visualizar_usuarios')" class="flex">
+              <router-link to="/usuarios" class="w-full">
+                <span
+                  :class="[
+                    'flex items-center px-4 py-2 rounded-xl transition-all duration-200',
+                    $route.path.startsWith('/usuarios')
+                      ? 'bg-blue-100 text-blue-700 shadow-sm'
+                      : 'hover:bg-neutral-100',
+                    sidebarCollapsed ? 'justify-center' : 'justify-start',
+                    'w-full',
+                  ]"
+                >
+                  <span class="flex items-center justify-center w-10 h-10">
+                    <UsersIcon class="w-5 h-5" />
+                  </span>
+                  <span v-show="!sidebarCollapsed" class="label">Usuários do Sistema</span>
+                </span>
               </router-link>
             </li>
           </ul>
@@ -323,6 +354,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { authService } from '@/services/auth'
+import abapaiLogo from '@/assets/images/abapai_logo.png'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -331,6 +363,7 @@ const sidebarCollapsed = ref(false)
 const userMenuOpen = ref(false)
 
 const isDesktop = ref(window.innerWidth >= 1024)
+const logoSrc = abapaiLogo
 
 onMounted(() => {
   // Set initial sidebar state based on screen size

@@ -54,7 +54,22 @@
             />
           </div>
 
-          <div class="md:col-span-2">
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Cargo/Função</label>
+            <select
+              v-model="form.roleId"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="">Selecione um cargo</option>
+              <option v-for="role in roles" :key="role.id" :value="role.id">
+                {{ role.name.charAt(0).toUpperCase() + role.name.slice(1) }} -
+                {{ role.description }}
+              </option>
+            </select>
+            <p class="text-xs text-neutral-500 mt-1">Opcional - define as permissões do usuário</p>
+          </div>
+
+          <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Senha *</label>
             <input
               v-model="form.password"
@@ -64,9 +79,7 @@
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Senha"
             />
-            <p class="text-xs text-neutral-500 mt-1">
-              Mínimo 6 caracteres
-            </p>
+            <p class="text-xs text-neutral-500 mt-1">Mínimo 6 caracteres</p>
           </div>
 
           <div class="md:col-span-2">
@@ -123,15 +136,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
 import { usersService } from '@/services/users'
+import { rolesService } from '@/services/roles'
+import type { Role } from '@/stores/auth'
 
 const router = useRouter()
 const submitting = ref(false)
 const error = ref('')
 const success = ref('')
+const roles = ref<Role[]>([])
 
 const form = reactive({
   firstName: '',
@@ -139,6 +155,7 @@ const form = reactive({
   email: '',
   password: '',
   confirmPassword: '',
+  roleId: null as number | null,
 })
 
 const isFormValid = computed(() => {
@@ -149,6 +166,14 @@ const isFormValid = computed(() => {
     form.password.length >= 6 &&
     form.password === form.confirmPassword
   )
+})
+
+onMounted(async () => {
+  try {
+    roles.value = await rolesService.getRoles()
+  } catch (err) {
+    console.error('Error loading roles:', err)
+  }
 })
 
 async function handleSubmit() {
@@ -166,6 +191,7 @@ async function handleSubmit() {
       lastName: form.lastName.trim(),
       email: form.email.trim().toLowerCase(),
       password: form.password,
+      ...(form.roleId && { roleId: form.roleId }),
     }
 
     await usersService.createUser(userData)
@@ -180,6 +206,7 @@ async function handleSubmit() {
       email: '',
       password: '',
       confirmPassword: '',
+      roleId: null,
     })
 
     // Redirect after a short delay

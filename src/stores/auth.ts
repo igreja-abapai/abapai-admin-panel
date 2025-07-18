@@ -2,16 +2,26 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { jwtDecode } from 'jwt-decode'
 
+export interface Permission {
+  id: number
+  code: string
+  description: string
+}
+
+export interface Role {
+  id: number
+  name: string
+  description: string
+  permissions: Permission[]
+}
+
 export interface User {
-  id: string
+  id: number
   email: string
   firstName?: string
   lastName?: string
-  profiles?: Array<{
-    permissions?: Array<{
-      code: string
-    }>
-  }>
+  roleId?: number
+  role?: Role
 }
 
 export interface AuthState {
@@ -32,6 +42,18 @@ export const useAuthStore = defineStore('auth', () => {
     if (!user.value) return ''
     const { firstName, lastName } = user.value
     return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase()
+  })
+
+  const userPermissions = computed(() => {
+    return user.value?.role?.permissions || []
+  })
+
+  const hasPermission = computed(() => (permissionCode: string) => {
+    return userPermissions.value.some((permission) => permission.code === permissionCode)
+  })
+
+  const userRole = computed(() => {
+    return user.value?.role?.name || null
   })
 
   function setTokens(access: string, refresh: string) {
@@ -73,6 +95,9 @@ export const useAuthStore = defineStore('auth', () => {
     authLoading,
     isAuthenticated,
     userInitials,
+    userPermissions,
+    hasPermission,
+    userRole,
     setTokens,
     setUser,
     setAuthLoading,

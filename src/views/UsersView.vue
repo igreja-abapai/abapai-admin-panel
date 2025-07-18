@@ -31,9 +31,7 @@
     <!-- Users Table -->
     <div class="bg-white rounded-lg shadow">
       <div class="px-6 py-4 border-b border-neutral-200">
-        <h3 class="text-lg font-medium text-neutral-900">
-          Usuários ({{ filteredUsers.length }})
-        </h3>
+        <h3 class="text-lg font-medium text-neutral-900">Usuários ({{ filteredUsers.length }})</h3>
       </div>
 
       <div class="overflow-x-auto">
@@ -65,19 +63,34 @@
         <table v-else class="w-full">
           <thead class="bg-neutral-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
+              >
                 Nome
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
+              >
                 Email
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
+              >
+                Cargo
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
+              >
                 Data de Criação
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
+              >
                 Status
               </th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
+              <th
+                class="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider"
+              >
                 Ações
               </th>
             </tr>
@@ -108,10 +121,22 @@
                 <div class="text-sm text-neutral-900">{{ user.email }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
+                <div v-if="user.role" class="text-sm text-neutral-900">
+                  <span
+                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 capitalize"
+                  >
+                    {{ user.role.name }}
+                  </span>
+                </div>
+                <div v-else class="text-sm text-neutral-400">Sem cargo</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-neutral-500">{{ formatDate(user.createdAt) }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                <span
+                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
+                >
                   Ativo
                 </span>
               </td>

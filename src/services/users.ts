@@ -1,10 +1,13 @@
 import { httpService } from './http'
+import type { Role } from '@/stores/auth'
 
 export interface User {
   id: number
   firstName: string
   lastName: string
   email: string
+  roleId?: number
+  role?: Role
   createdAt: string
   updatedAt: string
 }
@@ -14,6 +17,7 @@ export interface CreateUserRequest {
   lastName: string
   email: string
   password: string
+  roleId?: number
 }
 
 export interface UpdateUserRequest {
@@ -21,6 +25,7 @@ export interface UpdateUserRequest {
   lastName?: string
   email?: string
   password?: string
+  roleId?: number
 }
 
 class UsersService {

@@ -66,7 +66,22 @@
             />
           </div>
 
-          <div class="md:col-span-2">
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Cargo/Função</label>
+            <select
+              v-model="form.roleId"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="">Nenhum cargo</option>
+              <option v-for="role in roles" :key="role.id" :value="role.id">
+                {{ role.name.charAt(0).toUpperCase() + role.name.slice(1) }} -
+                {{ role.description }}
+              </option>
+            </select>
+            <p class="text-xs text-neutral-500 mt-1">Opcional - define as permissões do usuário</p>
+          </div>
+
+          <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2"
               >Nova Senha (opcional)</label
             >
@@ -139,6 +154,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ArrowLeftIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
 import { usersService, type User } from '@/services/users'
+import { rolesService } from '@/services/roles'
+import type { Role } from '@/stores/auth'
 
 const router = useRouter()
 const route = useRoute()
@@ -147,6 +164,7 @@ const error = ref('')
 const submitError = ref('')
 const success = ref('')
 const submitting = ref(false)
+const roles = ref<Role[]>([])
 
 const form = reactive({
   firstName: '',
@@ -154,6 +172,7 @@ const form = reactive({
   email: '',
   password: '',
   confirmPassword: '',
+  roleId: null as number | null,
 })
 
 const isFormValid = computed(() => {
@@ -166,6 +185,14 @@ const isFormValid = computed(() => {
 
   return basicValid
 })
+
+async function loadRoles() {
+  try {
+    roles.value = await rolesService.getRoles()
+  } catch (err) {
+    console.error('Error loading roles:', err)
+  }
+}
 
 async function loadUser() {
   const userId = parseInt(route.params.id as string)
@@ -184,6 +211,7 @@ async function loadUser() {
     form.firstName = user.firstName
     form.lastName = user.lastName
     form.email = user.email
+    form.roleId = user.roleId || null
     form.password = ''
     form.confirmPassword = ''
   } catch (err: any) {
@@ -209,6 +237,7 @@ async function handleSubmit() {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
       email: form.email.trim().toLowerCase(),
+      roleId: form.roleId,
     }
 
     // Only include password if it's being changed
@@ -237,7 +266,7 @@ async function handleSubmit() {
   }
 }
 
-onMounted(() => {
-  loadUser()
+onMounted(async () => {
+  await Promise.all([loadRoles(), loadUser()])
 })
 </script>

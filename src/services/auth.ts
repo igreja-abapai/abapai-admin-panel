@@ -9,6 +9,7 @@ interface LoginRequest {
 interface LoginResponse {
   accessToken: string
   refreshToken: string
+  user: User
 }
 
 export class AuthService {
@@ -17,12 +18,9 @@ export class AuthService {
 
     const authStore = useAuthStore()
     authStore.setTokens(response.accessToken, response.refreshToken)
+    authStore.setUser(response.user)
 
-    // Get user info
-    const user = await this.whoami()
-    authStore.setUser(user)
-
-    return user
+    return response.user
   }
 
   async whoami(): Promise<User> {
