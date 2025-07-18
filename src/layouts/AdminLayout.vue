@@ -1,5 +1,5 @@
 <template>
-  <div class="layout-container bg-[#f7f9fb] min-h-screen">
+  <div class="flex bg-[#f7f9fb] min-h-screen">
     <!-- Mobile menu button -->
     <button
       @click="toggleSidebar"
@@ -11,7 +11,7 @@
     <!-- Sidebar -->
     <nav
       :class="[
-        'sidebar fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white shadow-lg lg:shadow-none transition-transform duration-300 ease-in-out',
+        'fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white shadow-lg lg:shadow-none transition-transform duration-300 ease-in-out',
         {
           'translate-x-0': sidebarOpen || isDesktop,
           '-translate-x-full': !sidebarOpen && !isDesktop,
@@ -64,6 +64,16 @@
               </router-link>
             </li>
             <li>
+              <router-link
+                to="/usuarios"
+                class="menu-item"
+                :class="{ active: $route.path.startsWith('/usuarios') }"
+              >
+                <UsersIcon class="w-5 h-5" />
+                <span class="label">Usuários do Sistema</span>
+              </router-link>
+            </li>
+            <li>
               <button @click="handleLogout" class="menu-item w-full text-left">
                 <ArrowRightOnRectangleIcon class="w-5 h-5" />
                 <span class="label">Sair</span>
@@ -94,8 +104,8 @@
     </nav>
 
     <!-- Main Content -->
-    <div class="content lg:ml-64">
-      <main class="w-full max-w-6xl p-6">
+    <div class="flex w-full justify-center">
+      <main class="w-full max-w-7xl p-6">
         <router-view />
       </main>
     </div>
@@ -118,6 +128,7 @@ import {
   UserGroupIcon,
   HeartIcon,
   ArrowRightOnRectangleIcon,
+  UsersIcon,
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { authService } from '@/services/auth'
@@ -140,6 +151,7 @@ const pageTitle = computed(() => {
     '/home': 'Home',
     '/membros': 'Membros',
     '/pedidos-de-oracao': 'Pedidos de Oração',
+    '/usuarios': 'Usuários do Sistema',
   }
   return titles[route.path] || 'Dashboard'
 })
@@ -157,25 +169,3 @@ async function handleLogout() {
   router.push('/login')
 }
 </script>
-
-<style scoped>
-.layout-container {
-  display: flex;
-}
-
-.sidebar {
-  transition: transform 0.3s ease-in-out;
-}
-
-.content {
-  flex: 1;
-  min-height: 100vh;
-}
-
-@media (max-width: 1024px) {
-  .sidebar {
-    position: fixed;
-    z-index: 40;
-  }
-}
-</style>

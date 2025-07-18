@@ -3,10 +3,10 @@
     <!-- Header -->
     <div class="w-full flex justify-between mb-8">
       <h1 class="text-neutral-900 font-medium text-[28px]">Pedidos de Oração</h1>
-      <button class="btn btn-primary">
+      <router-link to="/pedidos-de-oracao/novo" class="btn btn-primary">
         <PlusIcon class="w-4 h-4 mr-2" />
         Novo Pedido
-      </button>
+      </router-link>
     </div>
 
     <!-- Search and Filters -->
@@ -27,13 +27,17 @@
         </div>
         <div class="flex gap-2">
           <select
-            v-model="statusFilter"
+            v-model="areaFilter"
             class="px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
-            <option value="">Todos os status</option>
-            <option value="pending">Pendente</option>
-            <option value="answered">Respondido</option>
-            <option value="closed">Fechado</option>
+            <option value="">Todas as áreas</option>
+            <option value="Família">Família</option>
+            <option value="Trabalho">Trabalho</option>
+            <option value="Profissional">Profissional</option>
+            <option value="Saúde">Saúde</option>
+            <option value="Espiritual">Espiritual</option>
+            <option value="Financeiro">Financeiro</option>
+            <option value="Outro">Outro</option>
           </select>
         </div>
       </div>
@@ -66,7 +70,7 @@
           <HeartIcon class="w-12 h-12 text-neutral-400 mx-auto mb-4" />
           <p class="text-neutral-500">
             {{
-              searchTerm || statusFilter
+              searchTerm || areaFilter
                 ? 'Nenhum pedido encontrado com os filtros aplicados'
                 : 'Nenhum pedido de oração encontrado'
             }}
@@ -83,12 +87,10 @@
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-2">
                   <span
-                    :class="[
-                      'px-2 py-1 text-xs font-medium rounded-full',
-                      getStatusClass(request.status),
-                    ]"
+                    v-if="request.area"
+                    class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800"
                   >
-                    {{ getStatusText(request.status) }}
+                    {{ request.area }}
                   </span>
                   <span class="text-xs text-neutral-500">
                     {{ formatDate(request.createdAt) }}
@@ -96,43 +98,25 @@
                 </div>
 
                 <p class="font-medium text-neutral-900 mb-2">
-                  {{ request.title }}
+                  {{ request.name }}
                 </p>
 
                 <p class="text-sm text-neutral-600 mb-3">
-                  {{ request.description }}
+                  {{ request.request }}
                 </p>
 
                 <div class="flex items-center gap-4 text-xs text-neutral-500">
-                  <span>Por: {{ request.memberName }}</span>
-                  <span>•</span>
-                  <span>{{ request.prayerCount }} orações</span>
+                  <span v-if="request.phone">📞 {{ request.phone }}</span>
+                  <span v-if="request.area">📍 {{ request.area }}</span>
                 </div>
               </div>
 
               <div class="flex items-center gap-2 ml-4">
                 <button
-                  @click="toggleAnswered(request)"
-                  :class="[
-                    'px-3 py-1 text-xs font-medium rounded-lg',
-                    request.status === 'answered'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-neutral-100 text-neutral-800 hover:bg-neutral-200',
-                  ]"
+                  @click="deleteRequest(request)"
+                  class="px-3 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-800 hover:bg-red-200"
                 >
-                  {{ request.status === 'answered' ? 'Respondido' : 'Marcar como Respondido' }}
-                </button>
-
-                <button
-                  @click="closeRequest(request)"
-                  :class="[
-                    'px-3 py-1 text-xs font-medium rounded-lg',
-                    request.status === 'closed'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-neutral-100 text-neutral-800 hover:bg-neutral-200',
-                  ]"
-                >
-                  {{ request.status === 'closed' ? 'Fechado' : 'Fechar' }}
+                  Excluir
                 </button>
               </div>
             </div>
@@ -151,7 +135,7 @@ import { prayerRequestsService, type PrayerRequest } from '@/services/prayer-req
 const loading = ref(false)
 const requests = ref<PrayerRequest[]>([])
 const searchTerm = ref('')
-const statusFilter = ref('')
+const areaFilter = ref('')
 const error = ref('')
 
 const filteredRequests = computed(() => {
@@ -161,57 +145,38 @@ const filteredRequests = computed(() => {
     const search = searchTerm.value.toLowerCase()
     filtered = filtered.filter(
       (request) =>
-        request.title.toLowerCase().includes(search) ||
-        request.description.toLowerCase().includes(search) ||
-        request.memberName.toLowerCase().includes(search),
+        request.name.toLowerCase().includes(search) ||
+        request.request.toLowerCase().includes(search) ||
+        (request.area && request.area.toLowerCase().includes(search)),
     )
   }
 
-  if (statusFilter.value) {
-    filtered = filtered.filter((request) => request.status === statusFilter.value)
+  if (areaFilter.value) {
+    filtered = filtered.filter((request) => request.area === areaFilter.value)
   }
 
   return filtered
 })
 
-function getStatusClass(status: string): string {
-  const classes = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    answered: 'bg-green-100 text-green-800',
-    closed: 'bg-red-100 text-red-800',
-  }
-  return classes[status as keyof typeof classes] || classes.pending
-}
-
-function getStatusText(status: string): string {
-  const texts = {
-    pending: 'Pendente',
-    answered: 'Respondido',
-    closed: 'Fechado',
-  }
-  return texts[status as keyof typeof texts] || 'Pendente'
-}
-
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('pt-BR')
 }
 
-async function toggleAnswered(request: PrayerRequest) {
-  try {
-    const newStatus = request.status === 'answered' ? 'pending' : 'answered'
-    await prayerRequestsService.updatePrayerRequest(request.id, { status: newStatus })
-    request.status = newStatus
-  } catch (err: any) {
-    console.error('Error updating prayer request:', err)
+async function deleteRequest(request: PrayerRequest) {
+  if (!confirm('Tem certeza que deseja excluir este pedido de oração?')) {
+    return
   }
-}
 
-async function closeRequest(request: PrayerRequest) {
   try {
-    await prayerRequestsService.updatePrayerRequest(request.id, { status: 'closed' })
-    request.status = 'closed'
+    await prayerRequestsService.deletePrayerRequest(request.id)
+    // Remove from local list
+    const index = requests.value.findIndex((r) => r.id === request.id)
+    if (index > -1) {
+      requests.value.splice(index, 1)
+    }
   } catch (err: any) {
-    console.error('Error closing prayer request:', err)
+    console.error('Error deleting prayer request:', err)
+    error.value = 'Erro ao excluir pedido de oração'
   }
 }
 

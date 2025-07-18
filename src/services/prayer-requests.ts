@@ -2,47 +2,47 @@ import { httpService } from './http'
 
 export interface PrayerRequest {
   id: string
-  title: string
-  description: string
-  memberId: string
-  memberName: string
-  status: 'pending' | 'answered' | 'closed'
+  name: string
+  phone?: string
+  area?: string
+  request: string
   createdAt: string
   updatedAt?: string
-  prayerCount: number
 }
 
 export interface CreatePrayerRequestRequest {
-  title: string
-  description: string
-  memberId: string
+  name: string
+  phone?: string
+  area?: string
+  request: string
 }
 
 export interface UpdatePrayerRequestRequest {
-  title?: string
-  description?: string
-  status?: 'pending' | 'answered' | 'closed'
+  name?: string
+  phone?: string
+  area?: string
+  request?: string
 }
 
 export class PrayerRequestsService {
   async getPrayerRequests(): Promise<PrayerRequest[]> {
-    return await httpService.get<PrayerRequest[]>('/prayer-requests')
+    return await httpService.get<PrayerRequest[]>('/prayer-request')
   }
 
   async getPrayerRequest(id: string): Promise<PrayerRequest> {
-    return await httpService.get<PrayerRequest>(`/prayer-requests/${id}`)
+    return await httpService.get<PrayerRequest>(`/prayer-request/${id}`)
   }
 
   async createPrayerRequest(data: CreatePrayerRequestRequest): Promise<PrayerRequest> {
-    return await httpService.post<PrayerRequest>('/prayer-requests', data)
+    return await httpService.post<PrayerRequest>('/prayer-request', data)
   }
 
   async updatePrayerRequest(id: string, data: UpdatePrayerRequestRequest): Promise<PrayerRequest> {
-    return await httpService.put<PrayerRequest>(`/prayer-requests/${id}`, data)
+    return await httpService.put<PrayerRequest>(`/prayer-request/${id}`, data)
   }
 
   async deletePrayerRequest(id: string): Promise<void> {
-    return await httpService.delete<void>(`/prayer-requests/${id}`)
+    return await httpService.delete<void>(`/prayer-request/${id}`)
   }
 }
 
