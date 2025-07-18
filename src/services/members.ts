@@ -36,6 +36,7 @@ export interface Member {
   currentPosition?: string
   wantsToBeAVolunteer?: boolean
   areaOfInterest?: string
+  isActive: boolean
   address?: Address
   createdAt?: string
   updatedAt?: string

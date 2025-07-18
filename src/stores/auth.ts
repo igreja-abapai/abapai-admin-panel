@@ -5,8 +5,8 @@ import { jwtDecode } from 'jwt-decode'
 export interface User {
   id: string
   email: string
-  givenName?: string
-  familyName?: string
+  firstName?: string
+  lastName?: string
   profiles?: Array<{
     permissions?: Array<{
       code: string
@@ -30,8 +30,8 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!accessToken.value && !!user.value)
   const userInitials = computed(() => {
     if (!user.value) return ''
-    const { givenName, familyName } = user.value
-    return `${givenName?.[0] || ''}${familyName?.[0] || ''}`.toUpperCase()
+    const { firstName, lastName } = user.value
+    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase()
   })
 
   function setTokens(access: string, refresh: string) {

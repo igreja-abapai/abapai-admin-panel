@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { PlusIcon, UserGroupIcon, UserIcon, HeartIcon, ClockIcon } from '@heroicons/vue/24/outline'
+import {
+  PlusIcon,
+  UserGroupIcon,
+  UserIcon,
+  HeartIcon,
+  UserMinusIcon,
+} from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
+import { prayerRequestsService } from '@/services/prayer-requests'
 
 const stats = ref({
   totalMembers: 0,
   activeMembers: 0,
   prayerRequests: 0,
-  recentActivities: 0,
+  inactiveMembers: 0,
 })
 
 const recentMembers = ref<Member[]>([])
@@ -27,11 +34,14 @@ onMounted(async () => {
     // Load real members data
     const members = await membersService.getMembers()
 
+    // Load real prayer requests data
+    const prayerRequests = await prayerRequestsService.getPrayerRequests()
+
     stats.value = {
       totalMembers: members.length,
-      activeMembers: members.filter((m) => m.isBaptized).length,
-      prayerRequests: 0, // TODO: Implement prayer requests count
-      recentActivities: 0, // TODO: Implement recent activities count
+      activeMembers: members.filter((m) => m.isActive).length,
+      prayerRequests: prayerRequests.length,
+      inactiveMembers: members.filter((m) => !m.isActive).length,
     }
 
     // Get recent members (last 3)
@@ -80,6 +90,19 @@ onMounted(async () => {
         </div>
       </div>
 
+            <!-- Inactive Members Card (Membros afastados) -->
+            <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+          <div class="p-2 bg-red-100 rounded-lg">
+            <UserMinusIcon class="w-6 h-6 text-red-600" />
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-neutral-600">Membros afastados</p>
+            <p class="text-2xl font-bold text-neutral-900">{{ stats.inactiveMembers }}</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Prayer Requests Card -->
       <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center">
@@ -89,19 +112,6 @@ onMounted(async () => {
           <div class="ml-4">
             <p class="text-sm font-medium text-neutral-600">Pedidos de Oração</p>
             <p class="text-2xl font-bold text-neutral-900">{{ stats.prayerRequests }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Recent Activity Card -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center">
-          <div class="p-2 bg-orange-100 rounded-lg">
-            <ClockIcon class="w-6 h-6 text-orange-600" />
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-neutral-600">Atividades Recentes</p>
-            <p class="text-2xl font-bold text-neutral-900">{{ stats.recentActivities }}</p>
           </div>
         </div>
       </div>

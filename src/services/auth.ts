@@ -51,6 +51,10 @@ export class AuthService {
       authStore.setAuthLoading(false)
     }
   }
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await httpService.patch('/auth/change-password', { currentPassword, newPassword })
+  }
 }
 
 export const authService = new AuthService()
