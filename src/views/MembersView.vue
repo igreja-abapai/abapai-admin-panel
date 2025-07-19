@@ -156,6 +156,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { PlusIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
+import { formatDate } from '@/utils/dateFormat'
 
 const loading = ref(false)
 const members = ref<Member[]>([])
@@ -186,11 +187,6 @@ function getInitials(name?: string): string {
     .join('')
     .toUpperCase()
     .slice(0, 2)
-}
-
-function formatDate(dateString: string): string {
-  if (!dateString) return 'Data não informada'
-  return new Date(dateString).toLocaleDateString('pt-BR')
 }
 
 async function loadMembers() {

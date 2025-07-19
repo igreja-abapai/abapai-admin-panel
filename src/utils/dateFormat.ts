@@ -7,15 +7,55 @@ export function formatDate(dateString: string): string {
   if (!dateString) return 'Data não informada'
 
   try {
+    // Handle date strings in YYYY-MM-DD format specifically
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      // Parse as local date to avoid timezone issues
+      const [year, month, day] = dateString.split('-').map(Number)
+      return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`
+    }
+
+    // For other date formats, use the Date object
     const date = new Date(dateString)
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      timeZone: 'America/Sao_Paulo',
-    })
+
+    // Get the date components in local time to avoid timezone issues
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1 // getMonth() returns 0-11
+    const day = date.getDate()
+
+    // Format as dd/mm/yyyy
+    return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`
   } catch (error) {
     return 'Data inválida'
+  }
+}
+
+/**
+ * Converts a date string to YYYY-MM-DD format for form inputs
+ * Handles timezone conversion properly
+ * @param dateString - The date string to convert
+ * @returns Date in YYYY-MM-DD format
+ */
+export function formatDateForInput(dateString: string): string {
+  if (!dateString) return ''
+
+  try {
+    // Handle date strings in YYYY-MM-DD format specifically
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return dateString // Already in correct format
+    }
+
+    const date = new Date(dateString)
+
+    // Get the date components in local time to avoid timezone issues
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1 // getMonth() returns 0-11
+    const day = date.getDate()
+
+    // Format as YYYY-MM-DD
+    return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+  } catch (error) {
+    console.error('Error formatting date for input:', error)
+    return ''
   }
 }
 
@@ -52,16 +92,14 @@ export function formatDateTimeWithRelative(dateString: string): string {
   if (!dateString) return 'Data não informada'
 
   try {
-    let date: Date
+    const date = new Date(dateString)
 
-    // If the date string ends with 'Z', it's UTC - convert to Brazil time
-    if (dateString.endsWith('Z')) {
-      const utcDate = new Date(dateString)
-      const brazilOffset = -3 * 60 * 60 * 1000 // UTC-3 in milliseconds
-      date = new Date(utcDate.getTime() + brazilOffset)
-    } else {
-      date = new Date(dateString)
-    }
+    // Get the date components in local time to avoid timezone issues
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1
+    const day = date.getDate()
+    const hours = date.getHours()
+    const minutes = date.getMinutes()
 
     const now = new Date()
     const diffInMs = now.getTime() - date.getTime()
@@ -80,14 +118,8 @@ export function formatDateTimeWithRelative(dateString: string): string {
       relativeTime = 'agora mesmo'
     }
 
-    const formattedDate = date.toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'America/Sao_Paulo',
-    })
+    // Format as dd/mm/yyyy hh:mm
+    const formattedDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
 
     return `${formattedDate} (${relativeTime})`
   } catch (error) {

@@ -512,6 +512,7 @@ import { uploadFileToS3, isValidImageFile, isValidFileSize } from '@/utils/s3Upl
 import { formatPhoneNumber, unformatPhoneNumber } from '@/utils/phoneMask'
 import { formatCPF, unformatCPF } from '@/utils/cpfMask'
 import { formatCEP, unformatCEP } from '@/utils/cepMask'
+import { formatDateForInput } from '@/utils/dateFormat'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import CustomSelect from '@/components/CustomSelect.vue'
@@ -530,7 +531,7 @@ const photoInput = ref<HTMLInputElement>()
 const form = reactive({
   name: '',
   gender: '',
-  birthdate: '',
+  birthdate: null as Date | null,
   nationality: '',
   phone: '',
   email: '',
@@ -676,7 +677,7 @@ async function handleSubmit() {
     // Format the birthdate for the API (convert to yyyy-mm-dd if needed)
     const memberData = {
       ...form,
-      birthdate: form.birthdate,
+      birthdate: form.birthdate ? form.birthdate.toISOString().split('T')[0] : '',
       addressId: parseInt(address.id),
       // Add photo URL if uploaded
       ...(photoUrl && { photoUrl }),
