@@ -10,6 +10,91 @@
     </div>
 
     <form @submit.prevent="handleSubmit" class="space-y-6">
+      <!-- Photo Upload Section -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-neutral-900 mb-6">Foto do Membro</h3>
+
+        <div class="flex items-start space-x-6">
+          <div class="relative">
+            <div
+              v-if="photoPreview"
+              class="w-32 h-40 rounded-lg overflow-hidden border-2 border-neutral-200 shadow-sm"
+            >
+              <img :src="photoPreview" alt="Preview da foto" class="w-full h-full object-cover" />
+            </div>
+            <div
+              v-else
+              class="w-32 h-40 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 flex flex-col items-center justify-center text-neutral-500 hover:border-primary-400 hover:bg-primary-50 transition-colors cursor-pointer"
+              @click="photoInput?.click()"
+            >
+              <svg
+                class="w-8 h-8 mb-2 text-neutral-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                ></path>
+              </svg>
+              <p class="text-xs text-center px-2">Clique para adicionar foto</p>
+            </div>
+
+            <!-- Upload progress indicator -->
+            <div
+              v-if="uploadingPhoto"
+              class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center"
+            >
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+            </div>
+          </div>
+
+          <div class="flex flex-col space-y-3">
+            <input
+              ref="photoInput"
+              type="file"
+              accept="image/*"
+              @change="handlePhotoChange"
+              class="hidden"
+            />
+            <button
+              type="button"
+              @click="photoInput?.click()"
+              :disabled="uploadingPhoto"
+              class="btn btn-secondary text-sm"
+            >
+              {{ uploadingPhoto ? 'Enviando...' : 'Escolher Foto' }}
+            </button>
+            <button
+              v-if="photoPreview"
+              type="button"
+              @click="removePhoto"
+              :disabled="uploadingPhoto"
+              class="text-red-600 hover:text-red-700 text-sm"
+            >
+              Remover foto
+            </button>
+            <div class="text-xs text-neutral-500 space-y-1">
+              <p>Formatos aceitos: JPG, PNG, GIF, WebP</p>
+              <p>Tamanho máximo: 5MB</p>
+              <p>Recomendado: 3:4 (formato documento)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Photo upload error -->
+        <div
+          v-if="photoError"
+          class="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
+        >
+          {{ photoError }}
+        </div>
+      </div>
+
       <!-- Personal Information -->
       <div class="bg-white rounded-lg shadow p-6">
         <h3 class="text-lg font-medium text-neutral-900 mb-6">Informações Pessoais</h3>
@@ -43,11 +128,12 @@
             <label class="block text-sm font-medium text-neutral-700 mb-2"
               >Data de Nascimento *</label
             >
-            <input
+            <VueDatePicker
               v-model="form.birthdate"
-              type="date"
-              required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              :enable-time-picker="false"
+              placeholder="dd/mm/aaaa"
+              format="dd/MM/yyyy"
+              class="w-full"
             />
           </div>
 
@@ -394,15 +480,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import { membersService } from '@/services/members'
 import { addressService, type CreateAddressRequest } from '@/services/address'
+import { uploadFileToS3, isValidImageFile, isValidFileSize } from '@/utils/s3Upload'
+import VueDatePicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 
 const router = useRouter()
 const loading = ref(false)
 const error = ref('')
+
+// Photo upload states
+const photoPreview = ref<string>('')
+const photoFile = ref<File | null>(null)
+const uploadingPhoto = ref(false)
+const photoError = ref('')
+const photoInput = ref<HTMLInputElement>()
 
 const form = reactive({
   name: '',
@@ -438,18 +534,87 @@ const addressForm = reactive<CreateAddressRequest>({
   state: '',
 })
 
+function getInitials(name?: string): string {
+  if (!name) return ''
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+async function handlePhotoChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+
+  if (!file) return
+
+  photoError.value = ''
+
+  // Validate file type
+  if (!isValidImageFile(file)) {
+    photoError.value = 'Por favor, selecione um arquivo de imagem válido (JPG, PNG, GIF, WebP)'
+    return
+  }
+
+  // Validate file size
+  if (!isValidFileSize(file, 5)) {
+    photoError.value = 'O arquivo deve ter no máximo 5MB'
+    return
+  }
+
+  // Store file and create preview (don't upload yet)
+  photoFile.value = file
+
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    photoPreview.value = e.target?.result as string
+  }
+  reader.readAsDataURL(file)
+}
+
+function removePhoto() {
+  photoPreview.value = ''
+  photoFile.value = null
+  photoError.value = ''
+  if (photoInput.value) {
+    photoInput.value.value = ''
+  }
+}
+
 async function handleSubmit() {
   loading.value = true
   error.value = ''
 
   try {
+    let photoUrl = ''
+
+    // Upload photo to S3 if a file is selected
+    if (photoFile.value) {
+      uploadingPhoto.value = true
+      try {
+        const result = await uploadFileToS3(photoFile.value)
+        photoUrl = result.fileUrl
+      } catch (err: any) {
+        console.error('Error uploading photo:', err)
+        error.value = 'Erro ao fazer upload da foto: ' + (err.message || 'Erro desconhecido')
+        return
+      } finally {
+        uploadingPhoto.value = false
+      }
+    }
+
     // First create the address
     const address = await addressService.createAddress(addressForm)
 
-    // Then create the member with the address ID
+    // Format the birthdate for the API (convert to yyyy-mm-dd if needed)
     const memberData = {
       ...form,
+      birthdate: form.birthdate,
       addressId: parseInt(address.id),
+      // Add photo URL if uploaded
+      ...(photoUrl && { photoUrl }),
     }
 
     await membersService.createMember(memberData)

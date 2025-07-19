@@ -4,14 +4,14 @@
     <div class="w-full flex justify-between mb-8">
       <h1 class="text-neutral-900 font-medium text-[28px]">Detalhes do Membro</h1>
       <div class="flex gap-2">
+        <router-link to="/membros" class="btn btn-secondary">
+          <ArrowLeftIcon class="w-4 h-4 mr-2" />
+          Voltar
+        </router-link>
         <button class="btn btn-secondary" @click="handleEdit">
           <PencilIcon class="w-4 h-4 mr-2" />
           Editar
         </button>
-        <router-link to="/pedidos-de-oracao" class="btn btn-primary">
-          <PlusIcon class="w-4 h-4 mr-2" />
-          Novo Pedido
-        </router-link>
       </div>
     </div>
 
@@ -41,7 +41,18 @@
       <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center space-x-4">
           <div
-            class="w-16 h-16 bg-primary-600 text-white rounded-full flex items-center justify-center text-xl font-medium"
+            v-if="member.photoUrl"
+            class="w-24 h-28 rounded-lg overflow-hidden border-2 border-neutral-200 shadow-sm"
+          >
+            <img
+              :src="member.photoUrl"
+              :alt="`Foto de ${member.name}`"
+              class="w-full h-full object-cover"
+            />
+          </div>
+          <div
+            v-else
+            class="w-20 h-[100px] bg-primary-600 text-white rounded-lg flex items-center justify-center text-xl font-medium"
           >
             {{ getInitials(member.name) }}
           </div>
@@ -55,10 +66,10 @@
                 {{ member.isBaptized ? 'Batizado' : 'Não Batizado' }}
               </span>
               <span
-                v-if="member.isBaptizedInTheHolySpirit"
+                v-if="member.currentPosition"
                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
               >
-                Batizado no Espírito Santo
+                {{ member.currentPosition }}
               </span>
             </div>
           </div>
@@ -289,7 +300,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { PencilIcon, PlusIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
+import {
+  PencilIcon,
+  PlusIcon,
+  ExclamationTriangleIcon,
+  ArrowLeftIcon,
+} from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 
 const route = useRoute()
@@ -310,6 +326,13 @@ function getInitials(name?: string): string {
 
 function formatDate(dateString: string): string {
   if (!dateString) return 'Data não informada'
+
+  const [year, month, day] = dateString.split('-')
+  if (year && month && day) {
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+    return date.toLocaleDateString('pt-BR')
+  }
+
   return new Date(dateString).toLocaleDateString('pt-BR')
 }
 

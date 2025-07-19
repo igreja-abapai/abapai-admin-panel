@@ -9,6 +9,8 @@ import {
 } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { prayerRequestsService } from '@/services/prayer-requests'
+import StatCard from '@/components/StatCard.vue'
+import RecentMembersSkeleton from '@/components/RecentMembersSkeleton.vue'
 
 const stats = ref({
   totalMembers: 0,
@@ -18,6 +20,7 @@ const stats = ref({
 })
 
 const recentMembers = ref<Member[]>([])
+const loading = ref(true)
 
 function getInitials(name?: string): string {
   if (!name) return ''
@@ -31,6 +34,7 @@ function getInitials(name?: string): string {
 
 onMounted(async () => {
   try {
+    loading.value = true
     // Load real members data
     const members = await membersService.getMembers()
 
@@ -48,6 +52,8 @@ onMounted(async () => {
     recentMembers.value = members.slice(-3).reverse()
   } catch (error) {
     console.error('Error loading dashboard data:', error)
+  } finally {
+    loading.value = false
   }
 })
 </script>
@@ -64,61 +70,43 @@ onMounted(async () => {
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <!-- Total Members Card -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center">
-          <div class="p-2 bg-blue-100 rounded-lg">
-            <UserGroupIcon class="w-6 h-6 text-blue-600" />
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-neutral-600">Total de Membros</p>
-            <p class="text-2xl font-bold text-neutral-900">{{ stats.totalMembers }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Active Members Card -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center">
-          <div class="p-2 bg-green-100 rounded-lg">
-            <UserIcon class="w-6 h-6 text-green-600" />
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-neutral-600">Membros Ativos</p>
-            <p class="text-2xl font-bold text-neutral-900">{{ stats.activeMembers }}</p>
-          </div>
-        </div>
-      </div>
-
-            <!-- Inactive Members Card (Membros afastados) -->
-            <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center">
-          <div class="p-2 bg-red-100 rounded-lg">
-            <UserMinusIcon class="w-6 h-6 text-red-600" />
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-neutral-600">Membros afastados</p>
-            <p class="text-2xl font-bold text-neutral-900">{{ stats.inactiveMembers }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Prayer Requests Card -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center">
-          <div class="p-2 bg-purple-100 rounded-lg">
-            <HeartIcon class="w-6 h-6 text-purple-600" />
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-neutral-600">Pedidos de Oração</p>
-            <p class="text-2xl font-bold text-neutral-900">{{ stats.prayerRequests }}</p>
-          </div>
-        </div>
-      </div>
+      <StatCard
+        :icon="UserGroupIcon"
+        title="Total de Membros"
+        :value="stats.totalMembers"
+        icon-bg-color="bg-blue-100"
+        icon-color="text-blue-600"
+        :loading="loading"
+      />
+      <StatCard
+        :icon="UserIcon"
+        title="Membros Ativos"
+        :value="stats.activeMembers"
+        icon-bg-color="bg-green-100"
+        icon-color="text-green-600"
+        :loading="loading"
+      />
+      <StatCard
+        :icon="UserMinusIcon"
+        title="Membros afastados"
+        :value="stats.inactiveMembers"
+        icon-bg-color="bg-red-100"
+        icon-color="text-red-600"
+        :loading="loading"
+      />
+      <StatCard
+        :icon="HeartIcon"
+        title="Pedidos de Oração"
+        :value="stats.prayerRequests"
+        icon-bg-color="bg-purple-100"
+        icon-color="text-purple-600"
+        :loading="loading"
+      />
     </div>
 
     <!-- Recent Members -->
-    <div class="bg-white rounded-lg shadow">
+    <RecentMembersSkeleton v-if="loading" />
+    <div v-else class="bg-white rounded-lg shadow">
       <div class="px-6 py-4 border-b border-neutral-200">
         <h3 class="text-lg font-medium text-neutral-900">Membros Recentes</h3>
       </div>
@@ -135,6 +123,17 @@ onMounted(async () => {
           >
             <div class="flex items-center">
               <div
+                v-if="member.photoUrl"
+                class="w-10 h-10 rounded-full overflow-hidden border-2 border-neutral-200"
+              >
+                <img
+                  :src="member.photoUrl"
+                  :alt="`Foto de ${member.name}`"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <div
+                v-else
                 class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-medium"
               >
                 {{ getInitials(member.name) }}

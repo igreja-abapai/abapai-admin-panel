@@ -1,17 +1,5 @@
 import { httpService } from './http'
-
-export interface Address {
-  id: string
-  city: string
-  country: string
-  district: string
-  postalCode?: string
-  streetName: string
-  streetNumber: string
-  state: string
-  createdAt?: string
-  updatedAt?: string
-}
+import type { Address } from './address'
 
 export interface Member {
   id: string
@@ -36,6 +24,7 @@ export interface Member {
   currentPosition?: string
   wantsToBeAVolunteer?: boolean
   areaOfInterest?: string
+  photoUrl?: string
   isActive: boolean
   address?: Address
   createdAt?: string
@@ -64,6 +53,8 @@ export interface CreateMemberRequest {
   currentPosition?: string
   wantsToBeAVolunteer?: boolean
   areaOfInterest?: string
+  photoUrl?: string
+  addressId: number
 }
 
 export interface UpdateMemberRequest {
@@ -88,6 +79,7 @@ export interface UpdateMemberRequest {
   currentPosition?: string
   wantsToBeAVolunteer?: boolean
   areaOfInterest?: string
+  photoUrl?: string
 }
 
 export class MembersService {

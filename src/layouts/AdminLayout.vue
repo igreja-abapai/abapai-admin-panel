@@ -1,5 +1,5 @@
 <template>
-  <div class="flex bg-[#f7f9fb] min-h-screen">
+  <div class="flex bg-[#f7f8f9] min-h-screen">
     <!-- Mobile menu button -->
     <button
       @click="toggleHamburger"

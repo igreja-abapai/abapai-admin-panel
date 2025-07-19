@@ -105,6 +105,17 @@
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div
+                    v-if="member.photoUrl"
+                    class="w-8 h-8 rounded-full overflow-hidden border-2 border-neutral-200 mr-3"
+                  >
+                    <img
+                      :src="member.photoUrl"
+                      :alt="`Foto de ${member.name}`"
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div
+                    v-else
                     class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-xs font-medium mr-3"
                   >
                     {{ getInitials(member.name) }}
