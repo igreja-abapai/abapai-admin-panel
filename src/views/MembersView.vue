@@ -25,6 +25,16 @@
             />
           </div>
         </div>
+        <div class="md:w-48">
+          <CustomSelect
+            v-model="baptismFilter"
+            :options="[
+              { value: 'true', label: 'Batizados' },
+              { value: 'false', label: 'Não batizados' },
+            ]"
+            placeholder="Selecionar filtro"
+          />
+        </div>
       </div>
     </div>
 
@@ -51,6 +61,11 @@
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
               >
+                BATISMO
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
+              >
                 ENDEREÇO
               </th>
               <th
@@ -67,7 +82,7 @@
           </thead>
           <tbody class="bg-white divide-y divide-neutral-200">
             <tr v-if="error">
-              <td colspan="5" class="px-6 py-4">
+              <td colspan="6" class="px-6 py-4">
                 <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                   {{ error }}
                 </div>
@@ -75,7 +90,7 @@
             </tr>
 
             <tr v-else-if="loading">
-              <td colspan="5" class="px-6 py-4 text-center">
+              <td colspan="6" class="px-6 py-4 text-center">
                 <div
                   class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"
                 ></div>
@@ -84,7 +99,7 @@
             </tr>
 
             <tr v-else-if="filteredMembers.length === 0">
-              <td colspan="5" class="px-6 py-4 text-center">
+              <td colspan="6" class="px-6 py-4 text-center">
                 <UserGroupIcon class="w-12 h-12 text-neutral-400 mx-auto mb-4" />
                 <p class="text-neutral-500">
                   {{
@@ -131,6 +146,20 @@
                 {{ formatDate(member.birthdate) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
+                <span
+                  v-if="member.isBaptized"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                >
+                  Batizado
+                </span>
+                <span
+                  v-else
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+                >
+                  Não Batizado
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                 {{ member.address?.streetName || 'Endereço não informado' }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
@@ -157,15 +186,18 @@ import { ref, computed, onMounted } from 'vue'
 import { PlusIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { formatDate } from '@/utils/dateFormat'
+import CustomSelect from '@/components/CustomSelect.vue'
 
 const loading = ref(false)
 const members = ref<Member[]>([])
 const searchTerm = ref('')
+const baptismFilter = ref('')
 const error = ref('')
 
 const filteredMembers = computed(() => {
   let filtered = members.value
 
+  // Apply search filter
   if (searchTerm.value) {
     const search = searchTerm.value.toLowerCase()
     filtered = filtered.filter(
@@ -174,6 +206,12 @@ const filteredMembers = computed(() => {
         (member.email && member.email.toLowerCase().includes(search)) ||
         member.phone.toLowerCase().includes(search),
     )
+  }
+
+  // Apply baptism filter
+  if (baptismFilter.value) {
+    const isBaptized = baptismFilter.value === 'true'
+    filtered = filtered.filter((member) => member.isBaptized === isBaptized)
   }
 
   return filtered

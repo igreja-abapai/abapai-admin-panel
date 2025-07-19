@@ -685,7 +685,7 @@ function populateForm() {
   Object.assign(form, {
     name: member.value.name,
     gender: member.value.gender,
-    birthdate: member.value.birthdate ? new Date(member.value.birthdate) : null, // Convert to Date object
+    birthdate: member.value.birthdate ? createLocalDate(member.value.birthdate) : null,
     nationality: member.value.nationality,
     phone: member.value.phone,
     email: member.value.email || '',
@@ -725,6 +725,19 @@ function populateForm() {
   if (member.value.photoUrl) {
     photoPreview.value = member.value.photoUrl
   }
+}
+
+// Helper function to create a local date from a date string
+function createLocalDate(dateString: string): Date {
+  // Handle YYYY-MM-DD format specifically
+  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [year, month, day] = dateString.split('-').map(Number)
+    // Create date in local timezone (month is 0-indexed)
+    return new Date(year, month - 1, day)
+  }
+
+  // For other formats, use the Date constructor
+  return new Date(dateString)
 }
 
 async function loadMember() {

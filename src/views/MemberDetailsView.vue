@@ -315,6 +315,56 @@
           </div>
         </div>
       </div>
+
+      <!-- Delete Member Section -->
+      <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+        <h3 class="text-lg font-medium text-red-700 mb-4">Cuidado, atenção!</h3>
+        <p class="text-neutral-600 mb-4">
+          Esta ação é irreversível. Ao excluir este membro, todos os dados serão permanentemente
+          removidos.
+        </p>
+        <button
+          @click="showDeleteConfirmation = true"
+          class="btn bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700"
+        >
+          <TrashIcon class="w-4 h-4 mr-2" />
+          Excluir Membro
+        </button>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div
+      v-if="showDeleteConfirmation"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      @click="showDeleteConfirmation = false"
+    >
+      <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" @click.stop>
+        <div class="flex items-center mb-4">
+          <ExclamationTriangleIcon class="w-8 h-8 text-red-500 mr-3" />
+          <h3 class="text-lg font-medium text-neutral-900">Confirmar Exclusão</h3>
+        </div>
+        <p class="text-neutral-600 mb-6">
+          Tem certeza que deseja excluir o membro <strong>{{ member?.name }}</strong
+          >? Esta ação não pode ser desfeita.
+        </p>
+        <div class="flex justify-end space-x-3">
+          <button @click="showDeleteConfirmation = false" class="btn btn-secondary">
+            Cancelar
+          </button>
+          <button
+            @click="handleDeleteMember"
+            :disabled="deleting"
+            class="btn bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700"
+          >
+            <span
+              v-if="deleting"
+              class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
+            ></span>
+            {{ deleting ? 'Excluindo...' : 'Sim, Excluir' }}
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -327,6 +377,7 @@ import {
   PlusIcon,
   ExclamationTriangleIcon,
   ArrowLeftIcon,
+  TrashIcon,
 } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { usersService, type User } from '@/services/users'
@@ -339,6 +390,8 @@ const createdByUser = ref<User | null>(null)
 const updatedByUser = ref<User | null>(null)
 const loading = ref(false)
 const error = ref('')
+const showDeleteConfirmation = ref(false)
+const deleting = ref(false)
 
 function getInitials(name?: string): string {
   if (!name) return ''
@@ -383,6 +436,20 @@ async function loadMember() {
     error.value = err.response?.data?.message || 'Erro ao carregar detalhes do membro'
   } finally {
     loading.value = false
+  }
+}
+
+async function handleDeleteMember() {
+  deleting.value = true
+  try {
+    await membersService.deleteMember(member.value?.id as string)
+    router.push('/membros')
+  } catch (err: any) {
+    console.error('Error deleting member:', err)
+    error.value = err.response?.data?.message || 'Erro ao excluir membro'
+  } finally {
+    deleting.value = false
+    showDeleteConfirmation.value = false
   }
 }
 

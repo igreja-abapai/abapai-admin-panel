@@ -2,7 +2,7 @@
   <div class="relative">
     <select
       :value="modelValue || ''"
-      @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value || null)"
+      @change="handleChange"
       :disabled="disabled"
       class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-neutral-900 appearance-none pr-10"
       :class="{ 'opacity-50 cursor-not-allowed': disabled }"
@@ -52,8 +52,26 @@ interface Props {
   disabled?: boolean
 }
 
-defineProps<Props>()
-defineEmits<{
+const props = defineProps<Props>()
+const emit = defineEmits<{
   'update:modelValue': [value: string | number | null]
 }>()
+
+function handleChange(event: Event) {
+  const target = event.target as HTMLSelectElement
+  const value = target.value || null
+
+  if (value === null) {
+    emit('update:modelValue', null)
+    return
+  }
+
+  // Try to convert to number if the original value was a number
+  const option = props.options.find((opt) => String(opt.value) === value)
+  if (option && typeof option.value === 'number') {
+    emit('update:modelValue', Number(value))
+  } else {
+    emit('update:modelValue', value)
+  }
+}
 </script>

@@ -44,14 +44,17 @@ export function formatDateForInput(dateString: string): string {
       return dateString // Already in correct format
     }
 
+    // For other date formats, create a local date to avoid timezone issues
     const date = new Date(dateString)
 
-    // Get the date components in local time to avoid timezone issues
-    const year = date.getFullYear()
-    const month = date.getMonth() + 1 // getMonth() returns 0-11
-    const day = date.getDate()
+    // Create a new date using local components to avoid timezone shifts
+    const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
 
     // Format as YYYY-MM-DD
+    const year = localDate.getFullYear()
+    const month = localDate.getMonth() + 1 // getMonth() returns 0-11
+    const day = localDate.getDate()
+
     return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
   } catch (error) {
     console.error('Error formatting date for input:', error)
