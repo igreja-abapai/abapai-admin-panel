@@ -1,8 +1,8 @@
 <template>
   <div class="relative">
     <select
-      :value="modelValue"
-      @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
+      :value="modelValue || ''"
+      @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value || null)"
       :disabled="disabled"
       class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-neutral-900 appearance-none pr-10"
       :class="{ 'opacity-50 cursor-not-allowed': disabled }"
@@ -11,7 +11,7 @@
       <option
         v-for="option in options"
         :key="option.value"
-        :value="option.value"
+        :value="String(option.value)"
         :disabled="option.disabled"
       >
         {{ option.label }}
@@ -40,13 +40,13 @@
 
 <script setup lang="ts">
 interface SelectOption {
-  value: string
+  value: string | number
   label: string
   disabled?: boolean
 }
 
 interface Props {
-  modelValue: string
+  modelValue: string | number | null
   options: SelectOption[]
   placeholder?: string
   disabled?: boolean
@@ -54,6 +54,6 @@ interface Props {
 
 defineProps<Props>()
 defineEmits<{
-  'update:modelValue': [value: string]
+  'update:modelValue': [value: string | number | null]
 }>()
 </script>

@@ -72,7 +72,7 @@
               v-model="form.roleId"
               :options="[
                 { value: '', label: 'Nenhum cargo' },
-                ...roles.map((role) => ({
+                ...roles.map((role: Role) => ({
                   value: role.id,
                   label: `${role.name.charAt(0).toUpperCase() + role.name.slice(1)} - ${role.description}`,
                 })),

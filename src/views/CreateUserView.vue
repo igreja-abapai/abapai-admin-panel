@@ -59,7 +59,7 @@
             <CustomSelect
               v-model="form.roleId"
               :options="
-                roles.map((role) => ({
+                roles.map((role: Role) => ({
                   value: role.id,
                   label: `${role.name.charAt(0).toUpperCase() + role.name.slice(1)} - ${role.description}`,
                 }))
@@ -140,7 +140,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
 import { usersService } from '@/services/users'
-import { rolesService, type Role } from '@/services/roles'
+import { rolesService } from '@/services/roles'
+import type { Role } from '@/stores/auth'
 import CustomSelect from '@/components/CustomSelect.vue'
 
 const router = useRouter()
