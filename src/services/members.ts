@@ -13,6 +13,8 @@ export interface Member {
   spouseName?: string
   educationLevel: string
   yearOfConversion?: string
+  yearOfBaptism?: string
+  placeOfBirth?: string
   occupation: string
   rg: string
   issuingBody: string
@@ -29,6 +31,8 @@ export interface Member {
   address?: Address
   createdAt?: string
   updatedAt?: string
+  createdBy?: number
+  updatedBy?: number
 }
 
 export interface CreateMemberRequest {
@@ -42,6 +46,8 @@ export interface CreateMemberRequest {
   spouseName?: string
   educationLevel: string
   yearOfConversion?: string
+  yearOfBaptism?: string
+  placeOfBirth?: string
   occupation: string
   rg: string
   issuingBody: string
@@ -68,6 +74,8 @@ export interface UpdateMemberRequest {
   spouseName?: string
   educationLevel?: string
   yearOfConversion?: string
+  yearOfBaptism?: string
+  placeOfBirth?: string
   occupation?: string
   rg?: string
   issuingBody?: string

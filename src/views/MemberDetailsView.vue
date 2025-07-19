@@ -190,6 +190,14 @@
             <label class="block text-sm font-medium text-neutral-500 mb-1">Ano de Conversão</label>
             <p class="text-neutral-900">{{ member.yearOfConversion }}</p>
           </div>
+          <div v-if="member.yearOfBaptism">
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Ano do Batismo</label>
+            <p class="text-neutral-900">{{ member.yearOfBaptism }}</p>
+          </div>
+          <div v-if="member.placeOfBirth">
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Naturalidade</label>
+            <p class="text-neutral-900">{{ member.placeOfBirth }}</p>
+          </div>
           <div v-if="member.lastChurch">
             <label class="block text-sm font-medium text-neutral-500 mb-1">Última Igreja</label>
             <p class="text-neutral-900">{{ member.lastChurch }}</p>
@@ -283,13 +291,27 @@
           </div>
           <div v-if="member.createdAt">
             <label class="block text-sm font-medium text-neutral-500 mb-1">Data de Cadastro</label>
-            <p class="text-neutral-900">{{ formatDateTime(member.createdAt) }}</p>
+            <p class="text-neutral-900">{{ formatDateTimeWithRelative(member.createdAt) }}</p>
           </div>
           <div v-if="member.updatedAt">
             <label class="block text-sm font-medium text-neutral-500 mb-1"
               >Última Atualização</label
             >
-            <p class="text-neutral-900">{{ formatDateTime(member.updatedAt) }}</p>
+            <p class="text-neutral-900">{{ formatDateTimeWithRelative(member.updatedAt) }}</p>
+          </div>
+          <div v-if="createdByUser">
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Cadastrado por</label>
+            <p class="text-neutral-900">
+              {{ createdByUser.firstName }} {{ createdByUser.lastName }}
+            </p>
+            <p class="text-xs text-neutral-500">{{ createdByUser.email }}</p>
+          </div>
+          <div v-if="updatedByUser">
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Atualizado por</label>
+            <p class="text-neutral-900">
+              {{ updatedByUser.firstName }} {{ updatedByUser.lastName }}
+            </p>
+            <p class="text-xs text-neutral-500">{{ updatedByUser.email }}</p>
           </div>
         </div>
       </div>
@@ -307,10 +329,14 @@ import {
   ArrowLeftIcon,
 } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
+import { usersService, type User } from '@/services/users'
+import { formatDate, formatDateTimeWithRelative } from '@/utils/dateFormat'
 
 const route = useRoute()
 const router = useRouter()
 const member = ref<Member | null>(null)
+const createdByUser = ref<User | null>(null)
+const updatedByUser = ref<User | null>(null)
 const loading = ref(false)
 const error = ref('')
 
@@ -324,23 +350,6 @@ function getInitials(name?: string): string {
     .slice(0, 2)
 }
 
-function formatDate(dateString: string): string {
-  if (!dateString) return 'Data não informada'
-
-  const [year, month, day] = dateString.split('-')
-  if (year && month && day) {
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
-    return date.toLocaleDateString('pt-BR')
-  }
-
-  return new Date(dateString).toLocaleDateString('pt-BR')
-}
-
-function formatDateTime(dateString: string): string {
-  if (!dateString) return 'Data não informada'
-  return new Date(dateString).toLocaleString('pt-BR')
-}
-
 function handleEdit() {
   router.push(`/membros/editar/${member.value?.id}`)
 }
@@ -352,6 +361,23 @@ async function loadMember() {
   try {
     const memberId = route.params.id as string
     member.value = await membersService.getMember(memberId)
+
+    // Load user information for audit fields
+    if (member.value?.createdBy) {
+      try {
+        createdByUser.value = await usersService.getUser(member.value.createdBy)
+      } catch (err) {
+        console.error('Error loading created by user:', err)
+      }
+    }
+
+    if (member.value?.updatedBy) {
+      try {
+        updatedByUser.value = await usersService.getUser(member.value.updatedBy)
+      } catch (err) {
+        console.error('Error loading updated by user:', err)
+      }
+    }
   } catch (err: any) {
     console.error('Error loading member:', err)
     error.value = err.response?.data?.message || 'Erro ao carregar detalhes do membro'

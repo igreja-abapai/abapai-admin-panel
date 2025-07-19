@@ -173,6 +173,7 @@
             <label class="block text-sm font-medium text-neutral-700 mb-2">Telefone *</label>
             <input
               v-model="form.phone"
+              @input="handlePhoneInput"
               type="tel"
               required
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -311,6 +312,7 @@
             <label class="block text-sm font-medium text-neutral-700 mb-2">CEP</label>
             <input
               v-model="addressForm.postalCode"
+              @input="handleCEPInput"
               type="text"
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="00000-000"
@@ -328,6 +330,7 @@
             <label class="block text-sm font-medium text-neutral-700 mb-2">CPF *</label>
             <input
               v-model="form.cpf"
+              @input="handleCPFInput"
               type="text"
               required
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -384,6 +387,26 @@
               type="text"
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Ex: 2020"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Ano do Batismo</label>
+            <input
+              v-model="form.yearOfBaptism"
+              type="text"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Ex: 2021"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Naturalidade</label>
+            <input
+              v-model="form.placeOfBirth"
+              type="text"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Ex: São Paulo, SP"
             />
           </div>
 
@@ -509,6 +532,9 @@ import { ArrowLeftIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outlin
 import { membersService, type Member } from '@/services/members'
 import { addressService, type Address } from '@/services/address'
 import { uploadFileToS3, isValidImageFile, isValidFileSize } from '@/utils/s3Upload'
+import { formatPhoneNumber, unformatPhoneNumber } from '@/utils/phoneMask'
+import { formatCPF, unformatCPF } from '@/utils/cpfMask'
+import { formatCEP, unformatCEP } from '@/utils/cepMask'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
@@ -540,6 +566,8 @@ const form = reactive({
   spouseName: '',
   educationLevel: '',
   yearOfConversion: '',
+  yearOfBaptism: '',
+  placeOfBirth: '',
   occupation: '',
   rg: '',
   issuingBody: '',
@@ -612,6 +640,42 @@ function removePhoto() {
   }
 }
 
+function handlePhoneInput(event: Event) {
+  const target = event.target as HTMLInputElement
+  const rawValue = target.value
+  const formattedValue = formatPhoneNumber(rawValue)
+
+  // Update the input value with formatting
+  target.value = formattedValue
+
+  // Update the form data with the formatted value
+  form.phone = formattedValue
+}
+
+function handleCPFInput(event: Event) {
+  const target = event.target as HTMLInputElement
+  const rawValue = target.value
+  const formattedValue = formatCPF(rawValue)
+
+  // Update the input value with formatting
+  target.value = formattedValue
+
+  // Update the form data with the formatted value
+  form.cpf = formattedValue
+}
+
+function handleCEPInput(event: Event) {
+  const target = event.target as HTMLInputElement
+  const rawValue = target.value
+  const formattedValue = formatCEP(rawValue)
+
+  // Update the input value with formatting
+  target.value = formattedValue
+
+  // Update the address form data with the formatted value
+  addressForm.postalCode = formattedValue
+}
+
 function populateForm() {
   if (!member.value) return
 
@@ -627,6 +691,8 @@ function populateForm() {
     spouseName: member.value.spouseName || '',
     educationLevel: member.value.educationLevel,
     yearOfConversion: member.value.yearOfConversion || '',
+    yearOfBaptism: member.value.yearOfBaptism || '',
+    placeOfBirth: member.value.placeOfBirth || '',
     occupation: member.value.occupation,
     rg: member.value.rg,
     issuingBody: member.value.issuingBody,
