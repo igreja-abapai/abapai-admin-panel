@@ -134,15 +134,15 @@
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Gênero *</label>
-            <select
+            <CustomSelect
               v-model="form.gender"
+              :options="[
+                { value: 'Masculino', label: 'Masculino' },
+                { value: 'Feminino', label: 'Feminino' },
+              ]"
+              placeholder="Selecione o gênero"
               required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="">Selecione o gênero</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Feminino">Feminino</option>
-            </select>
+            />
           </div>
 
           <div>
@@ -193,17 +193,17 @@
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Estado Civil *</label>
-            <select
+            <CustomSelect
               v-model="form.maritalStatus"
+              :options="[
+                { value: 'Solteiro', label: 'Solteiro' },
+                { value: 'Casado', label: 'Casado' },
+                { value: 'Divorciado', label: 'Divorciado' },
+                { value: 'Viúvo', label: 'Viúvo' },
+              ]"
+              placeholder="Selecione o estado civil"
               required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="">Selecione o estado civil</option>
-              <option value="Solteiro">Solteiro</option>
-              <option value="Casado">Casado</option>
-              <option value="Divorciado">Divorciado</option>
-              <option value="Viúvo">Viúvo</option>
-            </select>
+            />
           </div>
 
           <div v-if="form.maritalStatus === 'Casado'">
@@ -218,21 +218,21 @@
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Escolaridade *</label>
-            <select
+            <CustomSelect
               v-model="form.educationLevel"
+              :options="[
+                { value: 'Ensino Fundamental', label: 'Ensino Fundamental' },
+                { value: 'Ensino Médio', label: 'Ensino Médio' },
+                { value: 'Curso Técnico', label: 'Curso Técnico' },
+                { value: 'Ensino Superior', label: 'Ensino Superior' },
+                { value: 'Pós-Graduação', label: 'Pós-Graduação' },
+                { value: 'Mestrado', label: 'Mestrado' },
+                { value: 'Doutorado', label: 'Doutorado' },
+                { value: 'Outro', label: 'Outro' },
+              ]"
+              placeholder="Selecione a escolaridade"
               required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="">Selecione a escolaridade</option>
-              <option value="Ensino Fundamental">Ensino Fundamental</option>
-              <option value="Ensino Médio">Ensino Médio</option>
-              <option value="Curso Técnico">Curso Técnico</option>
-              <option value="Ensino Superior">Ensino Superior</option>
-              <option value="Pós-Graduação">Pós-Graduação</option>
-              <option value="Mestrado">Mestrado</option>
-              <option value="Doutorado">Doutorado</option>
-              <option value="Outro">Outro</option>
-            </select>
+            />
           </div>
         </div>
       </div>
@@ -537,6 +537,7 @@ import { formatCPF, unformatCPF } from '@/utils/cpfMask'
 import { formatCEP, unformatCEP } from '@/utils/cepMask'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
+import CustomSelect from '@/components/CustomSelect.vue'
 
 const route = useRoute()
 const router = useRouter()

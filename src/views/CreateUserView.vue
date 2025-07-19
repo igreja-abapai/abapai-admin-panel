@@ -56,16 +56,16 @@
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Cargo/Função</label>
-            <select
+            <CustomSelect
               v-model="form.roleId"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="">Selecione um cargo</option>
-              <option v-for="role in roles" :key="role.id" :value="role.id">
-                {{ role.name.charAt(0).toUpperCase() + role.name.slice(1) }} -
-                {{ role.description }}
-              </option>
-            </select>
+              :options="
+                roles.map((role) => ({
+                  value: role.id,
+                  label: `${role.name.charAt(0).toUpperCase() + role.name.slice(1)} - ${role.description}`,
+                }))
+              "
+              placeholder="Selecione um cargo"
+            />
             <p class="text-xs text-neutral-500 mt-1">Opcional - define as permissões do usuário</p>
           </div>
 
@@ -140,8 +140,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
 import { usersService } from '@/services/users'
-import { rolesService } from '@/services/roles'
-import type { Role } from '@/stores/auth'
+import { rolesService, type Role } from '@/services/roles'
+import CustomSelect from '@/components/CustomSelect.vue'
 
 const router = useRouter()
 const submitting = ref(false)

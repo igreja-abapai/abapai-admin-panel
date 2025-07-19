@@ -26,19 +26,20 @@
           </div>
         </div>
         <div class="flex gap-2">
-          <select
+          <CustomSelect
             v-model="areaFilter"
-            class="px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          >
-            <option value="">Todas as áreas</option>
-            <option value="Família">Família</option>
-            <option value="Trabalho">Trabalho</option>
-            <option value="Profissional">Profissional</option>
-            <option value="Saúde">Saúde</option>
-            <option value="Espiritual">Espiritual</option>
-            <option value="Financeiro">Financeiro</option>
-            <option value="Outro">Outro</option>
-          </select>
+            :options="[
+              { value: '', label: 'Todas as áreas' },
+              { value: 'Família', label: 'Família' },
+              { value: 'Trabalho', label: 'Trabalho' },
+              { value: 'Profissional', label: 'Profissional' },
+              { value: 'Saúde', label: 'Saúde' },
+              { value: 'Espiritual', label: 'Espiritual' },
+              { value: 'Financeiro', label: 'Financeiro' },
+              { value: 'Outro', label: 'Outro' },
+            ]"
+            placeholder="Filtrar por área"
+          />
         </div>
       </div>
     </div>
@@ -131,6 +132,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { PlusIcon, MagnifyingGlassIcon, HeartIcon } from '@heroicons/vue/24/outline'
 import { prayerRequestsService, type PrayerRequest } from '@/services/prayer-requests'
+import CustomSelect from '@/components/CustomSelect.vue'
 
 const loading = ref(false)
 const requests = ref<PrayerRequest[]>([])

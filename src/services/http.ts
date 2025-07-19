@@ -39,9 +39,13 @@ class HttpService {
       async (error) => {
         const authStore = useAuthStore()
 
-        if (error.response?.status === 401) {
+        // Only handle 401 errors for authenticated requests (with Authorization header)
+        if (error.response?.status === 401 && error.config?.headers?.Authorization) {
           authStore.logout()
-          window.location.href = '/login'
+          // Use router navigation instead of window.location.href to prevent page refresh
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login'
+          }
         }
 
         return Promise.reject(error)

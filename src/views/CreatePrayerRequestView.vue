@@ -38,19 +38,19 @@
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Área</label>
-            <select
+            <CustomSelect
               v-model="form.area"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="">Selecione uma área</option>
-              <option value="Família">Família</option>
-              <option value="Trabalho">Trabalho</option>
-              <option value="Profissional">Profissional</option>
-              <option value="Saúde">Saúde</option>
-              <option value="Espiritual">Espiritual</option>
-              <option value="Financeiro">Financeiro</option>
-              <option value="Outro">Outro</option>
-            </select>
+              :options="[
+                { value: 'Família', label: 'Família' },
+                { value: 'Trabalho', label: 'Trabalho' },
+                { value: 'Profissional', label: 'Profissional' },
+                { value: 'Saúde', label: 'Saúde' },
+                { value: 'Espiritual', label: 'Espiritual' },
+                { value: 'Financeiro', label: 'Financeiro' },
+                { value: 'Outro', label: 'Outro' },
+              ]"
+              placeholder="Selecione uma área"
+            />
           </div>
         </div>
 
@@ -108,6 +108,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
 import { prayerRequestsService } from '@/services/prayer-requests'
+import CustomSelect from '@/components/CustomSelect.vue'
 
 const router = useRouter()
 const submitting = ref(false)

@@ -64,7 +64,7 @@
             <!-- Dropdown Menu -->
             <div
               v-if="userMenuOpen"
-              class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-50"
+              class="absolute right-0 mt-2 w-60 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-50"
             >
               <div class="px-4 py-2 border-b border-neutral-100">
                 <p class="text-sm font-medium text-neutral-900">
@@ -82,20 +82,7 @@
                 @click="showChangePasswordModal = true"
                 class="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 flex items-center space-x-2"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 11c0-1.104.896-2 2-2s2 .896 2 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2c0-1.104.896-2 2-2zm0 0V7m0 4v4"
-                  />
-                </svg>
+                <KeyIcon class="w-4 h-4" />
                 <span>Alterar senha</span>
               </button>
               <button
@@ -141,7 +128,7 @@
               <router-link to="/home" class="w-full">
                 <span
                   :class="[
-                    'flex items-center px-4 py-2 rounded-xl transition-all duration-200',
+                    'flex items-center px-4 py-1 rounded-xl transition-all duration-200',
                     $route.path === '/home'
                       ? 'bg-blue-100 text-blue-700 shadow-sm'
                       : 'hover:bg-neutral-100',
@@ -160,7 +147,7 @@
               <router-link to="/membros" class="w-full">
                 <span
                   :class="[
-                    'flex items-center px-4 py-2 rounded-xl transition-all duration-200',
+                    'flex items-center px-4 py-1 rounded-xl transition-all duration-200',
                     $route.path.startsWith('/membros')
                       ? 'bg-blue-100 text-blue-700 shadow-sm'
                       : 'hover:bg-neutral-100',
@@ -179,7 +166,7 @@
               <router-link to="/pedidos-de-oracao" class="w-full">
                 <span
                   :class="[
-                    'flex items-center px-4 py-2 rounded-xl transition-all duration-200',
+                    'flex items-center px-4 py-1 rounded-xl transition-all duration-200',
                     $route.path === '/pedidos-de-oracao'
                       ? 'bg-blue-100 text-blue-700 shadow-sm'
                       : 'hover:bg-neutral-100',
@@ -198,7 +185,7 @@
               <router-link to="/usuarios" class="w-full">
                 <span
                   :class="[
-                    'flex items-center px-4 py-2 rounded-xl transition-all duration-200',
+                    'flex items-center px-4 py-1 rounded-xl transition-all duration-200',
                     $route.path.startsWith('/usuarios')
                       ? 'bg-blue-100 text-blue-700 shadow-sm'
                       : 'hover:bg-neutral-100',
@@ -351,6 +338,7 @@ import {
   UsersIcon,
   BellIcon,
   ChevronDownIcon,
+  KeyIcon,
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { authService } from '@/services/auth'
