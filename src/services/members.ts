@@ -22,7 +22,7 @@ export interface Member {
   lastChurch?: string
   lastPositionHeld?: string
   isBaptized: boolean
-  isBaptizedInTheHolySpirit?: boolean
+  isBaptizedInTheHolySpirit?: boolean | null
   currentPosition?: string
   wantsToBeAVolunteer?: boolean
   areaOfInterest?: string
@@ -55,7 +55,7 @@ export interface CreateMemberRequest {
   lastChurch?: string
   lastPositionHeld?: string
   isBaptized: boolean
-  isBaptizedInTheHolySpirit?: boolean
+  isBaptizedInTheHolySpirit?: boolean | null
   currentPosition?: string
   wantsToBeAVolunteer?: boolean
   areaOfInterest?: string
@@ -83,7 +83,7 @@ export interface UpdateMemberRequest {
   lastChurch?: string
   lastPositionHeld?: string
   isBaptized?: boolean
-  isBaptizedInTheHolySpirit?: boolean
+  isBaptizedInTheHolySpirit?: boolean | null
   currentPosition?: string
   wantsToBeAVolunteer?: boolean
   areaOfInterest?: string

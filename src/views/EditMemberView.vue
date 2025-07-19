@@ -471,19 +471,39 @@
             </label>
           </div>
 
-          <div class="flex items-center">
-            <input
-              v-model="form.isBaptizedInTheHolySpirit"
-              type="checkbox"
-              id="isBaptizedInTheHolySpirit"
-              class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 rounded focus:ring-primary-500 focus:ring-2"
-            />
-            <label
-              for="isBaptizedInTheHolySpirit"
-              class="ml-2 text-sm font-medium text-neutral-700"
-            >
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">
               É batizado no Espírito Santo
             </label>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input
+                  v-model="form.isBaptizedInTheHolySpirit"
+                  type="radio"
+                  :value="true"
+                  class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
+                />
+                <span class="ml-2 text-sm text-neutral-700">Sim</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  v-model="form.isBaptizedInTheHolySpirit"
+                  type="radio"
+                  :value="false"
+                  class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
+                />
+                <span class="ml-2 text-sm text-neutral-700">Não</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  v-model="form.isBaptizedInTheHolySpirit"
+                  type="radio"
+                  :value="null"
+                  class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
+                />
+                <span class="ml-2 text-sm text-neutral-700">Não informado</span>
+              </label>
+            </div>
           </div>
 
           <div class="flex items-center">
@@ -577,7 +597,7 @@ const form = reactive({
   lastChurch: '',
   lastPositionHeld: '',
   isBaptized: false,
-  isBaptizedInTheHolySpirit: false,
+  isBaptizedInTheHolySpirit: null as boolean | null,
   currentPosition: '',
   wantsToBeAVolunteer: false,
   areaOfInterest: '',
@@ -702,7 +722,7 @@ function populateForm() {
     lastChurch: member.value.lastChurch || '',
     lastPositionHeld: member.value.lastPositionHeld || '',
     isBaptized: member.value.isBaptized,
-    isBaptizedInTheHolySpirit: member.value.isBaptizedInTheHolySpirit || false,
+    isBaptizedInTheHolySpirit: member.value.isBaptizedInTheHolySpirit || null,
     currentPosition: member.value.currentPosition || '',
     wantsToBeAVolunteer: member.value.wantsToBeAVolunteer || false,
     areaOfInterest: member.value.areaOfInterest || '',
@@ -732,8 +752,10 @@ function createLocalDate(dateString: string): Date {
   // Handle YYYY-MM-DD format specifically
   if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
     const [year, month, day] = dateString.split('-').map(Number)
-    // Create date in local timezone (month is 0-indexed)
-    return new Date(year, month - 1, day)
+    // Create date at midnight local time to avoid timezone shifts
+    const date = new Date(year, month - 1, day, 0, 0, 0, 0)
+
+    return date
   }
 
   // For other formats, use the Date constructor
@@ -782,10 +804,28 @@ async function handleSubmit() {
       await addressService.updateAddress(member.value.address.id, addressForm)
     }
 
+    // Format birthdate properly to avoid timezone issues
+    let formattedBirthdate: string | undefined
+    if (form.birthdate) {
+      // Extract the date components and format as YYYY-MM-DD
+      const year = form.birthdate.getFullYear()
+      const month = form.birthdate.getMonth() + 1 // getMonth() returns 0-11
+      const day = form.birthdate.getDate()
+
+      // Format as YYYY-MM-DD with explicit timezone offset to ensure local interpretation
+      const timezoneOffset = form.birthdate.getTimezoneOffset()
+      const offsetHours = Math.abs(Math.floor(timezoneOffset / 60))
+      const offsetMinutes = Math.abs(timezoneOffset % 60)
+      const offsetSign = timezoneOffset <= 0 ? '+' : '-'
+
+      // Send as ISO string with timezone offset to ensure correct interpretation
+      formattedBirthdate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T00:00:00.000${offsetSign}${offsetHours.toString().padStart(2, '0')}:${offsetMinutes.toString().padStart(2, '0')}`
+    }
+
     // Update member with photo URL if changed
     const memberData = {
       ...form,
-      birthdate: form.birthdate ? form.birthdate.toISOString().split('T')[0] : undefined,
+      birthdate: formattedBirthdate,
       ...(photoUrl && { photoUrl }),
     }
 
