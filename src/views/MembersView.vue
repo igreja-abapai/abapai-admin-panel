@@ -188,7 +188,6 @@ async function loadMembers() {
 
   try {
     members.value = await membersService.getMembers()
-    console.log(await membersService.getMembers())
   } catch (err: any) {
     console.error('Error loading members:', err)
     error.value = err.response?.data?.message || 'Erro ao carregar membros'

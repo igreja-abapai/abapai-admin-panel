@@ -13,12 +13,15 @@ interface LoginResponse {
 }
 
 export class AuthService {
+  private initialized = false
+
   async login(credentials: LoginRequest): Promise<User> {
     const response = await httpService.post<LoginResponse>('/auth/login', credentials)
 
     const authStore = useAuthStore()
     authStore.setTokens(response.accessToken, response.refreshToken)
     authStore.setUser(response.user)
+    this.initialized = true
 
     return response.user
   }
@@ -30,12 +33,14 @@ export class AuthService {
   async logout(): Promise<void> {
     const authStore = useAuthStore()
     authStore.logout()
+    this.initialized = false
   }
 
   async init(): Promise<void> {
     const authStore = useAuthStore()
 
-    if (!authStore.accessToken) {
+    // Skip if already initialized or no token
+    if (this.initialized || !authStore.accessToken) {
       authStore.setAuthLoading(false)
       return
     }
@@ -43,8 +48,10 @@ export class AuthService {
     try {
       const user = await this.whoami()
       authStore.setUser(user)
+      this.initialized = true
     } catch (error) {
       authStore.logout()
+      this.initialized = false
     } finally {
       authStore.setAuthLoading(false)
     }
