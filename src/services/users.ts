@@ -37,12 +37,20 @@ class UsersService {
     return await httpService.get<User>(`/users/${id}`)
   }
 
+  async getCurrentUser(): Promise<User> {
+    return await httpService.get<User>('/users/me')
+  }
+
   async createUser(userData: CreateUserRequest): Promise<User> {
     return await httpService.post<User>('/users', userData)
   }
 
   async updateUser(id: number, userData: UpdateUserRequest): Promise<User> {
     return await httpService.patch<User>(`/users/${id}`, userData)
+  }
+
+  async updateCurrentUser(userData: UpdateUserRequest): Promise<User> {
+    return await httpService.patch<User>('/users/me', userData)
   }
 
   async deleteUser(id: number): Promise<void> {

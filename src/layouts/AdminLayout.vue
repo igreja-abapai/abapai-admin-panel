@@ -78,6 +78,14 @@
                   {{ authStore.userRole }}
                 </p>
               </div>
+              <router-link
+                to="/perfil"
+                @click="userMenuOpen = false"
+                class="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 flex items-center space-x-2"
+              >
+                <UserIcon class="w-4 h-4" />
+                <span>Minha Conta</span>
+              </router-link>
               <button
                 @click="showChangePasswordModal = true"
                 class="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 flex items-center space-x-2"
@@ -339,6 +347,7 @@ import {
   BellIcon,
   ChevronDownIcon,
   KeyIcon,
+  UserIcon,
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { authService } from '@/services/auth'

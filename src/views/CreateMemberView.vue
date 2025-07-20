@@ -446,7 +446,7 @@
               class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 rounded focus:ring-primary-500 focus:ring-2"
             />
             <label for="isBaptized" class="ml-2 text-sm font-medium text-neutral-700">
-              É batizado em água *
+              É batizado nas águas *
             </label>
           </div>
 

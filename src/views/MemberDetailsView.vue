@@ -224,7 +224,9 @@
         <h3 class="text-lg font-medium text-neutral-900 mb-6">Informações Espirituais</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-sm font-medium text-neutral-500 mb-1">Batizado em Água</label>
+            <label class="block text-sm font-medium text-neutral-500 mb-1"
+              >Batizado nas Águas</label
+            >
             <p class="text-neutral-900">
               <span
                 v-if="member.isBaptized"

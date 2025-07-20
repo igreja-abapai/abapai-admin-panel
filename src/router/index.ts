@@ -85,6 +85,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/EditUserView.vue'),
         meta: { requiresAuth: true, permission: 'editar_usuarios' },
       },
+      {
+        path: 'perfil',
+        name: 'profile',
+        component: () => import('@/views/ProfileView.vue'),
+        meta: { requiresAuth: true },
+      },
     ],
     meta: { requiresAuth: true },
     beforeEnter: authGuard,
