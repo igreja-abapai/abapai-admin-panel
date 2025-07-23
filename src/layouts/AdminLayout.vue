@@ -30,12 +30,79 @@
         <!-- Right side - User profile and notifications -->
         <div class="flex items-center space-x-4">
           <!-- Notifications -->
-          <button
-            class="relative p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
-          >
-            <BellIcon class="w-[24px] h-[24px]" />
-            <!-- <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span> -->
-          </button>
+          <div class="relative">
+            <button
+              class="relative p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
+              @click="toggleNotificationsDropdown"
+            >
+              <BellIcon class="w-[24px] h-[24px]" />
+              <span
+                v-if="notificationsStore.unreadCount(authStore.user?.id || 0) > 0"
+                class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs flex items-center justify-center rounded-full"
+                >{{ notificationsStore.unreadCount(authStore.user?.id || 0) }}</span
+              >
+            </button>
+            <!-- Notifications Dropdown -->
+            <div
+              v-if="notificationsDropdownOpen"
+              class="absolute -right-8 top-full mt-2 w-96 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-50"
+              style="max-height: 400px; overflow-y: auto"
+            >
+              <div
+                class="px-4 py-2 border-b border-neutral-100 font-semibold text-neutral-900 flex items-center justify-between"
+              >
+                Notificações
+                <button
+                  class="text-neutral-400 hover:text-neutral-700"
+                  @click="notificationsDropdownOpen = false"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div v-if="notificationsStore.loading" class="p-4 space-y-2">
+                <div v-for="i in 3" :key="i" class="animate-pulse flex flex-col gap-2">
+                  <div class="h-4 w-2/3 bg-neutral-200 rounded"></div>
+                  <div class="h-3 w-1/2 bg-neutral-100 rounded"></div>
+                </div>
+              </div>
+              <div
+                v-else-if="notificationsStore.notifications.length === 0"
+                class="p-4 text-neutral-500"
+              >
+                Nenhuma notificação.
+              </div>
+              <ul v-else class="divide-y divide-neutral-100">
+                <li
+                  v-for="notification in notificationsStore.notifications"
+                  :key="notification.id"
+                  class="px-4 py-3 hover:bg-neutral-50 cursor-pointer flex flex-col"
+                  :class="{
+                    'bg-blue-50': !notification.readBy.some((u) => u.id === authStore.user?.id),
+                  }"
+                  @click="notificationsStore.markAsRead(notification.id)"
+                >
+                  <div class="font-medium text-neutral-900 mb-1">{{ notification.title }}</div>
+                  <div class="text-neutral-700 text-sm mb-1" v-html="notification.message"></div>
+                  <div class="text-xs text-neutral-400">
+                    {{ new Date(notification.createdAt).toLocaleString('pt-BR') }}
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
 
           <!-- User Profile Dropdown -->
           <div class="relative">
@@ -151,24 +218,60 @@
                 </span>
               </router-link>
             </li>
-            <li v-if="authStore.hasPermission('visualizar_membros')" class="flex">
-              <router-link to="/membros" class="w-full">
-                <span
-                  :class="[
-                    'flex items-center px-4 py-1 rounded-xl transition-all duration-200',
-                    $route.path.startsWith('/membros')
-                      ? 'bg-blue-100 text-blue-700 shadow-sm'
-                      : 'hover:bg-neutral-100',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    'w-full',
-                  ]"
-                >
-                  <span class="flex items-center justify-center w-10 h-10">
-                    <UserGroupIcon class="w-5 h-5" />
-                  </span>
-                  <span v-show="!sidebarCollapsed" class="label">Membros</span>
+            <li v-if="authStore.hasPermission('visualizar_membros')" class="flex flex-col">
+              <div
+                @click="membrosDropdownOpen = !membrosDropdownOpen"
+                class="flex items-center px-4 py-1 rounded-xl transition-all duration-200 cursor-pointer select-none hover:bg-neutral-100"
+                :class="[
+                  !membrosDropdownOpen &&
+                  ($route.path === '/membros' || $route.path === '/membros/aniversariantes')
+                    ? 'bg-blue-100 text-blue-700 shadow-sm'
+                    : '',
+                  sidebarCollapsed ? 'justify-center' : 'justify-start',
+                  'w-full',
+                ]"
+              >
+                <span class="flex items-center justify-center w-10 h-10">
+                  <UserGroupIcon class="w-5 h-5" />
                 </span>
-              </router-link>
+                <span v-show="!sidebarCollapsed" class="label flex-1">Membros</span>
+                <ChevronDownIcon
+                  v-show="!sidebarCollapsed"
+                  :class="[
+                    'w-4 h-4 ml-2 transition-transform',
+                    membrosDropdownOpen ? 'rotate-180' : '',
+                  ]"
+                />
+              </div>
+              <transition name="fade">
+                <ul v-show="membrosDropdownOpen && !sidebarCollapsed" class="pl-12 py-1 space-y-1">
+                  <li>
+                    <router-link
+                      to="/membros"
+                      class="block px-4 py-1 rounded-lg hover:bg-blue-50 flex items-center h-10"
+                      :class="{
+                        'text-blue-700 bg-blue-100 shadow-sm': $route.path === '/membros',
+                        'text-blue-700': $route.path === '/membros',
+                      }"
+                    >
+                      Cadastros
+                    </router-link>
+                  </li>
+                  <li>
+                    <router-link
+                      to="/membros/aniversariantes"
+                      class="block px-4 py-1 rounded-lg hover:bg-blue-50 flex items-center h-10"
+                      :class="{
+                        'text-blue-700 bg-blue-100 shadow-sm':
+                          $route.path === '/membros/aniversariantes',
+                        'text-blue-700': $route.path === '/membros/aniversariantes',
+                      }"
+                    >
+                      Aniversariantes
+                    </router-link>
+                  </li>
+                </ul>
+              </transition>
             </li>
             <li v-if="authStore.hasPermission('visualizar_pedidos_oracao')" class="flex">
               <router-link to="/pedidos-de-oracao" class="w-full">
@@ -350,19 +453,25 @@ import {
   UserIcon,
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
+import { useNotificationsStore } from '@/stores/notifications'
 import { authService } from '@/services/auth'
 import abapaiLogo from '@/assets/images/abapai_logo.png'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const notificationsStore = useNotificationsStore()
 const sidebarOpen = ref(true) // Start with sidebar open
 const sidebarCollapsed = ref(false)
 const userMenuOpen = ref(false)
+const membrosDropdownOpen = ref(false)
+const notificationsDropdownOpen = ref(false)
 
 const isDesktop = ref(window.innerWidth >= 1024)
 const logoSrc = abapaiLogo
 
+// Fetch notifications on mount
 onMounted(() => {
+  notificationsStore.fetchNotifications()
   // Set initial sidebar state based on screen size
   sidebarOpen.value = window.innerWidth >= 1024
   sidebarCollapsed.value = false
@@ -412,10 +521,20 @@ function toggleUserMenu() {
   userMenuOpen.value = !userMenuOpen.value
 }
 
+function toggleNotificationsDropdown() {
+  notificationsDropdownOpen.value = !notificationsDropdownOpen.value
+  if (notificationsDropdownOpen.value) {
+    notificationsStore.fetchNotifications()
+  }
+}
+
 function handleClickOutside(event: Event) {
   const target = event.target as HTMLElement
   if (!target.closest('.relative')) {
     userMenuOpen.value = false
+  }
+  if (!target.closest('.relative')) {
+    notificationsDropdownOpen.value = false
   }
 }
 

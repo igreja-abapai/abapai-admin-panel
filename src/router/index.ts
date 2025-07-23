@@ -56,6 +56,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, permission: 'criar_membros' },
       },
       {
+        path: 'membros/aniversariantes',
+        name: 'members-birthdays',
+        component: () => import('@/views/BirthdaysView.vue'),
+        meta: { requiresAuth: true, permission: 'visualizar_membros' },
+      },
+      {
         path: 'pedidos-de-oracao',
         name: 'prayer-requests',
         component: () => import('@/views/PrayerRequestsView.vue'),
