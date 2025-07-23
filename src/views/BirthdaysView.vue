@@ -125,9 +125,7 @@
     </div>
 
     <div>
-      <h2 class="text-lg font-semibold text-primary-700 mb-2">
-        Aniversariantes de cada mês
-      </h2>
+      <h2 class="text-lg font-semibold text-primary-700 mb-2">Aniversariantes de cada mês</h2>
       <div v-if="loading">
         <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <li
@@ -151,7 +149,9 @@
             <span class="font-semibold text-primary-700 mb-1">{{ monthNames[idx] }}</span>
             <template v-if="entry">
               <span class="font-medium text-neutral-900">{{ entry.member.name }}</span>
-              <span class="text-neutral-500">{{ formatNextBirthday(entry.member.birthdate, false) }}</span>
+              <span class="text-neutral-500">{{
+                formatNextBirthday(entry.member.birthdate, false)
+              }}</span>
             </template>
             <template v-else>
               <span class="text-neutral-400">Nenhum aniversariante</span>
