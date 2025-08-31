@@ -98,6 +98,10 @@
             <label class="block text-sm font-medium text-neutral-500 mb-1">Nacionalidade</label>
             <p class="text-neutral-900">{{ member.nationality }}</p>
           </div>
+          <div v-if="member.placeOfBirth">
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Naturalidade</label>
+            <p class="text-neutral-900">{{ member.placeOfBirth }}</p>
+          </div>
           <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Telefone</label>
             <p class="text-neutral-900">{{ member.phone }}</p>
@@ -118,6 +122,13 @@
             <label class="block text-sm font-medium text-neutral-500 mb-1">Escolaridade</label>
             <p class="text-neutral-900">{{ member.educationLevel }}</p>
           </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-500 mb-1"
+              >Profissão/Ocupação</label
+            >
+            <p class="text-neutral-900">{{ member.occupation }}</p>
+          </div>
         </div>
       </div>
 
@@ -125,7 +136,7 @@
       <div class="bg-white rounded-lg shadow p-6">
         <h3 class="text-lg font-medium text-neutral-900 mb-6">Endereço</h3>
         <div v-if="member.address" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div>
+          <div class="md:col-span-2">
             <label class="block text-sm font-medium text-neutral-500 mb-1">Rua</label>
             <p class="text-neutral-900">
               {{ member.address.streetName }}, {{ member.address.streetNumber }}
@@ -176,27 +187,13 @@
         </div>
       </div>
 
-      <!-- Professional Information -->
+      <!-- Spiritual Information -->
       <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-medium text-neutral-900 mb-6">Informações Profissionais</h3>
+        <h3 class="text-lg font-medium text-neutral-900 mb-6">Informações Espirituais</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-medium text-neutral-500 mb-1"
-              >Profissão/Ocupação</label
-            >
-            <p class="text-neutral-900">{{ member.occupation }}</p>
-          </div>
           <div v-if="member.yearOfConversion">
             <label class="block text-sm font-medium text-neutral-500 mb-1">Ano de Conversão</label>
             <p class="text-neutral-900">{{ member.yearOfConversion }}</p>
-          </div>
-          <div v-if="member.yearOfBaptism">
-            <label class="block text-sm font-medium text-neutral-500 mb-1">Ano do Batismo</label>
-            <p class="text-neutral-900">{{ member.yearOfBaptism }}</p>
-          </div>
-          <div v-if="member.placeOfBirth">
-            <label class="block text-sm font-medium text-neutral-500 mb-1">Naturalidade</label>
-            <p class="text-neutral-900">{{ member.placeOfBirth }}</p>
           </div>
           <div v-if="member.lastChurch">
             <label class="block text-sm font-medium text-neutral-500 mb-1">Última Igreja</label>
@@ -216,13 +213,6 @@
             <label class="block text-sm font-medium text-neutral-500 mb-1">Área de Interesse</label>
             <p class="text-neutral-900">{{ member.areaOfInterest }}</p>
           </div>
-        </div>
-      </div>
-
-      <!-- Spiritual Information -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-medium text-neutral-900 mb-6">Informações Espirituais</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1"
               >Batizado nas Águas</label
@@ -241,6 +231,10 @@
                 Não
               </span>
             </p>
+          </div>
+          <div v-if="member.isBaptized && member.yearOfBaptism">
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Ano do Batismo</label>
+            <p class="text-neutral-900">{{ member.yearOfBaptism }}</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1"

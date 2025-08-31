@@ -97,6 +97,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/ProfileView.vue'),
         meta: { requiresAuth: true },
       },
+      {
+        path: 'website',
+        name: 'website',
+        component: () => import('@/views/WebsiteView.vue'),
+        meta: { requiresAuth: true, permission: 'gerenciar_website' },
+      },
     ],
     meta: { requiresAuth: true },
     beforeEnter: authGuard,

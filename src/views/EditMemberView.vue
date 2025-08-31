@@ -170,6 +170,16 @@
           </div>
 
           <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Naturalidade</label>
+            <input
+              v-model="form.placeOfBirth"
+              type="text"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Ex: São Paulo, SP"
+            />
+          </div>
+
+          <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Telefone *</label>
             <input
               v-model="form.phone"
@@ -234,6 +244,19 @@
               required
             />
           </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2"
+              >Profissão/Ocupação *</label
+            >
+            <input
+              v-model="form.occupation"
+              type="text"
+              required
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Ex: Engenheiro, Professor, etc."
+            />
+          </div>
         </div>
       </div>
 
@@ -242,7 +265,7 @@
         <h3 class="text-lg font-medium text-neutral-900 mb-6">Endereço</h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div>
+          <div class="md:col-span-2">
             <label class="block text-sm font-medium text-neutral-700 mb-2">Rua *</label>
             <input
               v-model="addressForm.streetName"
@@ -362,24 +385,11 @@
         </div>
       </div>
 
-      <!-- Professional Information -->
+      <!-- Spiritual Information -->
       <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-medium text-neutral-900 mb-6">Informações Profissionais</h3>
+        <h3 class="text-lg font-medium text-neutral-900 mb-6">Informações Espirituais</h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2"
-              >Profissão/Ocupação *</label
-            >
-            <input
-              v-model="form.occupation"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: Engenheiro, Professor, etc."
-            />
-          </div>
-
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Ano de Conversão</label>
             <input
@@ -387,26 +397,6 @@
               type="text"
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Ex: 2020"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Ano do Batismo</label>
-            <input
-              v-model="form.yearOfBaptism"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: 2021"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Naturalidade</label>
-            <input
-              v-model="form.placeOfBirth"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: São Paulo, SP"
             />
           </div>
 
@@ -451,14 +441,7 @@
               placeholder="Ex: Música, Jovens, Crianças, etc."
             />
           </div>
-        </div>
-      </div>
 
-      <!-- Spiritual Information -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-medium text-neutral-900 mb-6">Informações Espirituais</h3>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="flex items-center">
             <input
               v-model="form.isBaptized"
@@ -469,6 +452,16 @@
             <label for="isBaptized" class="ml-2 text-sm font-medium text-neutral-700">
               É batizado nas águas *
             </label>
+          </div>
+
+          <div v-if="form.isBaptized">
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Ano do Batismo</label>
+            <input
+              v-model="form.yearOfBaptism"
+              type="text"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Ex: 2021"
+            />
           </div>
 
           <div>
