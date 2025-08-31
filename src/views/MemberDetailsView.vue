@@ -102,6 +102,24 @@
             <label class="block text-sm font-medium text-neutral-500 mb-1">Naturalidade</label>
             <p class="text-neutral-900">{{ member.placeOfBirth }}</p>
           </div>
+
+          <div v-if="member.childrenCount !== null && member.childrenCount !== undefined">
+            <label class="block text-sm font-medium text-neutral-500 mb-1"
+              >Quantidade de Filhos</label
+            >
+            <p class="text-neutral-900">{{ member.childrenCount }}</p>
+          </div>
+
+          <div v-if="member.fatherName">
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Nome do Pai</label>
+            <p class="text-neutral-900">{{ member.fatherName }}</p>
+          </div>
+
+          <div v-if="member.motherName">
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Nome da Mãe</label>
+            <p class="text-neutral-900">{{ member.motherName }}</p>
+          </div>
+
           <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Telefone</label>
             <p class="text-neutral-900">{{ member.phone }}</p>
@@ -205,14 +223,24 @@
             >
             <p class="text-neutral-900">{{ member.lastPositionHeld }}</p>
           </div>
+
+          <div v-if="member.lastPositionPeriod">
+            <label class="block text-sm font-medium text-neutral-500 mb-1"
+              >Período do Último Cargo</label
+            >
+            <p class="text-neutral-900">{{ member.lastPositionPeriod }}</p>
+          </div>
+
           <div v-if="member.currentPosition">
             <label class="block text-sm font-medium text-neutral-500 mb-1">Cargo Atual</label>
             <p class="text-neutral-900">{{ member.currentPosition }}</p>
           </div>
-          <div v-if="member.areaOfInterest">
+
+          <div v-if="member.wantsToBeAVolunteer && member.areaOfInterest">
             <label class="block text-sm font-medium text-neutral-500 mb-1">Área de Interesse</label>
             <p class="text-neutral-900">{{ member.areaOfInterest }}</p>
           </div>
+
           <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1"
               >Batizado nas Águas</label
@@ -232,9 +260,15 @@
               </span>
             </p>
           </div>
+
           <div v-if="member.isBaptized && member.yearOfBaptism">
             <label class="block text-sm font-medium text-neutral-500 mb-1">Ano do Batismo</label>
             <p class="text-neutral-900">{{ member.yearOfBaptism }}</p>
+          </div>
+
+          <div v-if="member.isBaptized && member.baptismPlace">
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Local do Batismo</label>
+            <p class="text-neutral-900">{{ member.baptismPlace }}</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1"
@@ -279,6 +313,11 @@
                 Não
               </span>
             </p>
+          </div>
+
+          <div v-if="member.observations" class="md:col-span-2">
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Observações</label>
+            <p class="text-neutral-900 whitespace-pre-wrap">{{ member.observations }}</p>
           </div>
         </div>
       </div>

@@ -27,6 +27,12 @@ export interface Member {
   wantsToBeAVolunteer?: boolean
   areaOfInterest?: string
   photoUrl?: string
+  childrenCount?: number
+  fatherName?: string
+  motherName?: string
+  lastPositionPeriod?: string
+  baptismPlace?: string
+  observations?: string
   isActive: boolean
   address?: Address
   createdAt?: string
@@ -60,6 +66,12 @@ export interface CreateMemberRequest {
   wantsToBeAVolunteer?: boolean
   areaOfInterest?: string
   photoUrl?: string
+  childrenCount?: number
+  fatherName?: string
+  motherName?: string
+  lastPositionPeriod?: string
+  baptismPlace?: string
+  observations?: string
   addressId: number
 }
 
@@ -88,6 +100,12 @@ export interface UpdateMemberRequest {
   wantsToBeAVolunteer?: boolean
   areaOfInterest?: string
   photoUrl?: string
+  childrenCount?: number
+  fatherName?: string
+  motherName?: string
+  lastPositionPeriod?: string
+  baptismPlace?: string
+  observations?: string
 }
 
 export class MembersService {

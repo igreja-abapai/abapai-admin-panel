@@ -159,6 +159,39 @@
           </div>
 
           <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2"
+              >Quantidade de Filhos</label
+            >
+            <input
+              v-model="form.childrenCount"
+              type="number"
+              min="0"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="0"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Nome do Pai</label>
+            <input
+              v-model="form.fatherName"
+              type="text"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Nome completo do pai"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Nome da Mãe</label>
+            <input
+              v-model="form.motherName"
+              type="text"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Nome completo da mãe"
+            />
+          </div>
+
+          <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Telefone *</label>
             <input
               v-model="form.phone"
@@ -402,22 +435,24 @@
           </div>
 
           <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2"
+              >Período do Último Cargo</label
+            >
+            <input
+              v-model="form.lastPositionPeriod"
+              type="text"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Ex: 2020-2022"
+            />
+          </div>
+
+          <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Cargo Atual</label>
             <input
               v-model="form.currentPosition"
               type="text"
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Ex: Membro, Líder, etc."
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Área de Interesse</label>
-            <input
-              v-model="form.areaOfInterest"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: Música, Jovens, Crianças, etc."
             />
           </div>
 
@@ -440,6 +475,16 @@
               type="text"
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Ex: 2021"
+            />
+          </div>
+
+          <div v-if="form.isBaptized">
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Local do Batismo</label>
+            <input
+              v-model="form.baptismPlace"
+              type="text"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Ex: Igreja Batista Central"
             />
           </div>
 
@@ -488,6 +533,26 @@
             <label for="wantsToBeAVolunteer" class="ml-2 text-sm font-medium text-neutral-700">
               Deseja ser voluntário
             </label>
+          </div>
+
+          <div v-if="form.wantsToBeAVolunteer">
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Área de Interesse</label>
+            <input
+              v-model="form.areaOfInterest"
+              type="text"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Ex: Louvor, Recepção, Dpt. Infantil, etc."
+            />
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Observações</label>
+            <textarea
+              v-model="form.observations"
+              rows="4"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Informações adicionais sobre o membro..."
+            ></textarea>
           </div>
         </div>
       </div>
@@ -565,6 +630,12 @@ const form = reactive({
   currentPosition: '',
   wantsToBeAVolunteer: false,
   areaOfInterest: '',
+  childrenCount: null as number | null,
+  fatherName: '',
+  motherName: '',
+  lastPositionPeriod: '',
+  baptismPlace: '',
+  observations: '',
 })
 
 const addressForm = reactive<CreateAddressRequest>({
