@@ -824,7 +824,10 @@ function populateForm() {
     currentPosition: member.value.currentPosition || '',
     wantsToBeAVolunteer: member.value.wantsToBeAVolunteer || false,
     areaOfInterest: member.value.areaOfInterest || '',
-    childrenCount: member.value.childrenCount || undefined,
+    childrenCount:
+      member.value.childrenCount !== null && member.value.childrenCount !== undefined
+        ? member.value.childrenCount
+        : undefined,
     fatherName: member.value.fatherName || '',
     motherName: member.value.motherName || '',
     lastPositionPeriod: member.value.lastPositionPeriod || '',
