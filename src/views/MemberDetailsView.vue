@@ -98,26 +98,32 @@
             <label class="block text-sm font-medium text-neutral-500 mb-1">Nacionalidade</label>
             <p class="text-neutral-900">{{ member.nationality }}</p>
           </div>
-          <div v-if="member.placeOfBirth">
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Naturalidade</label>
-            <p class="text-neutral-900">{{ member.placeOfBirth }}</p>
+            <p class="text-neutral-900">{{ member.placeOfBirth || 'Não informado' }}</p>
           </div>
 
-          <div v-if="member.childrenCount !== null && member.childrenCount !== undefined">
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1"
               >Quantidade de Filhos</label
             >
-            <p class="text-neutral-900">{{ member.childrenCount }}</p>
+            <p class="text-neutral-900">
+              {{
+                member.childrenCount !== null && member.childrenCount !== undefined
+                  ? member.childrenCount
+                  : 'Não informado'
+              }}
+            </p>
           </div>
 
-          <div v-if="member.fatherName">
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Nome do Pai</label>
-            <p class="text-neutral-900">{{ member.fatherName }}</p>
+            <p class="text-neutral-900">{{ member.fatherName || 'Não informado' }}</p>
           </div>
 
-          <div v-if="member.motherName">
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Nome da Mãe</label>
-            <p class="text-neutral-900">{{ member.motherName }}</p>
+            <p class="text-neutral-900">{{ member.motherName || 'Não informado' }}</p>
           </div>
 
           <div>
@@ -132,9 +138,9 @@
             <label class="block text-sm font-medium text-neutral-500 mb-1">Estado Civil</label>
             <p class="text-neutral-900">{{ member.maritalStatus }}</p>
           </div>
-          <div v-if="member.spouseName">
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Nome do Cônjuge</label>
-            <p class="text-neutral-900">{{ member.spouseName }}</p>
+            <p class="text-neutral-900">{{ member.spouseName || 'Não informado' }}</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Escolaridade</label>
@@ -176,9 +182,9 @@
             <label class="block text-sm font-medium text-neutral-500 mb-1">País</label>
             <p class="text-neutral-900">{{ member.address.country }}</p>
           </div>
-          <div v-if="member.address.postalCode">
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">CEP</label>
-            <p class="text-neutral-900">{{ member.address.postalCode }}</p>
+            <p class="text-neutral-900">{{ member.address.postalCode || 'Não informado' }}</p>
           </div>
         </div>
         <div v-else class="text-center py-4">
@@ -207,38 +213,53 @@
 
       <!-- Spiritual Information -->
       <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-medium text-neutral-900 mb-6">Informações Espirituais</h3>
+        <h3 class="text-lg font-medium text-neutral-900 mb-6">
+          Informações Espirituais e Eclesiásticas
+        </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div v-if="member.yearOfConversion">
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Ano de Conversão</label>
-            <p class="text-neutral-900">{{ member.yearOfConversion }}</p>
+            <p class="text-neutral-900">{{ member.yearOfConversion || 'Não informado' }}</p>
           </div>
-          <div v-if="member.lastChurch">
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Última Igreja</label>
-            <p class="text-neutral-900">{{ member.lastChurch }}</p>
+            <p class="text-neutral-900">{{ member.lastChurch || 'Não informado' }}</p>
           </div>
-          <div v-if="member.lastPositionHeld">
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Data de Admissão</label>
+            <p class="text-neutral-900">
+              {{ member.admissionDate ? formatDate(member.admissionDate) : 'Não informado' }}
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Tipo de Admissão</label>
+            <p class="text-neutral-900">{{ member.admissionType || 'Não informado' }}</p>
+          </div>
+
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1"
               >Último Cargo Exercido</label
             >
-            <p class="text-neutral-900">{{ member.lastPositionHeld }}</p>
+            <p class="text-neutral-900">{{ member.lastPositionHeld || 'Não informado' }}</p>
           </div>
 
-          <div v-if="member.lastPositionPeriod">
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1"
               >Período do Último Cargo</label
             >
-            <p class="text-neutral-900">{{ member.lastPositionPeriod }}</p>
+            <p class="text-neutral-900">{{ member.lastPositionPeriod || 'Não informado' }}</p>
           </div>
 
-          <div v-if="member.currentPosition">
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Cargo Atual</label>
-            <p class="text-neutral-900">{{ member.currentPosition }}</p>
+            <p class="text-neutral-900">{{ member.currentPosition || 'Não informado' }}</p>
           </div>
 
-          <div v-if="member.wantsToBeAVolunteer && member.areaOfInterest">
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Área de Interesse</label>
-            <p class="text-neutral-900">{{ member.areaOfInterest }}</p>
+            <p class="text-neutral-900">{{ member.areaOfInterest || 'Não informado' }}</p>
           </div>
 
           <div>
@@ -261,14 +282,14 @@
             </p>
           </div>
 
-          <div v-if="member.isBaptized && member.yearOfBaptism">
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Ano do Batismo</label>
-            <p class="text-neutral-900">{{ member.yearOfBaptism }}</p>
+            <p class="text-neutral-900">{{ member.yearOfBaptism || 'Não informado' }}</p>
           </div>
 
-          <div v-if="member.isBaptized && member.baptismPlace">
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Local do Batismo</label>
-            <p class="text-neutral-900">{{ member.baptismPlace }}</p>
+            <p class="text-neutral-900">{{ member.baptismPlace || 'Não informado' }}</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1"
@@ -315,9 +336,11 @@
             </p>
           </div>
 
-          <div v-if="member.observations" class="md:col-span-2">
+          <div class="md:col-span-2">
             <label class="block text-sm font-medium text-neutral-500 mb-1">Observações</label>
-            <p class="text-neutral-900 whitespace-pre-wrap">{{ member.observations }}</p>
+            <p class="text-neutral-900 whitespace-pre-wrap">
+              {{ member.observations || 'Não informado' }}
+            </p>
           </div>
         </div>
       </div>

@@ -63,10 +63,10 @@ onMounted(async () => {
     <!-- Header -->
     <div class="w-full flex justify-between mb-8">
       <h1 class="text-neutral-900 font-medium text-[28px]">Home</h1>
-      <button class="btn btn-primary">
+      <router-link to="/membros/cadastro" class="btn btn-primary">
         <PlusIcon class="w-4 h-4 mr-2" />
         Novo Membro
-      </button>
+      </router-link>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

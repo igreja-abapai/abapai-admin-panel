@@ -33,6 +33,8 @@ export interface Member {
   lastPositionPeriod?: string
   baptismPlace?: string
   observations?: string
+  admissionDate?: string
+  admissionType?: string
   isActive: boolean
   address?: Address
   createdAt?: string
@@ -72,6 +74,8 @@ export interface CreateMemberRequest {
   lastPositionPeriod?: string
   baptismPlace?: string
   observations?: string
+  admissionDate?: string
+  admissionType?: string
   addressId: number
 }
 
@@ -106,6 +110,8 @@ export interface UpdateMemberRequest {
   lastPositionPeriod?: string
   baptismPlace?: string
   observations?: string
+  admissionDate?: string
+  admissionType?: string
 }
 
 export class MembersService {
