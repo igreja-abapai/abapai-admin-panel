@@ -8,6 +8,7 @@ export interface Address {
   postalCode?: string
   streetName: string
   streetNumber: string
+  complement?: string
   state: string
   createdAt?: string
   updatedAt?: string
@@ -20,6 +21,7 @@ export interface CreateAddressRequest {
   postalCode?: string
   streetName: string
   streetNumber: string
+  complement?: string
   state: string
 }
 
@@ -30,6 +32,7 @@ export interface UpdateAddressRequest {
   postalCode?: string
   streetName?: string
   streetNumber?: string
+  complement?: string
   state?: string
 }
 

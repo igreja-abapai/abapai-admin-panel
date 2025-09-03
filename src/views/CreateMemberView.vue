@@ -167,6 +167,7 @@
             >
             <input
               v-model="form.childrenCount"
+              @input="handleChildrenCountInput"
               type="number"
               min="0"
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -299,6 +300,16 @@
               required
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Número"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Complemento</label>
+            <input
+              v-model="addressForm.complement"
+              type="text"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Apto, Bloco, Referência, etc."
             />
           </div>
 
@@ -679,6 +690,7 @@ const addressForm = reactive<CreateAddressRequest>({
   postalCode: '',
   streetName: '',
   streetNumber: '',
+  complement: '',
   state: '',
 })
 
@@ -767,6 +779,19 @@ function handleCEPInput(event: Event) {
   addressForm.postalCode = formattedValue
 }
 
+function handleChildrenCountInput(event: Event) {
+  const target = event.target as HTMLInputElement
+  const value = target.value
+
+  // Convert empty string to undefined
+  if (value === '') {
+    form.childrenCount = undefined
+  } else {
+    const numValue = parseInt(value, 10)
+    form.childrenCount = isNaN(numValue) ? undefined : numValue
+  }
+}
+
 async function handleSubmit() {
   loading.value = true
   error.value = ''
@@ -834,6 +859,14 @@ async function handleSubmit() {
       birthdate: formattedBirthdate,
       admissionDate: formattedAdmissionDate,
       addressId: parseInt(address.id),
+      // Convert empty strings to undefined for enum fields
+      admissionType: form.admissionType || undefined,
+      // Convert empty childrenCount to undefined
+      // Convert empty childrenCount to undefined (handle both empty string and null/undefined)
+      childrenCount:
+        form.childrenCount !== undefined && form.childrenCount !== null
+          ? form.childrenCount
+          : undefined,
       // Add photo URL if uploaded
       ...(photoUrl && { photoUrl }),
     }

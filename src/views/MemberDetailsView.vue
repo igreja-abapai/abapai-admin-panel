@@ -166,6 +166,10 @@
               {{ member.address.streetName }}, {{ member.address.streetNumber }}
             </p>
           </div>
+          <div v-if="member.address.complement">
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Complemento</label>
+            <p class="text-neutral-900">{{ member.address.complement }}</p>
+          </div>
           <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Bairro</label>
             <p class="text-neutral-900">{{ member.address.district }}</p>
