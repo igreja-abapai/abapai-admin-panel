@@ -115,7 +115,8 @@
               v-else
               v-for="member in filteredMembers"
               :key="member.id"
-              class="hover:bg-neutral-50 transition-colors"
+              class="hover:bg-neutral-50 transition-colors cursor-pointer"
+              @click="navigateToMemberDetails(member.id)"
             >
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
@@ -169,6 +170,7 @@
                 <router-link
                   :to="`/membros/detalhes/${member.id}`"
                   class="text-primary-600 hover:text-primary-700"
+                  @click.stop
                 >
                   Ver Detalhes
                 </router-link>
@@ -183,11 +185,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { PlusIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { formatDate } from '@/utils/dateFormat'
 import CustomSelect from '@/components/CustomSelect.vue'
 
+const router = useRouter()
 const loading = ref(false)
 const members = ref<Member[]>([])
 const searchTerm = ref('')
@@ -225,6 +229,10 @@ function getInitials(name?: string): string {
     .join('')
     .toUpperCase()
     .slice(0, 2)
+}
+
+function navigateToMemberDetails(memberId: string) {
+  router.push(`/membros/detalhes/${memberId}`)
 }
 
 async function loadMembers() {

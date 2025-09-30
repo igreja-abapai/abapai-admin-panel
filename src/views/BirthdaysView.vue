@@ -142,16 +142,20 @@
       <div v-else>
         <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <li
-            v-for="(entry, idx) in nextBirthdaysByMonth"
+            v-for="(monthMembers, idx) in nextBirthdaysByMonth"
             :key="idx"
             class="bg-neutral-50 rounded-lg p-4 flex flex-col"
           >
-            <span class="font-semibold text-primary-700 mb-1">{{ monthNames[idx] }}</span>
-            <template v-if="entry">
-              <span class="font-medium text-neutral-900">{{ entry.member.name }}</span>
-              <span class="text-neutral-500">{{
-                formatNextBirthday(entry.member.birthdate, false)
-              }}</span>
+            <span class="font-semibold text-primary-700 mb-2">{{ monthNames[idx] }}</span>
+            <template v-if="monthMembers && monthMembers.length > 0">
+              <div class="space-y-2">
+                <div v-for="entry in monthMembers" :key="entry.member.id" class="flex flex-col">
+                  <span class="font-medium text-neutral-900">{{ entry.member.name }}</span>
+                  <span class="text-neutral-500 text-sm">{{
+                    formatNextBirthday(entry.member.birthdate, false)
+                  }}</span>
+                </div>
+              </div>
             </template>
             <template v-else>
               <span class="text-neutral-400">Nenhum aniversariante</span>
@@ -245,22 +249,24 @@ const nextBirthdays = computed(() => {
   return all.slice(0, 5)
 })
 
-// For each month, find the next birthday (from today onward)
+// For each month, find all members with birthdays in that month
 const nextBirthdaysByMonth = computed(() => {
-  const result: Array<{ member: Member; date: Date } | null> = []
+  const result: Array<{ member: Member; date: Date }[] | null> = []
   for (let month = 0; month < 12; month++) {
     // All members with a birthday in this month
     const monthMembers = members.value
       .filter((m) => m.birthdate)
       .map((m) => ({ member: m, date: parseDate(m.birthdate) }))
       .filter(({ date }) => date.getMonth() === month)
+
     if (monthMembers.length === 0) {
       result.push(null)
       continue
     }
-    // Find the next birthday (today or later in the year)
+
+    // Calculate next birthday date for each member in this month
     const todayY = today.getFullYear()
-    const candidates = monthMembers.map(({ member, date }) => {
+    const membersWithNextBirthday = monthMembers.map(({ member, date }) => {
       // Set year to this year for comparison
       const candidateDate = new Date(todayY, month, date.getDate())
       // If birthday already passed this year, set to next year
@@ -273,13 +279,12 @@ const nextBirthdaysByMonth = computed(() => {
       ) {
         candidateDate.setFullYear(todayY + 1)
       }
-      return { member, candidateDate }
+      return { member, date: candidateDate }
     })
-    // Find the soonest candidate
-    candidates.sort((a, b) => a.candidateDate.getTime() - b.candidateDate.getTime())
-    result.push(
-      candidates[0] ? { member: candidates[0].member, date: candidates[0].candidateDate } : null,
-    )
+
+    // Sort by date (earliest first)
+    membersWithNextBirthday.sort((a, b) => a.date.getTime() - b.date.getTime())
+    result.push(membersWithNextBirthday)
   }
   return result
 })
