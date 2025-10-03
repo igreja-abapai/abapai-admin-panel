@@ -233,7 +233,7 @@
           <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Data de Admissão</label>
             <p class="text-neutral-900">
-              {{ member.admissionDate ? formatDate(member.admissionDate) : 'Não informado' }}
+              {{ member.admissionDate || 'Não informado' }}
             </p>
           </div>
 

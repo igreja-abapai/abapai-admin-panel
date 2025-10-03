@@ -1,9 +1,9 @@
 <template>
-  <div>
+  <div class="w-full">
     <!-- Header -->
-    <div class="w-full flex justify-between mb-8">
+    <div class="w-full flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
       <h1 class="text-neutral-900 font-medium text-[28px]">Membros</h1>
-      <router-link to="/membros/cadastro" class="btn btn-primary">
+      <router-link to="/membros/cadastro" class="btn btn-primary w-full sm:w-auto">
         <PlusIcon class="w-4 h-4 mr-2" />
         Cadastrar Membro
       </router-link>
@@ -39,42 +39,48 @@
     </div>
 
     <!-- Members Table -->
-    <div class="bg-white rounded-lg shadow">
+    <div class="bg-white rounded-lg shadow w-full">
       <div class="px-6 py-4 border-b border-neutral-200">
         <h3 class="text-lg font-medium text-neutral-900">Membros ({{ filteredMembers.length }})</h3>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full">
+      <div class="overflow-x-auto bg-white">
+        <table class="w-full table-fixed bg-white" style="min-width: 800px">
           <thead class="bg-neutral-50">
             <tr>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
+                style="width: 25%"
               >
                 NOME
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider hidden md:table-cell"
+                style="width: 15%"
               >
                 DATA DE NASCIMENTO
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider hidden lg:table-cell"
+                style="width: 15%"
               >
                 BATISMO
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider hidden lg:table-cell"
+                style="width: 15%"
               >
                 ENDEREÇO
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider hidden md:table-cell"
+                style="width: 20%"
               >
                 CONTATO
               </th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
+                style="width: 10%"
               >
                 AÇÃO
               </th>
@@ -82,7 +88,7 @@
           </thead>
           <tbody class="bg-white divide-y divide-neutral-200">
             <tr v-if="error">
-              <td colspan="6" class="px-6 py-4">
+              <td colspan="6" class="px-6 py-4 text-center text-sm text-neutral-500">
                 <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                   {{ error }}
                 </div>
@@ -118,11 +124,11 @@
               class="hover:bg-neutral-50 transition-colors cursor-pointer"
               @click="navigateToMemberDetails(member.id)"
             >
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-6 py-4 overflow-hidden">
                 <div class="flex items-center">
                   <div
                     v-if="member.photoUrl"
-                    class="w-8 h-8 rounded-full overflow-hidden border-2 border-neutral-200 mr-3"
+                    class="w-8 h-8 rounded-full overflow-hidden border-2 border-neutral-200 mr-3 flex-shrink-0"
                   >
                     <img
                       :src="member.photoUrl"
@@ -132,21 +138,24 @@
                   </div>
                   <div
                     v-else
-                    class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-xs font-medium mr-3"
+                    class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-xs font-medium mr-3 flex-shrink-0"
                   >
                     {{ getInitials(member.name) }}
                   </div>
-                  <div>
-                    <div class="text-sm font-medium text-neutral-900">
+                  <div class="min-w-0 flex-1">
+                    <div class="text-sm font-medium text-neutral-900 truncate">
                       {{ member.name }}
+                    </div>
+                    <div class="text-xs text-neutral-500 md:hidden">
+                      {{ member.phone }}
                     </div>
                   </div>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
+              <td class="px-6 py-4 text-sm text-neutral-900 hidden md:table-cell">
                 {{ formatDate(member.birthdate) }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
+              <td class="px-6 py-4 text-sm text-neutral-900 hidden lg:table-cell">
                 <span
                   v-if="member.isBaptized"
                   class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
@@ -160,13 +169,18 @@
                   Não Batizado
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
-                {{ member.address?.streetName || 'Endereço não informado' }}
+              <td class="px-6 py-4 text-sm text-neutral-900 hidden lg:table-cell overflow-hidden">
+                <div
+                  class="truncate"
+                  :title="member.address?.streetName || 'Endereço não informado'"
+                >
+                  {{ member.address?.streetName || 'Endereço não informado' }}
+                </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
+              <td class="px-6 py-4 text-sm text-neutral-900 hidden md:table-cell whitespace-nowrap">
                 {{ member.phone }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <td class="px-6 py-4 text-sm font-medium">
                 <router-link
                   :to="`/membros/detalhes/${member.id}`"
                   class="text-primary-600 hover:text-primary-700"

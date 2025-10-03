@@ -461,15 +461,11 @@
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Data de Admissão</label>
-            <VueDatePicker
+            <input
               v-model="form.admissionDate"
-              :enable-time-picker="false"
+              type="text"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="dd/mm/aaaa"
-              format="dd/MM/yyyy"
-              locale="pt-BR"
-              select-text="Selecionar"
-              cancel-text="Cancelar"
-              class="w-full"
             />
           </div>
 
@@ -708,7 +704,7 @@ const form = reactive({
   lastPositionPeriod: '',
   baptismPlace: '',
   observations: '',
-  admissionDate: undefined as Date | undefined,
+  admissionDate: '',
   admissionType: '',
 })
 
@@ -858,9 +854,7 @@ function populateForm() {
     lastPositionPeriod: member.value.lastPositionPeriod || '',
     baptismPlace: member.value.baptismPlace || '',
     observations: member.value.observations || '',
-    admissionDate: member.value.admissionDate
-      ? createLocalDate(member.value.admissionDate)
-      : undefined,
+    admissionDate: member.value.admissionDate || '',
     admissionType: member.value.admissionType || '',
   })
 
@@ -959,23 +953,8 @@ async function handleSubmit() {
       formattedBirthdate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T00:00:00.000${offsetSign}${offsetHours.toString().padStart(2, '0')}:${offsetMinutes.toString().padStart(2, '0')}`
     }
 
-    // Format admissionDate properly to avoid timezone issues
-    let formattedAdmissionDate: string | undefined
-    if (form.admissionDate) {
-      // Extract the date components and format as YYYY-MM-DD
-      const year = form.admissionDate.getFullYear()
-      const month = form.admissionDate.getMonth() + 1 // getMonth() returns 0-11
-      const day = form.admissionDate.getDate()
-
-      // Format as YYYY-MM-DD with explicit timezone offset to ensure local interpretation
-      const timezoneOffset = form.admissionDate.getTimezoneOffset()
-      const offsetHours = Math.abs(Math.floor(timezoneOffset / 60))
-      const offsetMinutes = Math.abs(timezoneOffset % 60)
-      const offsetSign = timezoneOffset <= 0 ? '+' : '-'
-
-      // Send as ISO string with timezone offset to ensure correct interpretation
-      formattedAdmissionDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T00:00:00.000${offsetSign}${offsetHours.toString().padStart(2, '0')}:${offsetMinutes.toString().padStart(2, '0')}`
-    }
+    // Use admissionDate as-is (it's already a string)
+    const formattedAdmissionDate = form.admissionDate || undefined
 
     // Update member with photo URL if changed
     const memberData = {
