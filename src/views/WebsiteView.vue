@@ -2,7 +2,24 @@
   <div class="bg-white rounded-lg shadow p-8">
     <h1 class="text-2xl font-bold text-neutral-900 mb-4">Gerenciamento do Website</h1>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Loading State -->
+    <div v-if="loading" class="text-center py-8">
+      <div
+        class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"
+      ></div>
+      <p class="text-neutral-500">Carregando configurações...</p>
+    </div>
+
+    <!-- Error State -->
+    <div
+      v-else-if="error"
+      class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6"
+    >
+      {{ error }}
+    </div>
+
+    <!-- Main Content -->
+    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Website Information -->
       <div class="space-y-6">
         <div class="bg-neutral-50 rounded-lg p-6">
@@ -121,6 +138,40 @@
           </div>
         </div>
 
+        <!-- About Page Content -->
+        <div class="bg-neutral-50 rounded-lg p-6">
+          <h2 class="text-lg font-semibold text-primary-700 mb-4">Conteúdo da Página Sobre Nós</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1">Quem Somos</label>
+              <QuillEditor
+                v-model:content="websiteInfo.aboutWhoWeAre"
+                content-type="html"
+                :options="quillOptions"
+                class="min-h-[200px]"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1">Nossa Missão</label>
+              <QuillEditor
+                v-model:content="websiteInfo.aboutOurMission"
+                content-type="html"
+                :options="quillOptions"
+                class="min-h-[200px]"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1">Nossos Valores</label>
+              <QuillEditor
+                v-model:content="websiteInfo.aboutOurValues"
+                content-type="html"
+                :options="quillOptions"
+                class="min-h-[200px]"
+              />
+            </div>
+          </div>
+        </div>
+
         <!-- Settings -->
         <div class="bg-neutral-50 rounded-lg p-6">
           <h2 class="text-lg font-semibold text-primary-700 mb-4">Configurações</h2>
@@ -171,7 +222,7 @@
     </div>
 
     <!-- Action Buttons -->
-    <div class="flex justify-end space-x-4 mt-8 pt-6 border-t border-neutral-200">
+    <div v-if="!loading" class="flex justify-end space-x-4 mt-8 pt-6 border-t border-neutral-200">
       <button
         @click="resetForm"
         class="px-4 py-2 text-neutral-700 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors"
@@ -194,35 +245,137 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
+import { websiteService, type WebsiteSettings } from '@/services/website'
 
 const saving = ref(false)
+const loading = ref(false)
+const error = ref('')
 
 const websiteInfo = reactive({
-  churchName: 'Igreja Abapai',
-  address: 'Rua da Igreja, 123 - Centro',
-  phone: '(11) 99999-9999',
-  email: 'contato@igrejaabapai.com.br',
-  facebook: 'https://facebook.com/igrejaabapai',
-  instagram: 'https://instagram.com/igrejaabapai',
-  youtube: 'https://youtube.com/igrejaabapai',
-  about: 'Nossa igreja é um lugar de acolhimento e crescimento espiritual...',
-  serviceTimes: 'Domingo: 9h e 18h\nQuarta: 19h30',
-  welcomeMessage: 'Bem-vindo à Igreja Abapai! Estamos felizes em tê-lo conosco.',
+  churchName: '',
+  address: '',
+  phone: '',
+  email: '',
+  facebook: '',
+  instagram: '',
+  youtube: '',
+  about: '',
+  serviceTimes: '',
+  welcomeMessage: '',
+  aboutWhoWeAre: '',
+  aboutOurMission: '',
+  aboutOurValues: '',
   isActive: true,
   maintenanceMode: false,
 })
 
-function saveWebsiteSettings() {
+// Quill editor options
+const quillOptions = {
+  theme: 'snow',
+  modules: {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      ['blockquote', 'code-block'],
+      [{ header: 1 }, { header: 2 }],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ indent: '-1' }, { indent: '+1' }],
+      ['link'],
+      ['clean'],
+    ],
+  },
+}
+
+async function loadSettings() {
+  loading.value = true
+  error.value = ''
+
+  try {
+    const settings = await websiteService.getSettings()
+    Object.assign(websiteInfo, settings)
+  } catch (err: any) {
+    console.error('Error loading website settings:', err)
+    error.value = err.response?.data?.message || 'Erro ao carregar configurações do website'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function saveWebsiteSettings() {
   saving.value = true
-  // TODO: Implement API call to save website settings
-  setTimeout(() => {
-    saving.value = false
+  error.value = ''
+
+  try {
+    await websiteService.updateSettings(websiteInfo)
     // Show success message
-  }, 1000)
+    console.log('Website settings saved successfully')
+  } catch (err: any) {
+    console.error('Error saving website settings:', err)
+    error.value = err.response?.data?.message || 'Erro ao salvar configurações do website'
+  } finally {
+    saving.value = false
+  }
 }
 
 function resetForm() {
-  // TODO: Reset form to original values
+  loadSettings()
 }
+
+onMounted(() => {
+  loadSettings()
+})
 </script>
+
+<style scoped>
+/* Custom styling for QuillEditor */
+:deep(.ql-editor) {
+  min-height: 200px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+:deep(.ql-toolbar) {
+  border-top: 1px solid #d1d5db;
+  border-left: 1px solid #d1d5db;
+  border-right: 1px solid #d1d5db;
+  border-radius: 8px 8px 0 0;
+}
+
+:deep(.ql-container) {
+  border-bottom: 1px solid #d1d5db;
+  border-left: 1px solid #d1d5db;
+  border-right: 1px solid #d1d5db;
+  border-radius: 0 0 8px 8px;
+}
+
+:deep(.ql-editor:focus) {
+  outline: none;
+}
+
+:deep(.ql-toolbar .ql-stroke) {
+  stroke: #6b7280;
+}
+
+:deep(.ql-toolbar .ql-fill) {
+  fill: #6b7280;
+}
+
+:deep(.ql-toolbar button:hover .ql-stroke) {
+  stroke: #374151;
+}
+
+:deep(.ql-toolbar button:hover .ql-fill) {
+  fill: #374151;
+}
+
+:deep(.ql-toolbar button.ql-active .ql-stroke) {
+  stroke: #3b82f6;
+}
+
+:deep(.ql-toolbar button.ql-active .ql-fill) {
+  fill: #3b82f6;
+}
+</style>

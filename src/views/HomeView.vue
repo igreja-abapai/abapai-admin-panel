@@ -48,8 +48,8 @@ onMounted(async () => {
       inactiveMembers: members.filter((m) => !m.isActive).length,
     }
 
-    // Get recent members (last 3)
-    recentMembers.value = members.slice(-3).reverse()
+    // Get recent members (first 3)
+    recentMembers.value = members.slice(0, 3)
   } catch (error) {
     console.error('Error loading dashboard data:', error)
   } finally {
