@@ -2,40 +2,42 @@ import { httpService } from './http'
 
 export interface WebsiteSettings {
   id: number
-  churchName: string
   address: string
   phone: string
   email: string
   facebook: string
   instagram: string
   youtube: string
+  twitter: string
   about: string
   serviceTimes: string
-  welcomeMessage: string
   aboutWhoWeAre: string
   aboutOurMission: string
   aboutOurValues: string
-  isActive: boolean
+  weeklyMessageUrl: string
+  weeklyMessageTitle: string
+  weeklyMessageDate: string
   maintenanceMode: boolean
   createdAt: string
   updatedAt: string
 }
 
 export interface UpdateWebsiteSettingsRequest {
-  churchName?: string
   address?: string
   phone?: string
   email?: string
   facebook?: string
   instagram?: string
   youtube?: string
+  twitter?: string
   about?: string
   serviceTimes?: string
-  welcomeMessage?: string
   aboutWhoWeAre?: string
   aboutOurMission?: string
   aboutOurValues?: string
-  isActive?: boolean
+  weeklyMessageUrl?: string
+  weeklyMessageTitle?: string
+  weeklyMessageDate?: string
   maintenanceMode?: boolean
 }
 
@@ -50,4 +52,3 @@ class WebsiteService {
 }
 
 export const websiteService = new WebsiteService()
-

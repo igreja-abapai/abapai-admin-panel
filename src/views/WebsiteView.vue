@@ -23,17 +23,8 @@
       <!-- Website Information -->
       <div class="space-y-6">
         <div class="bg-neutral-50 rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-primary-700 mb-4">Informações do Website</h2>
+          <h2 class="text-lg font-semibold text-primary-700 mb-4">Informações da igreja</h2>
           <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Nome da Igreja</label>
-              <input
-                v-model="websiteInfo.churchName"
-                type="text"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Nome da Igreja"
-              />
-            </div>
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-1">Endereço</label>
               <input
@@ -95,79 +86,101 @@
                 placeholder="https://youtube.com/igreja"
               />
             </div>
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1">Twitter</label>
+              <input
+                v-model="websiteInfo.twitter"
+                type="url"
+                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="https://twitter.com/igreja"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-neutral-50 rounded-lg p-6">
+          <h2 class="text-lg font-semibold text-primary-700 mb-4">Conteúdo do Website</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1"
+                >URL da Mensagem da Semana (YouTube)</label
+              >
+              <input
+                v-model="websiteInfo.weeklyMessageUrl"
+                type="url"
+                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+            </div>
+            <div class="grid grid-cols-1 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1"
+                  >Título da Mensagem da Semana</label
+                >
+                <input
+                  v-model="websiteInfo.weeklyMessageTitle"
+                  type="text"
+                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Título exibido na home"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1"
+                  >Data da Mensagem da Semana</label
+                >
+                <input
+                  v-model="websiteInfo.weeklyMessageDate"
+                  type="text"
+                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Ex: 21 JUL 2022"
+                />
+              </div>
+            </div>
+            <div>
+              <ScheduleEventsEditor ref="scheduleRef" />
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Content Management -->
       <div class="space-y-6">
-        <div class="bg-neutral-50 rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-primary-700 mb-4">Conteúdo do Website</h2>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Sobre a Igreja</label>
-              <textarea
-                v-model="websiteInfo.about"
-                rows="4"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Descrição sobre a igreja..."
-              ></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1"
-                >Horários dos Cultos</label
-              >
-              <textarea
-                v-model="websiteInfo.serviceTimes"
-                rows="3"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Horários dos cultos..."
-              ></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1"
-                >Mensagem de Boas-vindas</label
-              >
-              <textarea
-                v-model="websiteInfo.welcomeMessage"
-                rows="3"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Mensagem de boas-vindas..."
-              ></textarea>
-            </div>
-          </div>
-        </div>
-
         <!-- About Page Content -->
         <div class="bg-neutral-50 rounded-lg p-6">
           <h2 class="text-lg font-semibold text-primary-700 mb-4">Conteúdo da Página Sobre Nós</h2>
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-1">Quem Somos</label>
-              <QuillEditor
-                v-model:content="websiteInfo.aboutWhoWeAre"
-                content-type="html"
-                :options="quillOptions"
-                class="min-h-[200px]"
-              />
+              <div class="quill-wrap">
+                <QuillEditor
+                  v-model:content="websiteInfo.aboutWhoWeAre"
+                  content-type="html"
+                  :options="quillOptions"
+                  class="min-h-[200px]"
+                />
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-1">Nossa Missão</label>
-              <QuillEditor
-                v-model:content="websiteInfo.aboutOurMission"
-                content-type="html"
-                :options="quillOptions"
-                class="min-h-[200px]"
-              />
+              <div class="quill-wrap">
+                <QuillEditor
+                  v-model:content="websiteInfo.aboutOurMission"
+                  content-type="html"
+                  :options="quillOptions"
+                  class="min-h-[200px]"
+                />
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-1">Nossos Valores</label>
-              <QuillEditor
-                v-model:content="websiteInfo.aboutOurValues"
-                content-type="html"
-                :options="quillOptions"
-                class="min-h-[200px]"
-              />
+              <div class="quill-wrap">
+                <QuillEditor
+                  v-model:content="websiteInfo.aboutOurValues"
+                  content-type="html"
+                  :options="quillOptions"
+                  class="min-h-[200px]"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -176,26 +189,6 @@
         <div class="bg-neutral-50 rounded-lg p-6">
           <h2 class="text-lg font-semibold text-primary-700 mb-4">Configurações</h2>
           <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-sm font-medium text-neutral-700">Website Ativo</label>
-                <p class="text-xs text-neutral-500">Ativar ou desativar o website público</p>
-              </div>
-              <button
-                @click="websiteInfo.isActive = !websiteInfo.isActive"
-                :class="[
-                  'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                  websiteInfo.isActive ? 'bg-primary-500' : 'bg-neutral-300',
-                ]"
-              >
-                <span
-                  :class="[
-                    'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                    websiteInfo.isActive ? 'translate-x-6' : 'translate-x-1',
-                  ]"
-                ></span>
-              </button>
-            </div>
             <div class="flex items-center justify-between">
               <div>
                 <label class="block text-sm font-medium text-neutral-700">Modo Manutenção</label>
@@ -249,26 +242,29 @@ import { ref, reactive, onMounted } from 'vue'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import { websiteService, type WebsiteSettings } from '@/services/website'
+import ScheduleEventsEditor from '@/components/website/ScheduleEventsEditor.vue'
 
 const saving = ref(false)
 const loading = ref(false)
 const error = ref('')
+const scheduleRef = ref()
 
 const websiteInfo = reactive({
-  churchName: '',
   address: '',
   phone: '',
   email: '',
   facebook: '',
   instagram: '',
   youtube: '',
+  twitter: '',
   about: '',
   serviceTimes: '',
-  welcomeMessage: '',
   aboutWhoWeAre: '',
   aboutOurMission: '',
   aboutOurValues: '',
-  isActive: true,
+  weeklyMessageUrl: '',
+  weeklyMessageTitle: '',
+  weeklyMessageDate: '',
   maintenanceMode: false,
 })
 
@@ -308,6 +304,11 @@ async function saveWebsiteSettings() {
   error.value = ''
 
   try {
+    // Save schedule first
+    const schedule = (scheduleRef as any)?.value
+    if (schedule && typeof schedule.save === 'function') {
+      await schedule.save()
+    }
     await websiteService.updateSettings(websiteInfo)
     // Show success message
     console.log('Website settings saved successfully')
@@ -330,52 +331,62 @@ onMounted(() => {
 
 <style scoped>
 /* Custom styling for QuillEditor */
-:deep(.ql-editor) {
+.quill-wrap :deep(.ql-toolbar),
+.quill-wrap :deep(.ql-container),
+.quill-wrap :deep(.ql-editor) {
+  background-color: #ffffff !important;
+}
+
+::deep(.ql-editor) {
   min-height: 200px;
   font-family: inherit;
   font-size: 14px;
   line-height: 1.5;
 }
 
-:deep(.ql-toolbar) {
+::deep(.ql-toolbar) {
   border-top: 1px solid #d1d5db;
   border-left: 1px solid #d1d5db;
   border-right: 1px solid #d1d5db;
   border-radius: 8px 8px 0 0;
 }
 
-:deep(.ql-container) {
+::deep(.ql-container) {
   border-bottom: 1px solid #d1d5db;
   border-left: 1px solid #d1d5db;
   border-right: 1px solid #d1d5db;
   border-radius: 0 0 8px 8px;
 }
 
-:deep(.ql-editor:focus) {
+.quill-wrap :deep(.ql-snow .ql-editor) {
+  background-color: #ffffff !important;
+}
+
+::deep(.ql-editor:focus) {
   outline: none;
 }
 
-:deep(.ql-toolbar .ql-stroke) {
+::deep(.ql-toolbar .ql-stroke) {
   stroke: #6b7280;
 }
 
-:deep(.ql-toolbar .ql-fill) {
+::deep(.ql-toolbar .ql-fill) {
   fill: #6b7280;
 }
 
-:deep(.ql-toolbar button:hover .ql-stroke) {
+::deep(.ql-toolbar button:hover .ql-stroke) {
   stroke: #374151;
 }
 
-:deep(.ql-toolbar button:hover .ql-fill) {
+::deep(.ql-toolbar button:hover .ql-fill) {
   fill: #374151;
 }
 
-:deep(.ql-toolbar button.ql-active .ql-stroke) {
+::deep(.ql-toolbar button.ql-active .ql-stroke) {
   stroke: #3b82f6;
 }
 
-:deep(.ql-toolbar button.ql-active .ql-fill) {
+::deep(.ql-toolbar button.ql-active .ql-fill) {
   fill: #3b82f6;
 }
 </style>
