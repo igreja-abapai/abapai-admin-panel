@@ -1,9 +1,5 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-semibold text-primary-700">Programação da Igreja</h3>
-    </div>
-
     <div v-if="loading" class="text-sm text-neutral-500 mb-2">Carregando...</div>
     <div v-if="error" class="text-sm text-red-600 mb-2">{{ error }}</div>
 

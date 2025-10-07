@@ -99,7 +99,7 @@
         </div>
 
         <div class="bg-neutral-50 rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-primary-700 mb-4">Conteúdo do Website</h2>
+          <h2 class="text-lg font-semibold text-primary-700 mb-4">Conteúdo geral do Website</h2>
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-1"
@@ -137,7 +137,92 @@
               </div>
             </div>
             <div>
-              <ScheduleEventsEditor ref="scheduleRef" />
+              <label class="block text-sm font-medium text-neutral-700 mb-4"
+                >Informações Bancárias</label
+              >
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 mb-1">Banco</label>
+                  <input
+                    v-model="websiteInfo.bankInfo.bank"
+                    type="text"
+                    class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Ex: 403 - Banco Cora SDC"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 mb-1">Agência</label>
+                  <input
+                    v-model="websiteInfo.bankInfo.agency"
+                    type="text"
+                    class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Ex: 0001"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 mb-1"
+                    >Conta Corrente</label
+                  >
+                  <input
+                    v-model="websiteInfo.bankInfo.account"
+                    type="text"
+                    class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Ex: 4416982-0"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 mb-1">CNPJ</label>
+                  <input
+                    v-model="websiteInfo.bankInfo.cnpj"
+                    type="text"
+                    class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Ex: 52.782.534/0001-10"
+                  />
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
+                  <input
+                    v-model="websiteInfo.bankInfo.name"
+                    type="text"
+                    class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Ex: Ministério Cristão Aba Pai"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-4">Informações PIX</label>
+              <div class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">Tipo</label>
+                    <input
+                      v-model="websiteInfo.pixInfo.type"
+                      type="text"
+                      class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      placeholder="Ex: CNPJ, Telefone, Email"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">Chave PIX</label>
+                    <input
+                      v-model="websiteInfo.pixInfo.key"
+                      type="text"
+                      class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      placeholder="Ex: 52.782.534/0001-10"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
+                  <input
+                    v-model="websiteInfo.pixInfo.name"
+                    type="text"
+                    class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Ex: MINISTÉRIO CRISTÃO ABA PAI"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -145,6 +230,11 @@
 
       <!-- Content Management -->
       <div class="space-y-6">
+        <!-- Church Schedule -->
+        <div class="bg-neutral-50 rounded-lg p-6">
+          <h2 class="text-lg font-semibold text-primary-700 mb-4">Programação da Igreja</h2>
+          <ScheduleEventsEditor ref="scheduleRef" />
+        </div>
         <!-- About Page Content -->
         <div class="bg-neutral-50 rounded-lg p-6">
           <h2 class="text-lg font-semibold text-primary-700 mb-4">Conteúdo da Página Sobre Nós</h2>
@@ -265,6 +355,18 @@ const websiteInfo = reactive({
   weeklyMessageUrl: '',
   weeklyMessageTitle: '',
   weeklyMessageDate: '',
+  bankInfo: {
+    bank: '',
+    agency: '',
+    account: '',
+    cnpj: '',
+    name: '',
+  },
+  pixInfo: {
+    type: '',
+    key: '',
+    name: '',
+  },
   maintenanceMode: false,
 })
 
@@ -291,6 +393,24 @@ async function loadSettings() {
   try {
     const settings = await websiteService.getSettings()
     Object.assign(websiteInfo, settings)
+
+    // Ensure bankInfo and pixInfo objects are initialized
+    if (!websiteInfo.bankInfo) {
+      websiteInfo.bankInfo = {
+        bank: '',
+        agency: '',
+        account: '',
+        cnpj: '',
+        name: '',
+      }
+    }
+    if (!websiteInfo.pixInfo) {
+      websiteInfo.pixInfo = {
+        type: '',
+        key: '',
+        name: '',
+      }
+    }
   } catch (err: any) {
     console.error('Error loading website settings:', err)
     error.value = err.response?.data?.message || 'Erro ao carregar configurações do website'
