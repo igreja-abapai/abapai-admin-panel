@@ -18,288 +18,314 @@
       {{ error }}
     </div>
 
-    <!-- Main Content -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <!-- Website Information -->
-      <div class="space-y-6">
-        <div class="bg-neutral-50 rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-primary-700 mb-4">Informações da igreja</h2>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Endereço</label>
-              <input
-                v-model="websiteInfo.address"
-                type="text"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Endereço da Igreja"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Telefone</label>
-              <input
-                v-model="websiteInfo.phone"
-                type="text"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Telefone de Contato"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Email</label>
-              <input
-                v-model="websiteInfo.email"
-                type="email"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Email de Contato"
-              />
-            </div>
-          </div>
-        </div>
+    <!-- Carousel - Full width (spans both columns) -->
+    <div v-else>
+      <div class="bg-neutral-50 rounded-lg p-6 mb-8">
+        <h2 class="text-lg font-semibold text-primary-700 mb-4">Imagens do Carrossel</h2>
+        <CarouselImagesEditor ref="carouselRef" />
+      </div>
 
-        <!-- Social Media -->
-        <div class="bg-neutral-50 rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-primary-700 mb-4">Redes Sociais</h2>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Facebook</label>
-              <input
-                v-model="websiteInfo.facebook"
-                type="url"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="https://facebook.com/igreja"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Instagram</label>
-              <input
-                v-model="websiteInfo.instagram"
-                type="url"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="https://instagram.com/igreja"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">YouTube</label>
-              <input
-                v-model="websiteInfo.youtube"
-                type="url"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="https://youtube.com/igreja"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Twitter</label>
-              <input
-                v-model="websiteInfo.twitter"
-                type="url"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="https://twitter.com/igreja"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-neutral-50 rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-primary-700 mb-4">Conteúdo geral do Website</h2>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1"
-                >URL da Mensagem da Semana (YouTube)</label
-              >
-              <input
-                v-model="websiteInfo.weeklyMessageUrl"
-                type="url"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="https://www.youtube.com/watch?v=..."
-              />
-            </div>
-            <div class="grid grid-cols-1 gap-4">
+      <!-- Main Content -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Website Information -->
+        <div class="space-y-6">
+          <div class="bg-neutral-50 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-primary-700 mb-4">Conteúdo geral do Website</h2>
+            <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-neutral-700 mb-1"
-                  >Título da Mensagem da Semana</label
+                  >URL da Mensagem da Semana (YouTube)</label
                 >
                 <input
-                  v-model="websiteInfo.weeklyMessageTitle"
-                  type="text"
+                  v-model="websiteInfo.weeklyMessageUrl"
+                  type="url"
                   class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Título exibido na home"
+                  placeholder="https://www.youtube.com/watch?v=..."
                 />
               </div>
-              <div>
-                <label class="block text-sm font-medium text-neutral-700 mb-1"
-                  >Data da Mensagem da Semana</label
-                >
-                <input
-                  v-model="websiteInfo.weeklyMessageDate"
-                  type="text"
-                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Ex: 21 JUL 2022"
-                />
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-4"
-                >Informações Bancárias</label
-              >
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-neutral-700 mb-1">Banco</label>
+                  <label class="block text-sm font-medium text-neutral-700 mb-1"
+                    >Título da Mensagem da Semana</label
+                  >
                   <input
-                    v-model="websiteInfo.bankInfo.bank"
+                    v-model="websiteInfo.weeklyMessageTitle"
                     type="text"
                     class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="Ex: 403 - Banco Cora SDC"
-                  />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-neutral-700 mb-1">Agência</label>
-                  <input
-                    v-model="websiteInfo.bankInfo.agency"
-                    type="text"
-                    class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="Ex: 0001"
+                    placeholder="Título exibido na home"
                   />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-neutral-700 mb-1"
-                    >Conta Corrente</label
+                    >Data da Mensagem da Semana</label
                   >
                   <input
-                    v-model="websiteInfo.bankInfo.account"
+                    v-model="websiteInfo.weeklyMessageDate"
                     type="text"
                     class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="Ex: 4416982-0"
-                  />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-neutral-700 mb-1">CNPJ</label>
-                  <input
-                    v-model="websiteInfo.bankInfo.cnpj"
-                    type="text"
-                    class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="Ex: 52.782.534/0001-10"
-                  />
-                </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
-                  <input
-                    v-model="websiteInfo.bankInfo.name"
-                    type="text"
-                    class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="Ex: Ministério Cristão Aba Pai"
+                    placeholder="Ex: 21 JUL 2022"
                   />
                 </div>
               </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-4">Informações PIX</label>
-              <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-4"
+                  >Informações Bancárias</label
+                >
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">Tipo</label>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">Banco</label>
                     <input
-                      v-model="websiteInfo.pixInfo.type"
+                      v-model="websiteInfo.bankInfo.bank"
                       type="text"
                       class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      placeholder="Ex: CNPJ, Telefone, Email"
+                      placeholder="Ex: 403 - Banco Cora SDC"
                     />
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">Chave PIX</label>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">Agência</label>
                     <input
-                      v-model="websiteInfo.pixInfo.key"
+                      v-model="websiteInfo.bankInfo.agency"
+                      type="text"
+                      class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      placeholder="Ex: 0001"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1"
+                      >Conta Corrente</label
+                    >
+                    <input
+                      v-model="websiteInfo.bankInfo.account"
+                      type="text"
+                      class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      placeholder="Ex: 4416982-0"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">CNPJ</label>
+                    <input
+                      v-model="websiteInfo.bankInfo.cnpj"
                       type="text"
                       class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                       placeholder="Ex: 52.782.534/0001-10"
                     />
                   </div>
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
+                    <input
+                      v-model="websiteInfo.bankInfo.name"
+                      type="text"
+                      class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      placeholder="Ex: Ministério Cristão Aba Pai"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
-                  <input
-                    v-model="websiteInfo.pixInfo.name"
-                    type="text"
-                    class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="Ex: MINISTÉRIO CRISTÃO ABA PAI"
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-4"
+                  >Informações PIX</label
+                >
+                <div class="space-y-4">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-neutral-700 mb-1">Tipo</label>
+                      <input
+                        v-model="websiteInfo.pixInfo.type"
+                        type="text"
+                        class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="Ex: CNPJ, Telefone, Email"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-neutral-700 mb-1"
+                        >Chave PIX</label
+                      >
+                      <input
+                        v-model="websiteInfo.pixInfo.key"
+                        type="text"
+                        class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="Ex: 52.782.534/0001-10"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
+                    <input
+                      v-model="websiteInfo.pixInfo.name"
+                      type="text"
+                      class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      placeholder="Ex: MINISTÉRIO CRISTÃO ABA PAI"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Church Schedule -->
+          <div class="bg-neutral-50 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-primary-700 mb-4">Programação da Igreja</h2>
+            <ScheduleEventsEditor ref="scheduleRef" />
+          </div>
+        </div>
+
+        <!-- Content Management -->
+        <div class="space-y-6">
+          <div class="bg-neutral-50 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-primary-700 mb-4">Informações da igreja</h2>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1">Endereço</label>
+                <input
+                  v-model="websiteInfo.address"
+                  type="text"
+                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Endereço da Igreja"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1">Telefone</label>
+                <input
+                  v-model="websiteInfo.phone"
+                  type="text"
+                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Telefone de Contato"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1">Email</label>
+                <input
+                  v-model="websiteInfo.email"
+                  type="email"
+                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Email de Contato"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Social Media -->
+          <div class="bg-neutral-50 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-primary-700 mb-4">Redes Sociais</h2>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1">Facebook</label>
+                <input
+                  v-model="websiteInfo.facebook"
+                  type="url"
+                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="https://facebook.com/igreja"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1">Instagram</label>
+                <input
+                  v-model="websiteInfo.instagram"
+                  type="url"
+                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="https://instagram.com/igreja"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1">YouTube</label>
+                <input
+                  v-model="websiteInfo.youtube"
+                  type="url"
+                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="https://youtube.com/igreja"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1">Twitter</label>
+                <input
+                  v-model="websiteInfo.twitter"
+                  type="url"
+                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="https://twitter.com/igreja"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1">WhatsApp</label>
+                <input
+                  v-model="websiteInfo.whatsapp"
+                  type="text"
+                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="5584998305218"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- About Page Content -->
+          <div class="bg-neutral-50 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-primary-700 mb-4">
+              Conteúdo da Página Sobre Nós
+            </h2>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1">Quem Somos</label>
+                <div class="quill-wrap">
+                  <QuillEditor
+                    v-model:content="websiteInfo.aboutWhoWeAre"
+                    content-type="html"
+                    :options="quillOptions"
+                    class="min-h-[200px]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1">Nossa Missão</label>
+                <div class="quill-wrap">
+                  <QuillEditor
+                    v-model:content="websiteInfo.aboutOurMission"
+                    content-type="html"
+                    :options="quillOptions"
+                    class="min-h-[200px]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1"
+                  >Nossos Valores</label
+                >
+                <div class="quill-wrap">
+                  <QuillEditor
+                    v-model:content="websiteInfo.aboutOurValues"
+                    content-type="html"
+                    :options="quillOptions"
+                    class="min-h-[200px]"
                   />
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Content Management -->
-      <div class="space-y-6">
-        <!-- Church Schedule -->
-        <div class="bg-neutral-50 rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-primary-700 mb-4">Programação da Igreja</h2>
-          <ScheduleEventsEditor ref="scheduleRef" />
-        </div>
-        <!-- About Page Content -->
-        <div class="bg-neutral-50 rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-primary-700 mb-4">Conteúdo da Página Sobre Nós</h2>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Quem Somos</label>
-              <div class="quill-wrap">
-                <QuillEditor
-                  v-model:content="websiteInfo.aboutWhoWeAre"
-                  content-type="html"
-                  :options="quillOptions"
-                  class="min-h-[200px]"
-                />
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Nossa Missão</label>
-              <div class="quill-wrap">
-                <QuillEditor
-                  v-model:content="websiteInfo.aboutOurMission"
-                  content-type="html"
-                  :options="quillOptions"
-                  class="min-h-[200px]"
-                />
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1">Nossos Valores</label>
-              <div class="quill-wrap">
-                <QuillEditor
-                  v-model:content="websiteInfo.aboutOurValues"
-                  content-type="html"
-                  :options="quillOptions"
-                  class="min-h-[200px]"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Settings -->
-        <div class="bg-neutral-50 rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-primary-700 mb-4">Configurações</h2>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-sm font-medium text-neutral-700">Modo Manutenção</label>
-                <p class="text-xs text-neutral-500">Ativar modo de manutenção</p>
-              </div>
-              <button
-                @click="websiteInfo.maintenanceMode = !websiteInfo.maintenanceMode"
-                :class="[
-                  'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                  websiteInfo.maintenanceMode ? 'bg-yellow-500' : 'bg-neutral-300',
-                ]"
-              >
-                <span
+          <!-- Settings -->
+          <!-- <div class="bg-neutral-50 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-primary-700 mb-4">Configurações</h2>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700">Modo Manutenção</label>
+                  <p class="text-xs text-neutral-500">Ativar modo de manutenção</p>
+                </div>
+                <button
+                  @click="websiteInfo.maintenanceMode = !websiteInfo.maintenanceMode"
                   :class="[
-                    'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                    websiteInfo.maintenanceMode ? 'translate-x-6' : 'translate-x-1',
+                    'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                    websiteInfo.maintenanceMode ? 'bg-yellow-500' : 'bg-neutral-300',
                   ]"
-                ></span>
-              </button>
+                >
+                  <span
+                    :class="[
+                      'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                      websiteInfo.maintenanceMode ? 'translate-x-6' : 'translate-x-1',
+                    ]"
+                  ></span>
+                </button>
+              </div>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
@@ -333,11 +359,13 @@ import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import { websiteService, type WebsiteSettings } from '@/services/website'
 import ScheduleEventsEditor from '@/components/website/ScheduleEventsEditor.vue'
+import CarouselImagesEditor from '@/components/website/CarouselImagesEditor.vue'
 
 const saving = ref(false)
 const loading = ref(false)
 const error = ref('')
 const scheduleRef = ref()
+const carouselRef = ref()
 
 const websiteInfo = reactive({
   address: '',
@@ -347,6 +375,7 @@ const websiteInfo = reactive({
   instagram: '',
   youtube: '',
   twitter: '',
+  whatsapp: '',
   about: '',
   serviceTimes: '',
   aboutWhoWeAre: '',
@@ -424,7 +453,12 @@ async function saveWebsiteSettings() {
   error.value = ''
 
   try {
-    // Save schedule first
+    // Save carousel images first
+    const carousel = (carouselRef as any)?.value
+    if (carousel && typeof carousel.save === 'function') {
+      await carousel.save()
+    }
+    // Save schedule
     const schedule = (scheduleRef as any)?.value
     if (schedule && typeof schedule.save === 'function') {
       await schedule.save()
