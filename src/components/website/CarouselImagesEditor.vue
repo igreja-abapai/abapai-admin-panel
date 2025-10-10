@@ -42,13 +42,14 @@
               <div class="relative">
                 <input
                   :ref="`fileInput-${idx}`"
+                  :data-ref="`fileInput-${idx}`"
                   type="file"
                   accept="image/*"
                   @change="handleImageUpload($event, idx)"
                   class="hidden"
                 />
                 <button
-                  @click="() => ($refs[`fileInput-${idx}`] as HTMLInputElement)?.click()"
+                  @click="() => openFileInput(idx)"
                   class="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-colors cursor-pointer flex items-center justify-center gap-2"
                 >
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -328,6 +329,13 @@ function onTouchMove(e: TouchEvent) {
 
 function onTouchEnd() {
   isDragging.value = false
+}
+
+function openFileInput(index: number) {
+  const input = document.querySelector(`input[data-ref="fileInput-${index}"]`) as HTMLInputElement
+  if (input) {
+    input.click()
+  }
 }
 
 function openInNewTab(url: string) {
