@@ -292,7 +292,8 @@ const nextBirthdaysByMonth = computed(() => {
 onMounted(async () => {
   loading.value = true
   try {
-    members.value = await membersService.getMembers()
+    const response = await membersService.getMembers({ limit: 1000 })
+    members.value = response.data
   } finally {
     loading.value = false
   }
