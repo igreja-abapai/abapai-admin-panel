@@ -41,169 +41,121 @@
     <!-- Members Table -->
     <div class="bg-white rounded-lg shadow w-full">
       <div class="px-6 py-4 border-b border-neutral-200">
-        <h3 class="text-lg font-medium text-neutral-900">Membros ({{ filteredMembers.length }})</h3>
+        <h3 class="text-lg font-medium text-neutral-900">Membros ({{ totalMembers }})</h3>
       </div>
 
-      <div class="overflow-x-auto bg-white">
-        <table class="w-full table-fixed bg-white" style="min-width: 800px">
-          <thead class="bg-neutral-50">
-            <tr>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
-                style="width: 25%"
-              >
-                NOME
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider hidden md:table-cell"
-                style="width: 15%"
-              >
-                DATA DE NASCIMENTO
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider hidden lg:table-cell"
-                style="width: 15%"
-              >
-                BATISMO
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider hidden lg:table-cell"
-                style="width: 15%"
-              >
-                ENDEREÇO
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider hidden md:table-cell"
-                style="width: 20%"
-              >
-                CONTATO
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
-                style="width: 10%"
-              >
-                AÇÃO
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-neutral-200">
-            <tr v-if="error">
-              <td colspan="6" class="px-6 py-4 text-center text-sm text-neutral-500">
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                  {{ error }}
-                </div>
-              </td>
-            </tr>
+      <div v-if="error" class="px-6 py-4">
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {{ error }}
+        </div>
+      </div>
 
-            <tr v-else-if="loading">
-              <td colspan="6" class="px-6 py-4 text-center">
-                <div
-                  class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"
-                ></div>
-                <p class="mt-2 text-neutral-500">Carregando membros...</p>
-              </td>
-            </tr>
-
-            <tr v-else-if="filteredMembers.length === 0">
-              <td colspan="6" class="px-6 py-4 text-center">
-                <UserGroupIcon class="w-12 h-12 text-neutral-400 mx-auto mb-4" />
-                <p class="text-neutral-500">
-                  {{
-                    searchTerm
-                      ? 'Nenhum membro encontrado com os filtros aplicados'
-                      : 'Nenhum membro encontrado'
-                  }}
-                </p>
-              </td>
-            </tr>
-
-            <tr
-              v-else
-              v-for="member in filteredMembers"
-              :key="member.id"
-              class="hover:bg-neutral-50 transition-colors cursor-pointer"
-              @click="navigateToMemberDetails(member.id)"
+      <DataTable
+        v-else
+        :data="paginatedMembers"
+        :headers="tableHeaders"
+        :is-loading="loading"
+        :pagination="paginationInfo"
+        :clickable="true"
+        min-width="800px"
+        row-key="id"
+        @row-click="handleRowClick"
+        @sort="handleSort"
+        @page-change="handlePageChange"
+      >
+        <!-- Custom Name Column -->
+        <template #column-name="{ item }">
+          <div class="flex items-center">
+            <div
+              v-if="item.photoUrl"
+              class="w-8 h-8 rounded-full overflow-hidden border-2 border-neutral-200 mr-3 flex-shrink-0"
             >
-              <td class="px-6 py-4 overflow-hidden">
-                <div class="flex items-center">
-                  <div
-                    v-if="member.photoUrl"
-                    class="w-8 h-8 rounded-full overflow-hidden border-2 border-neutral-200 mr-3 flex-shrink-0"
-                  >
-                    <img
-                      :src="member.photoUrl"
-                      :alt="`Foto de ${member.name}`"
-                      class="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div
-                    v-else
-                    class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-xs font-medium mr-3 flex-shrink-0"
-                  >
-                    {{ getInitials(member.name) }}
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <div class="text-sm font-medium text-neutral-900 truncate">
-                      {{ member.name }}
-                    </div>
-                    <div class="text-xs text-neutral-500 md:hidden">
-                      {{ member.phone }}
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 text-sm text-neutral-900 hidden md:table-cell">
-                {{ formatDate(member.birthdate) }}
-              </td>
-              <td class="px-6 py-4 text-sm text-neutral-900 hidden lg:table-cell">
-                <span
-                  v-if="member.isBaptized"
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                >
-                  Batizado
-                </span>
-                <span
-                  v-else
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
-                >
-                  Não Batizado
-                </span>
-              </td>
-              <td class="px-6 py-4 text-sm text-neutral-900 hidden lg:table-cell overflow-hidden">
-                <div
-                  class="truncate"
-                  :title="member.address?.streetName || 'Endereço não informado'"
-                >
-                  {{ member.address?.streetName || 'Endereço não informado' }}
-                </div>
-              </td>
-              <td class="px-6 py-4 text-sm text-neutral-900 hidden md:table-cell whitespace-nowrap">
-                {{ member.phone }}
-              </td>
-              <td class="px-6 py-4 text-sm font-medium">
-                <router-link
-                  :to="`/membros/detalhes/${member.id}`"
-                  class="text-primary-600 hover:text-primary-700"
-                  @click.stop
-                >
-                  Ver Detalhes
-                </router-link>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              <img
+                :src="item.photoUrl"
+                :alt="`Foto de ${item.name}`"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div
+              v-else
+              class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-xs font-medium mr-3 flex-shrink-0"
+            >
+              {{ getInitials(item.name) }}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-sm font-medium text-neutral-900 truncate">
+                {{ item.name }}
+              </div>
+              <div class="text-xs text-neutral-500 md:hidden">
+                {{ item.phone }}
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Custom Baptism Column -->
+        <template #column-isBaptized="{ item }">
+          <span
+            v-if="item.isBaptized"
+            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+          >
+            Batizado
+          </span>
+          <span
+            v-else
+            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+          >
+            Não Batizado
+          </span>
+        </template>
+
+        <!-- Custom Address Column -->
+        <template #column-address="{ item }">
+          <div
+            class="truncate max-w-[200px]"
+            :title="item.address?.streetName || 'Endereço não informado'"
+          >
+            {{ item.address?.streetName || 'Endereço não informado' }}
+          </div>
+        </template>
+
+        <!-- Actions Column -->
+        <template #actions="{ item }">
+          <router-link
+            :to="`/membros/detalhes/${item.id}`"
+            class="text-primary-600 hover:text-primary-700 text-sm font-medium whitespace-nowrap"
+            @click.stop
+          >
+            Ver Detalhes
+          </router-link>
+        </template>
+
+        <!-- Empty State -->
+        <template #empty>
+          <div class="py-8 text-center">
+            <UserGroupIcon class="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+            <p class="text-neutral-500">
+              {{
+                searchTerm
+                  ? 'Nenhum membro encontrado com os filtros aplicados'
+                  : 'Nenhum membro encontrado'
+              }}
+            </p>
+          </div>
+        </template>
+      </DataTable>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { PlusIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { formatDate } from '@/utils/dateFormat'
 import CustomSelect from '@/components/CustomSelect.vue'
+import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 
 const router = useRouter()
 const loading = ref(false)
@@ -212,27 +164,68 @@ const searchTerm = ref('')
 const baptismFilter = ref('')
 const error = ref('')
 
-const filteredMembers = computed(() => {
-  let filtered = members.value
+// Sorting state - default to name ascending
+const sortKey = ref<string>('name')
+const sortDirection = ref<'asc' | 'desc' | 'none'>('asc')
 
-  // Apply search filter
-  if (searchTerm.value) {
-    const search = searchTerm.value.toLowerCase()
-    filtered = filtered.filter(
-      (member) =>
-        member.name.toLowerCase().includes(search) ||
-        (member.email && member.email.toLowerCase().includes(search)) ||
-        member.phone.toLowerCase().includes(search),
-    )
+// Pagination state
+const currentPage = ref(1)
+const itemsPerPage = 10
+const totalMembers = ref(0)
+const totalPages = ref(1)
+
+// Table headers
+const tableHeaders = computed<TableHeader<Member>[]>(() => [
+  {
+    key: 'name',
+    label: 'NOME',
+    sortable: true,
+    sortKey: 'name',
+    sortDirection: sortKey.value === 'name' ? sortDirection.value : 'none',
+    width: 0.25,
+    align: 'left',
+  },
+  {
+    key: 'birthdate',
+    label: 'DATA DE NASCIMENTO',
+    sortable: true,
+    sortKey: 'birthdate',
+    sortDirection: sortKey.value === 'birthdate' ? sortDirection.value : 'none',
+    width: 0.15,
+    formatter: (value) => formatDate(value),
+  },
+  {
+    key: 'isBaptized',
+    label: 'BATISMO',
+    sortable: true,
+    sortKey: 'isBaptized',
+    sortDirection: sortKey.value === 'isBaptized' ? sortDirection.value : 'none',
+    width: 0.15,
+  },
+  {
+    key: 'address',
+    label: 'ENDEREÇO',
+    sortable: false,
+    width: 0.15,
+    align: 'left',
+  },
+  {
+    key: 'phone',
+    label: 'CONTATO',
+    sortable: false,
+    width: 0.2,
+  },
+])
+
+const paginatedMembers = computed(() => members.value)
+
+const paginationInfo = computed(() => {
+  return {
+    currentPage: currentPage.value,
+    totalPages: totalPages.value || 1,
+    totalItems: totalMembers.value,
+    itemsPerPage,
   }
-
-  // Apply baptism filter
-  if (baptismFilter.value) {
-    const isBaptized = baptismFilter.value === 'true'
-    filtered = filtered.filter((member) => member.isBaptized === isBaptized)
-  }
-
-  return filtered
 })
 
 function getInitials(name?: string): string {
@@ -245,8 +238,33 @@ function getInitials(name?: string): string {
     .slice(0, 2)
 }
 
-function navigateToMemberDetails(memberId: string) {
-  router.push(`/membros/detalhes/${memberId}`)
+function handleRowClick(member: Member) {
+  router.push(`/membros/detalhes/${member.id}`)
+}
+
+function handleSort(key: string) {
+  if (sortKey.value === key) {
+    // Cycle through: none -> asc -> desc -> none
+    if (sortDirection.value === 'none') {
+      sortDirection.value = 'asc'
+    } else if (sortDirection.value === 'asc') {
+      sortDirection.value = 'desc'
+    } else {
+      sortDirection.value = 'none'
+      sortKey.value = ''
+    }
+  } else {
+    sortKey.value = key
+    sortDirection.value = 'asc'
+  }
+  // Reset to first page when sorting changes
+  currentPage.value = 1
+  loadMembers()
+}
+
+function handlePageChange(page: number) {
+  currentPage.value = page
+  loadMembers()
 }
 
 async function loadMembers() {
@@ -254,7 +272,31 @@ async function loadMembers() {
   error.value = ''
 
   try {
-    members.value = await membersService.getMembers()
+    const params: any = {
+      page: currentPage.value,
+      limit: itemsPerPage,
+    }
+
+    // Add search filter
+    if (searchTerm.value) {
+      params.search = searchTerm.value
+    }
+
+    // Add baptism filter
+    if (baptismFilter.value) {
+      params.isBaptized = baptismFilter.value === 'true'
+    }
+
+    // Add sorting
+    if (sortKey.value && sortDirection.value !== 'none') {
+      params.sortBy = sortKey.value
+      params.sortOrder = sortDirection.value.toUpperCase() as 'ASC' | 'DESC'
+    }
+
+    const response = await membersService.getMembers(params)
+    members.value = response.data
+    totalMembers.value = response.total
+    totalPages.value = response.totalPages
   } catch (err: any) {
     console.error('Error loading members:', err)
     error.value = err.response?.data?.message || 'Erro ao carregar membros'
@@ -262,6 +304,12 @@ async function loadMembers() {
     loading.value = false
   }
 }
+
+// Reset to first page when filters change and reload
+watch([searchTerm, baptismFilter], () => {
+  currentPage.value = 1
+  loadMembers()
+})
 
 onMounted(() => {
   loadMembers()

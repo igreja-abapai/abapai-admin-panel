@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="w-full flex justify-between mb-8">
       <h1 class="text-neutral-900 font-medium text-[28px]">Detalhes do Membro</h1>
-      <div class="flex gap-2">
+      <div class="flex gap-2 no-print">
         <router-link to="/membros" class="btn btn-secondary">
           <ArrowLeftIcon class="w-4 h-4 mr-2" />
           Voltar
@@ -11,6 +11,14 @@
         <button class="btn btn-secondary" @click="handleEdit">
           <PencilIcon class="w-4 h-4 mr-2" />
           Editar
+        </button>
+        <button class="btn btn-secondary" @click="handlePrint" :disabled="generatingPdf || !member">
+          <ArrowDownTrayIcon v-if="!generatingPdf" class="w-4 h-4 mr-2" />
+          <span
+            v-if="generatingPdf"
+            class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"
+          ></span>
+          {{ generatingPdf ? 'Gerando PDF...' : 'Baixar PDF' }}
         </button>
       </div>
     </div>
@@ -385,7 +393,7 @@
       </div>
 
       <!-- Delete Member Section -->
-      <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+      <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500 no-print">
         <h3 class="text-lg font-medium text-red-700 mb-4">Cuidado, atenção!</h3>
         <p class="text-neutral-600 mb-4">
           Esta ação é irreversível. Ao excluir este membro, todos os dados serão permanentemente
@@ -401,10 +409,15 @@
       </div>
     </div>
 
+    <!-- Hidden Member Card for PDF Generation -->
+    <div style="position: absolute; left: -9999px; top: 0; width: 210mm" ref="pdfContainerRef">
+      <MemberCard v-if="member" :member="member" />
+    </div>
+
     <!-- Delete Confirmation Modal -->
     <div
       v-if="showDeleteConfirmation"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 no-print"
       @click="showDeleteConfirmation = false"
     >
       <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" @click.stop>
@@ -446,10 +459,15 @@ import {
   ExclamationTriangleIcon,
   ArrowLeftIcon,
   TrashIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { usersService, type User } from '@/services/users'
 import { formatDate, formatDateTimeWithRelative } from '@/utils/dateFormat'
+import html2pdf from 'html2pdf.js'
+import MemberCard from '@/components/MemberCard.vue'
+import { environment } from '@/config/environment'
+import { getImageUrl } from '@/utils/imageUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -460,6 +478,8 @@ const loading = ref(false)
 const error = ref('')
 const showDeleteConfirmation = ref(false)
 const deleting = ref(false)
+const generatingPdf = ref(false)
+const pdfContainerRef = ref<HTMLElement>()
 
 function getInitials(name?: string): string {
   if (!name) return ''
@@ -473,6 +493,377 @@ function getInitials(name?: string): string {
 
 function handleEdit() {
   router.push(`/membros/editar/${member.value?.id}`)
+}
+
+async function handlePrint(event?: Event) {
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+
+  if (generatingPdf.value) {
+    return
+  }
+
+  if (!member.value) {
+    alert('Dados do membro não disponíveis')
+    return
+  }
+
+  generatingPdf.value = true
+
+  try {
+    if (!pdfContainerRef.value) {
+      alert('Erro ao preparar PDF. Tente recarregar a página.')
+      generatingPdf.value = false
+      return
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500))
+
+    const element = pdfContainerRef.value.querySelector('.member-card') as HTMLElement
+    if (!element) {
+      alert('Erro ao encontrar conteúdo para PDF. Tente novamente.')
+      generatingPdf.value = false
+      return
+    }
+
+    const images = Array.from(element.querySelectorAll('img'))
+
+    if (images.length > 0) {
+      // Step 1: Replace S3 URLs with proxy URLs and load images
+      const loadPromises: Promise<void>[] = []
+
+      images.forEach((img, index) => {
+        if (img.src && (img.src.includes('s3.') || img.src.includes('amazonaws.com'))) {
+          const proxyUrl = getImageUrl(img.src)
+
+          const loadPromise = new Promise<void>((resolve) => {
+            const newImg = new Image()
+            newImg.crossOrigin = 'anonymous'
+
+            const timeout = setTimeout(() => {
+              resolve()
+            }, 10000)
+
+            newImg.onload = () => {
+              clearTimeout(timeout)
+              try {
+                const canvas = document.createElement('canvas')
+                const ctx = canvas.getContext('2d')
+                if (ctx) {
+                  canvas.width = newImg.naturalWidth || newImg.width
+                  canvas.height = newImg.naturalHeight || newImg.height
+                  ctx.drawImage(newImg, 0, 0)
+                  const dataURL = canvas.toDataURL('image/jpeg', 0.95)
+                  img.src = dataURL
+                }
+              } catch (error) {
+                // Silent fail - continue without image
+              }
+              resolve()
+            }
+
+            newImg.onerror = () => {
+              clearTimeout(timeout)
+              resolve()
+            }
+
+            newImg.src = proxyUrl
+          })
+
+          loadPromises.push(loadPromise)
+        } else if (img.src && !img.src.startsWith('data:')) {
+          // Check if this is the logo - use PNG to preserve transparency
+          const isLogo = img.hasAttribute('data-logo')
+          const convertPromise = new Promise<void>((resolve) => {
+            if (img.complete && img.naturalHeight !== 0) {
+              convertImageToBase64(img, isLogo)
+                .then(() => resolve())
+                .catch(() => resolve())
+            } else {
+              const timeout = setTimeout(() => {
+                resolve()
+              }, 5000)
+
+              img.addEventListener(
+                'load',
+                () => {
+                  clearTimeout(timeout)
+                  convertImageToBase64(img, isLogo)
+                    .then(() => resolve())
+                    .catch(() => resolve())
+                },
+                { once: true },
+              )
+
+              img.addEventListener(
+                'error',
+                () => {
+                  clearTimeout(timeout)
+                  resolve()
+                },
+                { once: true },
+              )
+            }
+          })
+          loadPromises.push(convertPromise)
+        }
+      })
+
+      await Promise.all(loadPromises)
+
+      let retries = 0
+      const maxRetries = 2
+
+      while (retries < maxRetries) {
+        let allBase64 = true
+        const needsRetry: HTMLImageElement[] = []
+
+        images.forEach((img) => {
+          if (img.src && !img.src.startsWith('data:')) {
+            allBase64 = false
+            needsRetry.push(img)
+          }
+        })
+
+        if (allBase64 || needsRetry.length === 0) {
+          break
+        }
+
+        if (retries < maxRetries - 1 && needsRetry.length > 0) {
+          retries++
+
+          const retryPromises = needsRetry.map((img) => {
+            return new Promise<void>((resolve) => {
+              const timeout = setTimeout(() => {
+                resolve()
+              }, 5000)
+
+              const isLogo = img.hasAttribute('data-logo')
+              if (img.complete && img.naturalHeight !== 0) {
+                try {
+                  const canvas = document.createElement('canvas')
+                  const ctx = canvas.getContext('2d')
+                  if (ctx) {
+                    canvas.width = img.naturalWidth || img.width
+                    canvas.height = img.naturalHeight || img.height
+                    ctx.drawImage(img, 0, 0)
+                    const dataURL = isLogo
+                      ? canvas.toDataURL('image/png')
+                      : canvas.toDataURL('image/jpeg', 0.95)
+                    img.src = dataURL
+                  }
+                } catch (error) {
+                  // Silent fail
+                }
+                clearTimeout(timeout)
+                resolve()
+              } else {
+                img.addEventListener(
+                  'load',
+                  () => {
+                    clearTimeout(timeout)
+                    try {
+                      const canvas = document.createElement('canvas')
+                      const ctx = canvas.getContext('2d')
+                      if (ctx) {
+                        canvas.width = img.naturalWidth || img.width
+                        canvas.height = img.naturalHeight || img.height
+                        ctx.drawImage(img, 0, 0)
+                        const dataURL = isLogo
+                          ? canvas.toDataURL('image/png')
+                          : canvas.toDataURL('image/jpeg', 0.95)
+                        img.src = dataURL
+                      }
+                    } catch (error) {
+                      // Silent fail
+                    }
+                    resolve()
+                  },
+                  { once: true },
+                )
+
+                img.addEventListener(
+                  'error',
+                  () => {
+                    clearTimeout(timeout)
+                    resolve()
+                  },
+                  { once: true },
+                )
+              }
+            })
+          })
+
+          await Promise.all(retryPromises)
+          await new Promise((resolve) => setTimeout(resolve, 500))
+        } else {
+          break
+        }
+      }
+    }
+
+    // Configure PDF options
+    const opt = {
+      margin: [0, 0, 0, 0] as [number, number, number, number],
+      filename: `Ficha_Membro_${member.value.name.replace(/\s+/g, '_')}.pdf`,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        letterRendering: true,
+        x: 0,
+        y: 0,
+        onclone: (clonedDoc: Document) => {
+          // Ensure images are loaded in the cloned document
+          const clonedImages = clonedDoc.querySelectorAll('img')
+          clonedImages.forEach((img) => {
+            if (img.src && img.src.startsWith('data:')) {
+              // Image is already base64, ensure it's loaded
+              const newImg = new Image()
+              newImg.crossOrigin = 'anonymous'
+              newImg.src = img.src
+              img.src = newImg.src
+            }
+          })
+        },
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    }
+
+    if (typeof html2pdf === 'undefined' || !html2pdf) {
+      throw new Error('html2pdf não está disponível. Verifique se a biblioteca está instalada.')
+    }
+
+    const pdfWorker = html2pdf().set(opt).from(element)
+    await pdfWorker.save()
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao gerar PDF'
+    alert(`Erro ao gerar PDF: ${errorMessage}`)
+  } finally {
+    generatingPdf.value = false
+  }
+}
+
+// Helper function to convert image to base64
+// Use PNG format for logos to preserve transparency, JPEG for photos
+function convertImageToBase64(img: HTMLImageElement, usePng = false): Promise<void> {
+  return new Promise((resolve) => {
+    // Always resolve, never reject, to prevent Promise.all from hanging
+    const resolveOnce = () => {
+      resolve()
+    }
+
+    // If image is already base64, we're done
+    if (img.src.startsWith('data:')) {
+      resolveOnce()
+      return
+    }
+
+    const timeout = setTimeout(() => {
+      resolveOnce()
+    }, 5000)
+
+    try {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        clearTimeout(timeout)
+        resolveOnce()
+        return
+      }
+
+      if (!img.complete || img.naturalHeight === 0) {
+        const loadHandler = () => {
+          clearTimeout(timeout)
+          try {
+            canvas.width = img.naturalWidth || img.width || 100
+            canvas.height = img.naturalHeight || img.height || 100
+            ctx.drawImage(img, 0, 0)
+            const dataURL = usePng
+              ? canvas.toDataURL('image/png')
+              : canvas.toDataURL('image/jpeg', 0.95)
+            img.src = dataURL
+            resolveOnce()
+          } catch (error) {
+            resolveOnce()
+          }
+        }
+        const errorHandler = () => {
+          clearTimeout(timeout)
+          resolveOnce()
+        }
+        img.addEventListener('load', loadHandler, { once: true })
+        img.addEventListener('error', errorHandler, { once: true })
+        return
+      }
+
+      // Image is already loaded, convert it
+      canvas.width = img.naturalWidth || img.width || 100
+      canvas.height = img.naturalHeight || img.height || 100
+      ctx.drawImage(img, 0, 0)
+      const dataURL = usePng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.95)
+      img.src = dataURL
+      clearTimeout(timeout)
+      resolveOnce()
+    } catch (error) {
+      clearTimeout(timeout)
+      resolveOnce()
+    }
+  })
+}
+
+function convertImageDirectly(img: HTMLImageElement, resolve: () => void): void {
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+
+  if (!ctx) {
+    resolve()
+    return
+  }
+
+  canvas.width = img.naturalWidth || img.width || 100
+  canvas.height = img.naturalHeight || img.height || 100
+
+  try {
+    ctx.drawImage(img, 0, 0)
+    const dataURL = canvas.toDataURL('image/jpeg', 0.95)
+    img.src = dataURL
+    resolve()
+  } catch (error) {
+    if (!img.crossOrigin) {
+      img.crossOrigin = 'anonymous'
+      const newImg = new Image()
+      newImg.crossOrigin = 'anonymous'
+
+      const timeout = setTimeout(() => {
+        resolve()
+      }, 5000)
+
+      newImg.onload = () => {
+        clearTimeout(timeout)
+        try {
+          ctx.drawImage(newImg, 0, 0)
+          const dataURL = canvas.toDataURL('image/jpeg', 0.95)
+          img.src = dataURL
+          resolve()
+        } catch (e) {
+          resolve()
+        }
+      }
+      newImg.onerror = () => {
+        clearTimeout(timeout)
+        resolve()
+      }
+      newImg.src = img.src
+    } else {
+      resolve()
+    }
+  }
 }
 
 async function loadMember() {
@@ -525,3 +916,59 @@ onMounted(() => {
   loadMember()
 })
 </script>
+
+<style scoped>
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  /* Remove shadows and borders for cleaner print */
+  .bg-white {
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  /* Ensure proper page breaks */
+  .space-y-6 > * {
+    page-break-inside: avoid;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Optimize text colors for print */
+  .text-neutral-500 {
+    color: #6b7280 !important;
+  }
+
+  .text-neutral-900 {
+    color: #111827 !important;
+  }
+
+  /* Remove background colors from badges for better print quality */
+  .bg-green-100,
+  .bg-red-100,
+  .bg-blue-100,
+  .bg-yellow-100,
+  .bg-gray-100 {
+    background-color: transparent !important;
+    border: 1px solid currentColor !important;
+  }
+
+  /* Ensure images print properly */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Page setup */
+  @page {
+    margin: 1cm;
+  }
+
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+</style>

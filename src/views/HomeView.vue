@@ -35,20 +35,22 @@ function getInitials(name?: string): string {
 onMounted(async () => {
   try {
     loading.value = true
-    // Load real members data
-    const members = await membersService.getMembers()
+    const membersResponse = await membersService.getMembers({
+      limit: 100,
+      sortBy: 'createdAt',
+      sortOrder: 'DESC',
+    })
+    const members = membersResponse.data
 
-    // Load real prayer requests data
     const prayerRequests = await prayerRequestsService.getPrayerRequests()
 
     stats.value = {
-      totalMembers: members.length,
+      totalMembers: membersResponse.total,
       activeMembers: members.filter((m) => m.isActive).length,
       prayerRequests: prayerRequests.length,
       inactiveMembers: members.filter((m) => !m.isActive).length,
     }
 
-    // Get recent members (first 3)
     recentMembers.value = members.slice(0, 3)
   } catch (error) {
     console.error('Error loading dashboard data:', error)

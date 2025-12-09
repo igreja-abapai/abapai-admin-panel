@@ -16,17 +16,18 @@
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
     "@vuepic/vue-datepicker": "^11.0.2",
+    "@vueup/vue-quill": "^1.2.0",
     "@vueuse/core": "^13.5.0",
     "autoprefixer": "^10.4.21",
     "axios": "^1.10.0",
+    "html2pdf.js": "^0.12.1",
     "jwt-decode": "^4.0.0",
     "pinia": "^3.0.3",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1",
-    "vue3-datepicker": "^0.4.0",
-    "@vueup/vue-quill": "^1.2.0"
+    "vue3-datepicker": "^0.4.0"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.2",
