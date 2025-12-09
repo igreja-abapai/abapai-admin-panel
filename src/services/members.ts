@@ -129,6 +129,7 @@ export interface GetMembersParams {
   sortOrder?: 'ASC' | 'DESC'
   search?: string
   isBaptized?: boolean
+  isPaginated?: boolean
 }
 
 export class MembersService {
@@ -141,6 +142,8 @@ export class MembersService {
     if (params?.search) queryParams.append('search', params.search)
     if (params?.isBaptized !== undefined)
       queryParams.append('isBaptized', params.isBaptized.toString())
+    if (params?.isPaginated !== undefined)
+      queryParams.append('isPaginated', params.isPaginated.toString())
 
     const queryString = queryParams.toString()
     const url = queryString ? `/member?${queryString}` : '/member'
