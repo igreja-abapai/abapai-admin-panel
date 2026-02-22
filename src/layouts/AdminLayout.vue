@@ -218,7 +218,7 @@
                 </span>
               </router-link>
             </li>
-            
+
             <li v-if="authStore.hasPermission('visualizar_membros')" class="flex flex-col">
               <div
                 @click="membrosDropdownOpen = !membrosDropdownOpen"
@@ -273,6 +273,26 @@
                   </li>
                 </ul>
               </transition>
+            </li>
+
+            <li v-if="authStore.hasPermission('visualizar_analises')" class="flex">
+              <router-link to="/analises" class="w-full">
+                <span
+                  :class="[
+                    'flex items-center px-4 py-1 rounded-xl transition-all duration-200',
+                    $route.path === '/analises'
+                      ? 'bg-blue-100 text-blue-700 shadow-sm'
+                      : 'hover:bg-neutral-100',
+                    sidebarCollapsed ? 'justify-center' : 'justify-start',
+                    'w-full',
+                  ]"
+                >
+                  <span class="flex items-center justify-center w-10 h-10">
+                    <ChartBarIcon class="w-5 h-5" />
+                  </span>
+                  <span v-show="!sidebarCollapsed" class="label">Análises</span>
+                </span>
+              </router-link>
             </li>
 
             <li v-if="authStore.hasPermission('visualizar_pedidos_oracao')" class="flex">
@@ -475,6 +495,7 @@ import {
   KeyIcon,
   UserIcon,
   GlobeAltIcon,
+  ChartBarIcon,
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'

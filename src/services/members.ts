@@ -112,6 +112,7 @@ export interface UpdateMemberRequest {
   observations?: string
   admissionDate?: string
   admissionType?: string
+  isActive?: boolean
 }
 
 export interface PaginatedMembersResponse {
@@ -129,6 +130,7 @@ export interface GetMembersParams {
   sortOrder?: 'ASC' | 'DESC'
   search?: string
   isBaptized?: boolean
+  isActive?: boolean
   isPaginated?: boolean
 }
 
@@ -142,6 +144,7 @@ export class MembersService {
     if (params?.search) queryParams.append('search', params.search)
     if (params?.isBaptized !== undefined)
       queryParams.append('isBaptized', params.isBaptized.toString())
+    if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString())
     if (params?.isPaginated !== undefined)
       queryParams.append('isPaginated', params.isPaginated.toString())
 

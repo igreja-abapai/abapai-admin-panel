@@ -32,7 +32,17 @@
               { value: 'true', label: 'Batizados' },
               { value: 'false', label: 'Não batizados' },
             ]"
-            placeholder="Selecionar filtro"
+            placeholder="Batismo"
+          />
+        </div>
+        <div class="md:w-48">
+          <CustomSelect
+            v-model="statusFilter"
+            :options="[
+              { value: 'true', label: 'Ativos' },
+              { value: 'false', label: 'Afastados' },
+            ]"
+            placeholder="Status"
           />
         </div>
       </div>
@@ -83,8 +93,16 @@
               {{ getInitials(item.name) }}
             </div>
             <div class="min-w-0 flex-1">
-              <div class="text-sm font-medium text-neutral-900 truncate">
-                {{ item.name }}
+              <div class="flex items-center gap-2">
+                <div class="text-sm font-medium text-neutral-900 truncate">
+                  {{ item.name }}
+                </div>
+                <span
+                  v-if="!item.isActive"
+                  class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-800"
+                >
+                  Afastado
+                </span>
               </div>
               <div class="text-xs text-neutral-500 md:hidden">
                 {{ item.phone }}
@@ -162,6 +180,7 @@ const loading = ref(false)
 const members = ref<Member[]>([])
 const searchTerm = ref('')
 const baptismFilter = ref('')
+const statusFilter = ref('')
 const error = ref('')
 
 // Sorting state - default to name ascending
@@ -287,6 +306,11 @@ async function loadMembers() {
       params.isBaptized = baptismFilter.value === 'true'
     }
 
+    // Add status filter
+    if (statusFilter.value) {
+      params.isActive = statusFilter.value === 'true'
+    }
+
     // Add sorting
     if (sortKey.value && sortDirection.value !== 'none') {
       params.sortBy = sortKey.value
@@ -306,7 +330,7 @@ async function loadMembers() {
 }
 
 // Reset to first page when filters change and reload
-watch([searchTerm, baptismFilter], () => {
+watch([searchTerm, baptismFilter, statusFilter], () => {
   currentPage.value = 1
   loadMembers()
 })

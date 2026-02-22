@@ -28,6 +28,12 @@
       </div>
       <div class="member-basic-info">
         <h2 class="member-name">{{ member.name }}</h2>
+        <div class="member-badges">
+          <span v-if="!member.isActive" class="badge badge-danger">Afastado</span>
+          <span class="badge badge-info">
+            {{ member.isBaptized ? 'Batizado' : 'Não Batizado' }}
+          </span>
+        </div>
         <p class="member-occupation">{{ member.occupation }}</p>
       </div>
     </div>

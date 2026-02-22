@@ -8,18 +8,47 @@
           <ArrowLeftIcon class="w-4 h-4 mr-2" />
           Voltar
         </router-link>
-        <button class="btn btn-secondary" @click="handleEdit">
-          <PencilIcon class="w-4 h-4 mr-2" />
-          Editar
-        </button>
-        <button class="btn btn-secondary" @click="handlePrint" :disabled="generatingPdf || !member">
-          <ArrowDownTrayIcon v-if="!generatingPdf" class="w-4 h-4 mr-2" />
-          <span
-            v-if="generatingPdf"
-            class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"
-          ></span>
-          {{ generatingPdf ? 'Gerando PDF...' : 'Baixar PDF' }}
-        </button>
+        <SplitButton
+          label="Editar"
+          :icon="PencilIcon"
+          @click="handleEdit"
+          toggle-title="Mais opções"
+        >
+          <template #menu>
+            <button
+              @click="handlePrint"
+              :disabled="generatingPdf || !member"
+              class="flex items-center w-full px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100 disabled:opacity-50 transition-colors"
+            >
+              <ArrowDownTrayIcon v-if="!generatingPdf" class="w-5 h-5 mr-3 text-neutral-400" />
+              <span
+                v-else
+                class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600 mr-3"
+              ></span>
+              {{ generatingPdf ? 'Gerando PDF...' : 'Baixar PDF' }}
+            </button>
+
+            <button
+              v-if="member?.isActive"
+              @click="showAfastarConfirmation = true"
+              class="flex items-center w-full px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
+              :disabled="togglingStatus"
+            >
+              <UserMinusIcon class="w-5 h-5 mr-3 text-neutral-400" />
+              Marcar como afastado
+            </button>
+
+            <button
+              v-else-if="member"
+              @click="handleToggleStatus"
+              class="flex items-center w-full px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
+              :disabled="togglingStatus"
+            >
+              <UserPlusIcon class="w-5 h-5 mr-3 text-neutral-400" />
+              Reativar
+            </button>
+          </template>
+        </SplitButton>
       </div>
     </div>
 
@@ -68,6 +97,12 @@
             <h2 class="text-2xl font-semibold text-neutral-900">{{ member.name }}</h2>
             <p class="text-neutral-500">{{ member.occupation }}</p>
             <div class="flex items-center space-x-4 mt-2">
+              <span
+                v-if="!member.isActive"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+              >
+                Afastado
+              </span>
               <span
                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
               >
@@ -447,11 +482,40 @@
         </div>
       </div>
     </div>
+    <!-- Afastar Confirmation Modal -->
+    <div
+      v-if="showAfastarConfirmation"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 no-print"
+      @click="showAfastarConfirmation = false"
+    >
+      <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" @click.stop>
+        <div class="flex items-center mb-4">
+          <ExclamationTriangleIcon class="w-8 h-8 text-yellow-500 mr-3" />
+          <h3 class="text-lg font-medium text-neutral-900">Confirmar</h3>
+        </div>
+        <p class="text-neutral-600 mb-6">
+          Tem certeza que deseja marcar o membro <strong>{{ member?.name }}</strong> como
+          <strong>Afastado</strong>?
+        </p>
+        <div class="flex justify-end space-x-3">
+          <button @click="showAfastarConfirmation = false" class="btn btn-secondary">
+            Cancelar
+          </button>
+          <button @click="handleToggleStatus" :disabled="togglingStatus" class="btn btn-primary">
+            <span
+              v-if="togglingStatus"
+              class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
+            ></span>
+            {{ togglingStatus ? 'Processando...' : 'Sim' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   PencilIcon,
@@ -460,12 +524,17 @@ import {
   ArrowLeftIcon,
   TrashIcon,
   ArrowDownTrayIcon,
+  UserMinusIcon,
+  UserPlusIcon,
+  EllipsisHorizontalIcon,
+  ChevronDownIcon,
 } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { usersService, type User } from '@/services/users'
 import { formatDate, formatDateTimeWithRelative } from '@/utils/dateFormat'
 import html2pdf from 'html2pdf.js'
 import MemberCard from '@/components/MemberCard.vue'
+import SplitButton from '@/components/SplitButton.vue'
 import { environment } from '@/config/environment'
 import { getImageUrl } from '@/utils/imageUrl'
 
@@ -480,6 +549,8 @@ const showDeleteConfirmation = ref(false)
 const deleting = ref(false)
 const generatingPdf = ref(false)
 const pdfContainerRef = ref<HTMLElement>()
+const showAfastarConfirmation = ref(false)
+const togglingStatus = ref(false)
 
 function getInitials(name?: string): string {
   if (!name) return ''
@@ -909,6 +980,25 @@ async function handleDeleteMember() {
   } finally {
     deleting.value = false
     showDeleteConfirmation.value = false
+  }
+}
+
+async function handleToggleStatus() {
+  if (!member.value) return
+
+  togglingStatus.value = true
+  try {
+    const newStatus = !member.value.isActive
+    await membersService.updateMember(member.value.id, {
+      isActive: newStatus,
+    })
+    member.value.isActive = newStatus
+    showAfastarConfirmation.value = false
+  } catch (err: any) {
+    console.error('Error toggling member status:', err)
+    error.value = err.response?.data?.message || 'Erro ao alterar status do membro'
+  } finally {
+    togglingStatus.value = false
   }
 }
 
