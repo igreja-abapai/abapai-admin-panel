@@ -40,7 +40,7 @@
             v-model="statusFilter"
             :options="[
               { value: 'true', label: 'Ativos' },
-              { value: 'false', label: 'Afastados' },
+              { value: 'false', label: 'Ausentes' },
             ]"
             placeholder="Status"
           />
@@ -99,9 +99,9 @@
                 </div>
                 <span
                   v-if="!item.isActive"
-                  class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-800"
+                  class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-800"
                 >
-                  Afastado
+                  Ausente
                 </span>
               </div>
               <div class="text-xs text-neutral-500 md:hidden">

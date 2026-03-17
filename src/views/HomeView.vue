@@ -36,7 +36,7 @@ onMounted(async () => {
   try {
     loading.value = true
     const membersResponse = await membersService.getMembers({
-      limit: 100,
+      isPaginated: false,
       sortBy: 'createdAt',
       sortOrder: 'DESC',
     })
@@ -90,10 +90,10 @@ onMounted(async () => {
       />
       <StatCard
         :icon="UserMinusIcon"
-        title="Membros afastados"
+        title="Membros Ausentes"
         :value="stats.inactiveMembers"
-        icon-bg-color="bg-red-100"
-        icon-color="text-red-600"
+        icon-bg-color="bg-amber-100"
+        icon-color="text-amber-600"
         :loading="loading"
       />
       <StatCard

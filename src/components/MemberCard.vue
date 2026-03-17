@@ -29,7 +29,7 @@
       <div class="member-basic-info">
         <h2 class="member-name">{{ member.name }}</h2>
         <div class="member-badges">
-          <span v-if="!member.isActive" class="badge badge-danger">Afastado</span>
+          <span v-if="!member.isActive" class="badge badge-warning">Ausente</span>
           <span class="badge badge-info">
             {{ member.isBaptized ? 'Batizado' : 'Não Batizado' }}
           </span>
@@ -404,6 +404,12 @@ defineExpose({
   background: #fee2e2;
   color: #991b1b;
   border-color: #991b1b;
+}
+
+.badge-warning {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #92400e;
 }
 
 .badge-info {
