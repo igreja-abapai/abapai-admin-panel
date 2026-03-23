@@ -202,7 +202,7 @@ function parseDate(dateStr: string): Date {
 function getNextBirthdayDate(birthdateStr: string): Date {
   const birth = parseDate(birthdateStr)
   const thisYear = today.getFullYear()
-  let next = new Date(thisYear, birth.getMonth(), birth.getDate())
+  const next = new Date(thisYear, birth.getMonth(), birth.getDate())
   if (
     next < today &&
     !(next.getDate() === today.getDate() && next.getMonth() === today.getMonth())
@@ -236,7 +236,7 @@ const nextBirthdays = computed(() => {
     .filter((m) => m.birthdate)
     .map((m) => {
       const date = parseDate(m.birthdate)
-      let next = new Date(todayY, date.getMonth(), date.getDate())
+      const next = new Date(todayY, date.getMonth(), date.getDate())
       if (
         next < today &&
         !(next.getDate() === today.getDate() && next.getMonth() === today.getMonth())
