@@ -341,7 +341,7 @@
       <button
         @click="saveWebsiteSettings"
         :disabled="saving"
-        class="px-4 py-2 bg-primary-500 text-white hover:bg-primary-600 rounded-lg transition-colors disabled:opacity-50"
+        class="px-4 py-2 bg-primary-600 text-white hover:bg-primary-600 rounded-lg transition-colors disabled:opacity-50"
       >
         <span
           v-if="saving"

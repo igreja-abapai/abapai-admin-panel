@@ -77,6 +77,14 @@ class HttpService {
     const response = await this.http.delete<T>(url, config)
     return response.data
   }
+
+  async getBlob(url: string, config?: any): Promise<Blob> {
+    const response = await this.http.get(url, {
+      ...(config || {}),
+      responseType: 'blob',
+    })
+    return response.data as Blob
+  }
 }
 
 export const httpService = new HttpService()

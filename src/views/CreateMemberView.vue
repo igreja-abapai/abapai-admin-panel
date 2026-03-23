@@ -102,25 +102,18 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Nome Completo *</label>
-            <input
-              v-model="form.name"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Digite o nome completo"
-            />
+            <Input v-model="form.name" type="text" required placeholder="Digite o nome completo" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Gênero *</label>
-            <CustomSelect
+            <Select
               v-model="form.gender"
               :options="[
                 { value: 'Masculino', label: 'Masculino' },
                 { value: 'Feminino', label: 'Feminino' },
               ]"
               placeholder="Selecione o gênero"
-              required
             />
           </div>
 
@@ -128,98 +121,73 @@
             <label class="block text-sm font-medium text-neutral-700 mb-2"
               >Data de Nascimento *</label
             >
-            <VueDatePicker
-              v-model="form.birthdate"
-              :enable-time-picker="false"
-              placeholder="dd/mm/aaaa"
-              format="dd/MM/yyyy"
-              locale="pt-BR"
-              select-text="Selecionar"
-              cancel-text="Cancelar"
-              class="w-full"
-            />
+            <div class="create-member-dp w-full">
+              <VueDatePicker
+                v-model="form.birthdate"
+                :enable-time-picker="false"
+                placeholder="dd/mm/aaaa"
+                format="dd/MM/yyyy"
+                locale="pt-BR"
+                select-text="Selecionar"
+                cancel-text="Cancelar"
+                class="w-full"
+              />
+            </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Nacionalidade *</label>
-            <input
-              v-model="form.nationality"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: Brasileira"
-            />
+            <Input v-model="form.nationality" type="text" required placeholder="Ex: Brasileira" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Naturalidade</label>
-            <input
-              v-model="form.placeOfBirth"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: São Paulo, SP"
-            />
+            <Input v-model="form.placeOfBirth" type="text" placeholder="Ex: São Paulo, SP" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2"
               >Quantidade de Filhos</label
             >
-            <input
-              v-model="form.childrenCount"
-              @input="handleChildrenCountInput"
+            <Input
+              :model-value="form.childrenCount ?? ''"
               type="number"
               min="0"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="0"
+              input-class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              @input="handleChildrenCountInput"
             />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Nome do Pai</label>
-            <input
-              v-model="form.fatherName"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Nome completo do pai"
-            />
+            <Input v-model="form.fatherName" type="text" placeholder="Nome completo do pai" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Nome da Mãe</label>
-            <input
-              v-model="form.motherName"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Nome completo da mãe"
-            />
+            <Input v-model="form.motherName" type="text" placeholder="Nome completo da mãe" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Telefone *</label>
-            <input
+            <Input
               v-model="form.phone"
-              @input="handlePhoneInput"
               type="tel"
               required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="(11) 99999-9999"
+              @input="handlePhoneInput"
             />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Email</label>
-            <input
-              v-model="form.email"
-              type="email"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="email@exemplo.com"
-            />
+            <Input v-model="form.email" type="email" placeholder="email@exemplo.com" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Estado Civil *</label>
-            <CustomSelect
+            <Select
               v-model="form.maritalStatus"
               :options="[
                 { value: 'Solteiro', label: 'Solteiro' },
@@ -228,23 +196,17 @@
                 { value: 'Viúvo', label: 'Viúvo' },
               ]"
               placeholder="Selecione o estado civil"
-              required
             />
           </div>
 
           <div v-if="form.maritalStatus === 'Casado'">
             <label class="block text-sm font-medium text-neutral-700 mb-2">Nome do Cônjuge</label>
-            <input
-              v-model="form.spouseName"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Nome do cônjuge"
-            />
+            <Input v-model="form.spouseName" type="text" placeholder="Nome do cônjuge" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Escolaridade *</label>
-            <CustomSelect
+            <Select
               v-model="form.educationLevel"
               :options="[
                 { value: 'Ensino Fundamental', label: 'Ensino Fundamental' },
@@ -257,7 +219,6 @@
                 { value: 'Outro', label: 'Outro' },
               ]"
               placeholder="Selecione a escolaridade"
-              required
             />
           </div>
 
@@ -265,11 +226,10 @@
             <label class="block text-sm font-medium text-neutral-700 mb-2"
               >Profissão/Ocupação *</label
             >
-            <input
+            <Input
               v-model="form.occupation"
               type="text"
               required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Ex: Engenheiro, Professor, etc."
             />
           </div>
@@ -283,88 +243,50 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-neutral-700 mb-2">Rua *</label>
-            <input
-              v-model="addressForm.streetName"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Nome da rua"
-            />
+            <Input v-model="addressForm.streetName" type="text" required placeholder="Nome da rua" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Número *</label>
-            <input
-              v-model="addressForm.streetNumber"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Número"
-            />
+            <Input v-model="addressForm.streetNumber" type="text" required placeholder="Número" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Complemento</label>
-            <input
+            <Input
               v-model="addressForm.complement"
               type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Apto, Bloco, Referência, etc."
             />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Bairro *</label>
-            <input
-              v-model="addressForm.district"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Nome do bairro"
-            />
+            <Input v-model="addressForm.district" type="text" required placeholder="Nome do bairro" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Cidade *</label>
-            <input
-              v-model="addressForm.city"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Nome da cidade"
-            />
+            <Input v-model="addressForm.city" type="text" required placeholder="Nome da cidade" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Estado *</label>
-            <input
-              v-model="addressForm.state"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="UF"
-            />
+            <Input v-model="addressForm.state" type="text" required placeholder="UF" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">País *</label>
-            <input
-              v-model="addressForm.country"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Nome do país"
-            />
+            <Input v-model="addressForm.country" type="text" required placeholder="Nome do país" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">CEP</label>
-            <input
+            <Input
               v-model="addressForm.postalCode"
-              @input="handleCEPInput"
               type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="00000-000"
+              @input="handleCEPInput"
             />
           </div>
         </div>
@@ -377,36 +299,23 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">CPF *</label>
-            <input
+            <Input
               v-model="form.cpf"
-              @input="handleCPFInput"
               type="text"
               required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="000.000.000-00"
+              @input="handleCPFInput"
             />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">RG *</label>
-            <input
-              v-model="form.rg"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="00.000.000-0"
-            />
+            <Input v-model="form.rg" type="text" required placeholder="00.000.000-0" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Órgão Expedidor *</label>
-            <input
-              v-model="form.issuingBody"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="SSP"
-            />
+            <Input v-model="form.issuingBody" type="text" required placeholder="SSP" />
           </div>
         </div>
       </div>
@@ -420,37 +329,22 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Ano de Conversão</label>
-            <input
-              v-model="form.yearOfConversion"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: 2020"
-            />
+            <Input v-model="form.yearOfConversion" type="text" placeholder="Ex: 2020" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Última Igreja</label>
-            <input
-              v-model="form.lastChurch"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Nome da última igreja"
-            />
+            <Input v-model="form.lastChurch" type="text" placeholder="Nome da última igreja" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Data de Admissão</label>
-            <input
-              v-model="form.admissionDate"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="dd/mm/aaaa"
-            />
+            <Input v-model="form.admissionDate" type="text" placeholder="dd/mm/aaaa" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Tipo de Admissão</label>
-            <CustomSelect
+            <Select
               v-model="form.admissionType"
               :options="[
                 { value: 'Confissão de fé', label: 'Confissão de fé' },
@@ -465,10 +359,9 @@
             <label class="block text-sm font-medium text-neutral-700 mb-2"
               >Último Cargo Exercido</label
             >
-            <input
+            <Input
               v-model="form.lastPositionHeld"
               type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Ex: Diácono, Presbítero, etc."
             />
           </div>
@@ -477,22 +370,12 @@
             <label class="block text-sm font-medium text-neutral-700 mb-2"
               >Período do Último Cargo</label
             >
-            <input
-              v-model="form.lastPositionPeriod"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: 2020-2022"
-            />
+            <Input v-model="form.lastPositionPeriod" type="text" placeholder="Ex: 2020-2022" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Cargo Atual</label>
-            <input
-              v-model="form.currentPosition"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: Membro, Líder, etc."
-            />
+            <Input v-model="form.currentPosition" type="text" placeholder="Ex: Membro, Líder, etc." />
           </div>
 
           <div class="flex items-center">
@@ -509,22 +392,12 @@
 
           <div v-if="form.isBaptized">
             <label class="block text-sm font-medium text-neutral-700 mb-2">Ano do Batismo</label>
-            <input
-              v-model="form.yearOfBaptism"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: 2021"
-            />
+            <Input v-model="form.yearOfBaptism" type="text" placeholder="Ex: 2021" />
           </div>
 
           <div v-if="form.isBaptized">
             <label class="block text-sm font-medium text-neutral-700 mb-2">Local do Batismo</label>
-            <input
-              v-model="form.baptismPlace"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: Igreja Batista Central"
-            />
+            <Input v-model="form.baptismPlace" type="text" placeholder="Ex: Igreja Batista Central" />
           </div>
 
           <div>
@@ -576,10 +449,9 @@
 
           <div v-if="form.wantsToBeAVolunteer">
             <label class="block text-sm font-medium text-neutral-700 mb-2">Área de Interesse</label>
-            <input
+            <Input
               v-model="form.areaOfInterest"
               type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Ex: Louvor, Recepção, Dpt. Infantil, etc."
             />
           </div>
@@ -589,7 +461,7 @@
             <textarea
               v-model="form.observations"
               rows="4"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              class="w-full px-3 py-2.5 border border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 rounded-[5px] text-sm text-gray-800 bg-white transition-colors placeholder:text-gray-500"
               placeholder="Informações adicionais sobre o membro..."
             ></textarea>
           </div>
@@ -619,6 +491,18 @@
   </div>
 </template>
 
+<style scoped>
+/* Align VueDatePicker height with Input / Select */
+.create-member-dp :deep(.dp__main) {
+  --dp-font-size: 0.875rem;
+  --dp-input-padding: 10px 30px 10px 12px;
+}
+.create-member-dp :deep(.dp__input) {
+  min-height: 42px;
+  box-sizing: border-box;
+}
+</style>
+
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
@@ -632,7 +516,8 @@ import { formatCEP, unformatCEP } from '@/utils/cepMask'
 import { formatDateForInput } from '@/utils/dateFormat'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
-import CustomSelect from '@/components/CustomSelect.vue'
+import Input from '@/components/Input.vue'
+import Select from '@/components/Select.vue'
 
 const router = useRouter()
 const loading = ref(false)

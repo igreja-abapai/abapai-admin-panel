@@ -4,8 +4,8 @@
     <button
       type="button"
       :class="[
-        'flex items-center justify-center font-medium transition-colors duration-200 rounded-l-lg border-r',
-        variantClasses[variant],
+        'flex items-center justify-center font-medium transition-colors duration-200 rounded-l-lg',
+        variantMainClasses[variant],
         sizeClasses[size].main,
       ]"
       @click="$emit('click')"
@@ -20,7 +20,7 @@
       type="button"
       :class="[
         'flex items-center justify-center transition-colors duration-200 rounded-r-lg',
-        variantClasses[variant],
+        variantToggleClasses[variant],
         sizeClasses[size].toggle,
       ]"
       @click.stop="toggleMenu"
@@ -85,9 +85,17 @@ onUnmounted(() => {
   document.removeEventListener('mousedown', handleClickOutside)
 })
 
-const variantClasses = {
-  primary: 'bg-primary-500 text-white hover:bg-primary-600 border-primary-600',
-  secondary: 'bg-neutral-200 text-neutral-800 hover:bg-neutral-300 border-neutral-300',
+/** Main segment: visible divider on the right (same bg as toggle, so use contrast border). */
+const variantMainClasses = {
+  primary:
+    'bg-primary-600 text-white hover:bg-primary-700 border border-primary-600 border-r-white/35',
+  secondary:
+    'bg-neutral-200 text-neutral-800 hover:bg-neutral-300 border border-neutral-300 border-r-neutral-400',
+}
+
+const variantToggleClasses = {
+  primary: 'bg-primary-600 text-white hover:bg-primary-700 border border-primary-600 border-l-0',
+  secondary: 'bg-neutral-200 text-neutral-800 hover:bg-neutral-300 border border-neutral-300 border-l-0',
 }
 
 const sizeClasses = {

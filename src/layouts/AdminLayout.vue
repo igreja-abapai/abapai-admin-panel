@@ -112,7 +112,7 @@
             >
               <div class="flex items-center space-x-3">
                 <div
-                  class="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-medium"
+                  class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-medium"
                 >
                   {{ authStore.userInitials }}
                 </div>
@@ -294,6 +294,26 @@
                 </span>
               </router-link>
             </li>
+
+            <!-- <li v-if="authStore.hasPermission('visualizar_financas')" class="flex">
+              <router-link to="/financas" class="w-full">
+                <span
+                  :class="[
+                    'flex items-center px-4 py-1 rounded-xl transition-all duration-200',
+                    $route.path === '/financas'
+                      ? 'bg-blue-100 text-blue-700 shadow-sm'
+                      : 'hover:bg-neutral-100',
+                    sidebarCollapsed ? 'justify-center' : 'justify-start',
+                    'w-full',
+                  ]"
+                >
+                  <span class="flex items-center justify-center w-10 h-10">
+                    <CurrencyDollarIcon class="w-5 h-5 shrink-0" />
+                  </span>
+                  <span v-show="!sidebarCollapsed" class="label">Finançeiro</span>
+                </span>
+              </router-link>
+            </li> -->
 
             <li v-if="authStore.hasPermission('visualizar_pedidos_oracao')" class="flex">
               <router-link to="/pedidos-de-oracao" class="w-full">
@@ -496,6 +516,7 @@ import {
   UserIcon,
   GlobeAltIcon,
   ChartBarIcon,
+  CurrencyDollarIcon,
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'

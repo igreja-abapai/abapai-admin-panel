@@ -104,6 +104,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, permission: 'visualizar_analises' },
       },
       {
+        path: 'financas',
+        name: 'finances',
+        component: () => import('@/views/FinanceTransactionsView.vue'),
+        meta: { requiresAuth: true, permission: 'visualizar_financas' },
+      },
+      {
         path: 'website',
         name: 'website',
         component: () => import('@/views/WebsiteView.vue'),

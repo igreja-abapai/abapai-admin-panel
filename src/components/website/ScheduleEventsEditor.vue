@@ -67,7 +67,7 @@
     <div class="mt-4 flex justify-end">
       <button
         @click="addRow"
-        class="px-3 py-1 bg-primary-500 text-white rounded hover:bg-primary-600"
+        class="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-600"
       >
         Adicionar
       </button>
@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, defineExpose } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import {
   scheduleEventsService,
   type ScheduleEvent,

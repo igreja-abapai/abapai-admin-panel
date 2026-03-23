@@ -15,18 +15,18 @@
         <div class="flex-1">
           <div class="relative">
             <MagnifyingGlassIcon
-              class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400"
+              class="absolute left-3 top-1/2 z-10 transform -translate-y-1/2 w-5 h-5 text-neutral-400 pointer-events-none"
             />
-            <input
+            <Input
               v-model="searchTerm"
               type="text"
               placeholder="Pesquisar..."
-              class="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              input-class="pl-10"
             />
           </div>
         </div>
         <div class="md:w-48">
-          <CustomSelect
+          <Select
             v-model="baptismFilter"
             :options="[
               { value: 'true', label: 'Batizados' },
@@ -36,7 +36,7 @@
           />
         </div>
         <div class="md:w-48">
-          <CustomSelect
+          <Select
             v-model="statusFilter"
             :options="[
               { value: 'true', label: 'Ativos' },
@@ -172,7 +172,8 @@ import { useRouter } from 'vue-router'
 import { PlusIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { formatDate } from '@/utils/dateFormat'
-import CustomSelect from '@/components/CustomSelect.vue'
+import Input from '@/components/Input.vue'
+import Select from '@/components/Select.vue'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 
 const router = useRouter()

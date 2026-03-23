@@ -50,7 +50,7 @@
                 />
                 <button
                   @click="() => openFileInput(idx)"
-                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-primary-600 text-white hover:bg-primary-600 transition-colors cursor-pointer flex items-center justify-center gap-2"
                 >
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path
@@ -130,7 +130,7 @@
     <div class="mt-4 flex justify-end">
       <button
         @click="addImage"
-        class="px-3 py-1 bg-primary-500 text-white rounded hover:bg-primary-600"
+        class="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-600"
       >
         Adicionar Imagem
       </button>
@@ -139,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, defineExpose } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import {
   carouselImagesService,
   type CarouselImage,
