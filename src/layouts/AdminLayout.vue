@@ -176,7 +176,7 @@
     <!-- Sidebar -->
     <nav
       :class="[
-        'fixed inset-y-0 left-0 z-40 bg-white shadow-lg transition-all duration-300 ease-in-out pt-20 flex flex-col overflow-visible px-3',
+        'fixed inset-y-0 left-0 z-40 bg-white border-r border-neutral-200 transition-all duration-300 ease-in-out pt-20 flex flex-col overflow-visible px-3',
         !sidebarOpen ? 'w-0' : sidebarCollapsed ? 'w-20' : 'w-64',
       ]"
     >

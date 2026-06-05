@@ -249,7 +249,7 @@ const chartOptions: ChartOptions<'doughnut'> = {
         padding: 15,
         usePointStyle: true,
         font: {
-          family: "'Inter', sans-serif",
+          family: "'Inter Variable', sans-serif",
           size: 11,
         },
       },

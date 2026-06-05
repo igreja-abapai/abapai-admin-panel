@@ -28,12 +28,6 @@
       </div>
       <div class="member-basic-info">
         <h2 class="member-name">{{ member.name }}</h2>
-        <div class="member-badges">
-          <span v-if="!member.isActive" class="badge badge-warning">Ausente</span>
-          <span class="badge badge-info">
-            {{ member.isBaptized ? 'Batizado' : 'Não Batizado' }}
-          </span>
-        </div>
         <p class="member-occupation">{{ member.occupation }}</p>
       </div>
     </div>
@@ -370,52 +364,13 @@ defineExpose({
   font-size: 18pt;
   font-weight: bold;
   color: #111827;
-  margin: 0 0 5px 0;
+  margin: 0 0 2px 0;
 }
 
 .member-occupation {
   font-size: 12pt;
   color: #6b7280;
   margin: 0 0 10px 0;
-}
-
-.member-badges {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 9pt;
-  font-weight: 600;
-  border: 1px solid;
-}
-
-.badge-success {
-  background: #d1fae5;
-  color: #065f46;
-  border-color: #065f46;
-}
-
-.badge-danger {
-  background: #fee2e2;
-  color: #991b1b;
-  border-color: #991b1b;
-}
-
-.badge-warning {
-  background: #fef3c7;
-  color: #92400e;
-  border-color: #92400e;
-}
-
-.badge-info {
-  background: #dbeafe;
-  color: #1e40af;
-  border-color: #1e40af;
 }
 
 .card-section {

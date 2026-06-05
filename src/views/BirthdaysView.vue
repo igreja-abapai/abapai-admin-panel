@@ -146,7 +146,19 @@
             :key="idx"
             class="bg-neutral-50 rounded-lg p-4 flex flex-col"
           >
-            <span class="font-semibold text-primary-700 mb-2">{{ monthNames[idx] }}</span>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="font-semibold text-primary-700">{{ monthNames[idx] }}</span>
+              <button
+                v-if="monthMembers && monthMembers.length > 0"
+                type="button"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-primary-700 bg-white border border-primary-200 rounded-md hover:bg-primary-50 transition-colors disabled:opacity-50"
+                :disabled="generatingPdfMonth === idx"
+                @click="generateMonthPdf(idx)"
+              >
+                <ArrowDownTrayIcon class="w-3.5 h-3.5" />
+                {{ generatingPdfMonth === idx ? 'Gerando...' : 'Gerar PDF' }}
+              </button>
+            </div>
             <template v-if="monthMembers && monthMembers.length > 0">
               <div class="space-y-2">
                 <div v-for="entry in monthMembers" :key="entry.member.id" class="flex flex-col">
@@ -164,16 +176,31 @@
         </ul>
       </div>
     </div>
+
+    <div style="position: absolute; left: -9999px; top: 0" ref="pdfContainerRef">
+      <BirthdayListPdf
+        v-if="pdfMonthIndex !== null"
+        :month-name="monthNames[pdfMonthIndex].toLowerCase()"
+        :entries="pdfEntries"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
+import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
+import BirthdayListPdf, { type BirthdayPdfEntry } from '@/components/BirthdayListPdf.vue'
+import { generatePdfFromElement } from '@/utils/generatePdf'
 
 const members = ref<Member[]>([])
 const loading = ref(false)
 const today = new Date()
+const generatingPdfMonth = ref<number | null>(null)
+const pdfMonthIndex = ref<number | null>(null)
+const pdfEntries = ref<BirthdayPdfEntry[]>([])
+const pdfContainerRef = ref<HTMLElement>()
 
 const monthNames = [
   'Janeiro',
@@ -288,6 +315,54 @@ const nextBirthdaysByMonth = computed(() => {
   }
   return result
 })
+
+function getMonthPdfEntries(monthIndex: number): BirthdayPdfEntry[] {
+  return members.value
+    .filter((member) => {
+      if (!member.birthdate) return false
+      return parseDate(member.birthdate).getMonth() === monthIndex
+    })
+    .map((member) => ({
+      name: member.name,
+      day: parseDate(member.birthdate).getDate(),
+    }))
+    .sort((a, b) => a.day - b.day)
+}
+
+async function generateMonthPdf(monthIndex: number) {
+  if (generatingPdfMonth.value !== null) return
+
+  const entries = getMonthPdfEntries(monthIndex)
+  if (entries.length === 0) return
+
+  generatingPdfMonth.value = monthIndex
+  pdfMonthIndex.value = monthIndex
+  pdfEntries.value = entries
+
+  try {
+    await nextTick()
+    await new Promise((resolve) => setTimeout(resolve, 200))
+
+    const element = pdfContainerRef.value?.querySelector('.birthday-list-pdf') as HTMLElement
+    if (!element) {
+      alert('Erro ao preparar PDF. Tente recarregar a página.')
+      return
+    }
+
+    const monthLabel = monthNames[monthIndex]
+    await generatePdfFromElement(element, {
+      filename: `Aniversariantes_${monthLabel}.pdf`,
+      orientation: 'landscape',
+    })
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao gerar PDF'
+    alert(`Erro ao gerar PDF: ${errorMessage}`)
+  } finally {
+    generatingPdfMonth.value = null
+    pdfMonthIndex.value = null
+    pdfEntries.value = []
+  }
+}
 
 onMounted(async () => {
   loading.value = true
