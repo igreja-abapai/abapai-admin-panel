@@ -42,10 +42,14 @@ function convertImageToBase64(img: HTMLImageElement, usePng = false): Promise<vo
 
     if (!img.complete || img.naturalHeight === 0) {
       img.addEventListener('load', convert, { once: true })
-      img.addEventListener('error', () => {
-        clearTimeout(timeout)
-        resolveOnce()
-      }, { once: true })
+      img.addEventListener(
+        'error',
+        () => {
+          clearTimeout(timeout)
+          resolveOnce()
+        },
+        { once: true },
+      )
       return
     }
 
@@ -61,14 +65,22 @@ function waitForImage(img: HTMLImageElement): Promise<void> {
     }
 
     const timeout = setTimeout(resolve, 5000)
-    img.addEventListener('load', () => {
-      clearTimeout(timeout)
-      resolve()
-    }, { once: true })
-    img.addEventListener('error', () => {
-      clearTimeout(timeout)
-      resolve()
-    }, { once: true })
+    img.addEventListener(
+      'load',
+      () => {
+        clearTimeout(timeout)
+        resolve()
+      },
+      { once: true },
+    )
+    img.addEventListener(
+      'error',
+      () => {
+        clearTimeout(timeout)
+        resolve()
+      },
+      { once: true },
+    )
   })
 }
 
