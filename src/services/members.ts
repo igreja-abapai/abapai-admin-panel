@@ -36,6 +36,8 @@ export interface Member {
   admissionDate?: string
   admissionType?: string
   isActive: boolean
+  absenceReason?: string
+  deletedAt?: string | null
   address?: Address
   createdAt?: string
   updatedAt?: string
@@ -113,6 +115,7 @@ export interface UpdateMemberRequest {
   admissionDate?: string
   admissionType?: string
   isActive?: boolean
+  absenceReason?: string | null
 }
 
 export interface PaginatedMembersResponse {
@@ -131,6 +134,7 @@ export interface GetMembersParams {
   search?: string
   isBaptized?: boolean
   isActive?: boolean
+  deletedOnly?: boolean
   isPaginated?: boolean
 }
 
@@ -145,6 +149,8 @@ export class MembersService {
     if (params?.isBaptized !== undefined)
       queryParams.append('isBaptized', params.isBaptized.toString())
     if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString())
+    if (params?.deletedOnly !== undefined)
+      queryParams.append('deletedOnly', params.deletedOnly.toString())
     if (params?.isPaginated !== undefined)
       queryParams.append('isPaginated', params.isPaginated.toString())
 
@@ -167,6 +173,10 @@ export class MembersService {
 
   async deleteMember(id: string): Promise<void> {
     return await httpService.delete<void>(`/member/${id}`)
+  }
+
+  async restoreMember(id: string): Promise<Member> {
+    return await httpService.patch<Member>(`/member/${id}/restore`, {})
   }
 }
 

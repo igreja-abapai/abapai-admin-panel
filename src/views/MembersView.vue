@@ -50,8 +50,30 @@
 
     <!-- Members Table -->
     <div class="bg-white rounded-lg shadow w-full">
-      <div class="px-6 py-4 border-b border-neutral-200">
+      <div class="px-6 py-4 border-b border-neutral-200 flex items-center justify-between">
         <h3 class="text-lg font-medium text-neutral-900">Membros ({{ totalMembers }})</h3>
+        <div ref="membersMenuRef" class="relative">
+          <button
+            type="button"
+            class="p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
+            aria-label="Mais opções"
+            @click="toggleMembersMenu"
+          >
+            <EllipsisHorizontalIcon class="w-5 h-5" />
+          </button>
+          <div
+            v-if="membersMenuOpen"
+            class="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-20"
+          >
+            <router-link
+              to="/membros/ex-membros"
+              class="block w-full px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
+              @click="membersMenuOpen = false"
+            >
+              Ver Ex-membros
+            </router-link>
+          </div>
+        </div>
       </div>
 
       <div v-if="error" class="px-6 py-4">
@@ -167,9 +189,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { PlusIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
+import {
+  PlusIcon,
+  MagnifyingGlassIcon,
+  UserGroupIcon,
+  EllipsisHorizontalIcon,
+} from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { formatDate } from '@/utils/dateFormat'
 import Input from '@/components/Input.vue'
@@ -183,6 +210,18 @@ const searchTerm = ref('')
 const baptismFilter = ref('')
 const statusFilter = ref('')
 const error = ref('')
+const membersMenuOpen = ref(false)
+const membersMenuRef = ref<HTMLElement | null>(null)
+
+function toggleMembersMenu() {
+  membersMenuOpen.value = !membersMenuOpen.value
+}
+
+function handleClickOutside(event: MouseEvent) {
+  if (membersMenuRef.value && !membersMenuRef.value.contains(event.target as Node)) {
+    membersMenuOpen.value = false
+  }
+}
 
 // Sorting state - default to name ascending
 const sortKey = ref<string>('name')
@@ -338,5 +377,10 @@ watch([searchTerm, baptismFilter, statusFilter], () => {
 
 onMounted(() => {
   loadMembers()
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>

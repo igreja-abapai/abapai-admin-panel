@@ -30,7 +30,7 @@
 
             <button
               v-if="member?.isActive"
-              @click="showAusenteConfirmation = true"
+              @click="openAusenteModal"
               class="flex items-center w-full px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
               :disabled="togglingStatus"
             >
@@ -40,7 +40,7 @@
 
             <button
               v-else-if="member"
-              @click="handleToggleStatus"
+              @click="handleReactivate"
               class="flex items-center w-full px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
               :disabled="togglingStatus"
             >
@@ -76,45 +76,62 @@
     <div v-else-if="member" class="space-y-6">
       <!-- Member Header -->
       <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center space-x-4">
-          <div
-            v-if="member.photoUrl"
-            class="w-24 h-28 rounded-lg overflow-hidden border-2 border-neutral-200 shadow-sm"
-          >
-            <img
-              :src="member.photoUrl"
-              :alt="`Foto de ${member.name}`"
-              class="w-full h-full object-cover"
-            />
-          </div>
-          <div
-            v-else
-            class="w-20 h-[100px] bg-primary-600 text-white rounded-lg flex items-center justify-center text-xl font-medium"
-          >
-            {{ getInitials(member.name) }}
-          </div>
-          <div>
-            <h2 class="text-2xl font-semibold text-neutral-900">{{ member.name }}</h2>
-            <p class="text-neutral-500">{{ member.occupation }}</p>
-            <div class="flex items-center space-x-4 mt-2">
-              <span
-                v-if="!member.isActive"
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800"
-              >
-                Ausente
-              </span>
-              <span
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-              >
-                {{ member.isBaptized ? 'Batizado' : 'Não Batizado' }}
-              </span>
-              <span
-                v-if="member.currentPosition"
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-              >
-                {{ member.currentPosition }}
-              </span>
+        <div class="flex items-start gap-6">
+          <div class="flex items-center space-x-4 flex-1 min-w-0">
+            <div
+              v-if="member.photoUrl"
+              class="w-24 h-28 rounded-lg overflow-hidden border-2 border-neutral-200 shadow-sm shrink-0"
+            >
+              <img
+                :src="member.photoUrl"
+                :alt="`Foto de ${member.name}`"
+                class="w-full h-full object-cover"
+              />
             </div>
+            <div
+              v-else
+              class="w-20 h-[100px] bg-primary-600 text-white rounded-lg flex items-center justify-center text-xl font-medium shrink-0"
+            >
+              {{ getInitials(member.name) }}
+            </div>
+            <div class="min-w-0">
+              <h2 class="text-2xl font-semibold text-neutral-900">{{ member.name }}</h2>
+              <p class="text-neutral-500">{{ member.occupation }}</p>
+              <div class="flex items-center flex-wrap gap-2 mt-2">
+                <span
+                  v-if="!member.isActive"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800"
+                >
+                  Ausente
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                >
+                  {{ member.isBaptized ? 'Batizado' : 'Não Batizado' }}
+                </span>
+                <span
+                  v-if="member.currentPosition"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                >
+                  {{ member.currentPosition }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            v-if="!member.isActive && member.absenceReason"
+            class="w-full max-w-xs shrink-0"
+          >
+            <label class="block text-xs font-medium text-neutral-500 mb-1.5">
+              Motivo da ausência
+            </label>
+            <textarea
+              readonly
+              :value="member.absenceReason"
+              rows="3"
+              class="w-full resize-none rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-600 cursor-default focus:outline-none"
+            />
           </div>
         </div>
       </div>
@@ -431,8 +448,8 @@
       <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500 no-print">
         <h3 class="text-lg font-medium text-red-700 mb-4">Cuidado, atenção!</h3>
         <p class="text-neutral-600 mb-4">
-          Esta ação é irreversível. Ao excluir este membro, todos os dados serão permanentemente
-          removidos.
+          Ao excluir este membro, ele será removido da lista ativa, mas os dados serão mantidos no
+          histórico e poderão ser restaurados posteriormente.
         </p>
         <button
           @click="showDeleteConfirmation = true"
@@ -461,8 +478,8 @@
           <h3 class="text-lg font-medium text-neutral-900">Confirmar Exclusão</h3>
         </div>
         <p class="text-neutral-600 mb-6">
-          Tem certeza que deseja excluir o membro <strong>{{ member?.name }}</strong
-          >? Esta ação não pode ser desfeita.
+          Tem certeza que deseja excluir o membro <strong>{{ member?.name }}</strong>? Os dados
+          serão mantidos no histórico e o membro poderá ser restaurado depois.
         </p>
         <div class="flex justify-end space-x-3">
           <button @click="showDeleteConfirmation = false" class="btn btn-secondary">
@@ -486,27 +503,36 @@
     <div
       v-if="showAusenteConfirmation"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 no-print"
-      @click="showAusenteConfirmation = false"
+      @click="closeAusenteModal"
     >
       <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" @click.stop>
         <div class="flex items-center mb-4">
           <ExclamationTriangleIcon class="w-8 h-8 text-yellow-500 mr-3" />
-          <h3 class="text-lg font-medium text-neutral-900">Confirmar</h3>
+          <h3 class="text-lg font-medium text-neutral-900">Marcar como ausente</h3>
         </div>
-        <p class="text-neutral-600 mb-6">
-          Tem certeza que deseja marcar o membro <strong>{{ member?.name }}</strong> como
+        <p class="text-neutral-600 mb-4">
+          Tem certeza que deseja marcar <strong>{{ member?.name }}</strong> como
           <strong>Ausente</strong>?
         </p>
-        <div class="flex justify-end space-x-3">
-          <button @click="showAusenteConfirmation = false" class="btn btn-secondary">
-            Cancelar
-          </button>
-          <button @click="handleToggleStatus" :disabled="togglingStatus" class="btn btn-primary">
+        <label class="block text-sm font-medium text-neutral-700 mb-2" for="absence-reason">
+          Motivo da ausência <span class="text-neutral-400 font-normal">(opcional)</span>
+        </label>
+        <textarea
+          id="absence-reason"
+          v-model="absenceReason"
+          rows="3"
+          class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          placeholder="Ex.: Mudou de cidade, está enfermo, etc..."
+        />
+        <p v-if="absenceReasonError" class="mt-2 text-sm text-red-600">{{ absenceReasonError }}</p>
+        <div class="flex justify-end space-x-3 mt-6">
+          <button @click="closeAusenteModal" class="btn btn-secondary">Cancelar</button>
+          <button @click="handleMarkAsAusente" :disabled="togglingStatus" class="btn btn-primary">
             <span
               v-if="togglingStatus"
               class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
             ></span>
-            {{ togglingStatus ? 'Processando...' : 'Sim' }}
+            {{ togglingStatus ? 'Processando...' : 'Confirmar' }}
           </button>
         </div>
       </div>
@@ -550,7 +576,21 @@ const deleting = ref(false)
 const generatingPdf = ref(false)
 const pdfContainerRef = ref<HTMLElement>()
 const showAusenteConfirmation = ref(false)
+const absenceReason = ref('')
+const absenceReasonError = ref('')
 const togglingStatus = ref(false)
+
+function openAusenteModal() {
+  absenceReason.value = ''
+  absenceReasonError.value = ''
+  showAusenteConfirmation.value = true
+}
+
+function closeAusenteModal() {
+  showAusenteConfirmation.value = false
+  absenceReason.value = ''
+  absenceReasonError.value = ''
+}
 
 function getInitials(name?: string): string {
   if (!name) return ''
@@ -983,20 +1023,41 @@ async function handleDeleteMember() {
   }
 }
 
-async function handleToggleStatus() {
+async function handleMarkAsAusente() {
+  if (!member.value) return
+
+  const reason = absenceReason.value.trim()
+  absenceReasonError.value = ''
+  togglingStatus.value = true
+  try {
+    const updatedMember = await membersService.updateMember(member.value.id, {
+      isActive: false,
+      absenceReason: reason || null,
+    })
+    member.value = updatedMember
+    closeAusenteModal()
+  } catch (err: any) {
+    console.error('Error marking member as absent:', err)
+    absenceReasonError.value =
+      err.response?.data?.message || 'Erro ao marcar membro como ausente'
+  } finally {
+    togglingStatus.value = false
+  }
+}
+
+async function handleReactivate() {
   if (!member.value) return
 
   togglingStatus.value = true
   try {
-    const newStatus = !member.value.isActive
-    await membersService.updateMember(member.value.id, {
-      isActive: newStatus,
+    const updatedMember = await membersService.updateMember(member.value.id, {
+      isActive: true,
+      absenceReason: null,
     })
-    member.value.isActive = newStatus
-    showAusenteConfirmation.value = false
+    member.value = updatedMember
   } catch (err: any) {
-    console.error('Error toggling member status:', err)
-    error.value = err.response?.data?.message || 'Erro ao alterar status do membro'
+    console.error('Error reactivating member:', err)
+    error.value = err.response?.data?.message || 'Erro ao reativar membro'
   } finally {
     togglingStatus.value = false
   }
