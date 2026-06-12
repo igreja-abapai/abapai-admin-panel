@@ -1,17 +1,22 @@
 <template>
-  <div class="bg-white rounded-lg shadow p-6">
-    <div class="flex items-center">
-      <div :class="`p-2 ${iconBgColor} rounded-lg`">
-        <component v-if="!loading" :is="icon" :class="`w-6 h-6 ${iconColor}`" />
-        <div v-else class="w-6 h-6 bg-neutral-200 rounded animate-pulse"></div>
+  <div class="bg-white rounded-2xl border border-neutral-200 p-5">
+    <div class="flex items-start justify-between mb-4">
+      <div :class="`p-2.5 ${iconBgColor} rounded-xl`">
+        <component v-if="!loading" :is="icon" :class="`w-5 h-5 ${iconColor}`" />
+        <div v-else class="w-5 h-5 bg-neutral-200 rounded animate-pulse"></div>
       </div>
-      <div class="ml-4 flex-1">
-        <p v-if="!loading" class="text-sm font-medium text-neutral-600">{{ title }}</p>
-        <div v-else class="h-4 bg-neutral-200 rounded animate-pulse mb-2"></div>
-        <p v-if="!loading" class="text-2xl font-bold text-neutral-900">{{ value }}</p>
-        <div v-else class="h-8 bg-neutral-200 rounded animate-pulse w-12"></div>
-      </div>
+      <span
+        v-if="badge && !loading"
+        :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClass}`"
+      >
+        {{ badge }}
+      </span>
+      <div v-else-if="loading && badge" class="h-5 w-20 bg-neutral-100 rounded-full animate-pulse"></div>
     </div>
+    <p v-if="!loading" class="text-3xl font-bold text-neutral-900 tracking-tight">{{ value }}</p>
+    <div v-else class="h-9 bg-neutral-200 rounded animate-pulse w-14 mb-2"></div>
+    <p v-if="!loading" class="text-sm text-neutral-500 mt-1">{{ title }}</p>
+    <div v-else class="h-4 bg-neutral-100 rounded animate-pulse w-28 mt-2"></div>
   </div>
 </template>
 
@@ -24,10 +29,14 @@ interface Props {
   icon: Component
   iconBgColor: string
   iconColor: string
+  badge?: string
+  badgeClass?: string
   loading?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
+  badge: '',
+  badgeClass: 'bg-green-50 text-green-700',
   loading: false,
 })
 </script>

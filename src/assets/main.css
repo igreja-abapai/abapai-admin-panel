@@ -14,7 +14,11 @@
   }
 
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700;
+    @apply bg-primary-600 text-white hover:bg-primary-700 shadow-sm;
+  }
+
+  .link {
+    @apply text-primary-600 hover:text-primary-700 font-medium transition-colors;
   }
 
   .btn-secondary {

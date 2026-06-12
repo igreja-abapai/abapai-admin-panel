@@ -44,7 +44,7 @@ const emit = defineEmits<{
 }>();
 
 const baseClasses =
-  'w-full px-3 border focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 rounded-[5px] text-sm text-gray-800 bg-white transition-colors disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed disabled:opacity-75 placeholder:gray-500';
+  'w-full px-3 border focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 rounded-lg text-sm text-gray-800 bg-white transition-colors disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed disabled:opacity-75 placeholder:gray-500';
 
 const paddingClass = computed(() => paddingMap[props.padding] ?? paddingMap.normal);
 

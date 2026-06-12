@@ -70,7 +70,7 @@
         <template #actions="{ item }">
           <button
             type="button"
-            class="text-primary-600 hover:text-primary-700 text-sm font-medium whitespace-nowrap disabled:opacity-50"
+            class="link text-sm whitespace-nowrap disabled:opacity-50"
             :disabled="restoringId === item.id"
             @click="handleRestore(item)"
           >

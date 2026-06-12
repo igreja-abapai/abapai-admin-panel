@@ -400,7 +400,7 @@ async function handleExportExcel() {
             <textarea
               v-model="form.description"
               rows="2"
-              class="w-full px-3 py-2.5 border border-inputBorder rounded-[5px] text-sm text-gray-800 bg-white transition-colors placeholder:text-txt-light"
+              class="w-full px-3 py-2.5 border border-inputBorder rounded-lg text-sm text-gray-800 bg-white transition-colors placeholder:text-txt-light"
             />
           </div>
         </div>

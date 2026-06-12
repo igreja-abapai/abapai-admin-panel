@@ -1,6 +1,6 @@
 <template>
   <div
-    class="min-h-screen bg-[#f7f9fb] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+    class="min-h-screen bg-surface-page flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
   >
     <div class="max-w-md w-full space-y-8">
       <div>

@@ -163,7 +163,7 @@
         <template #actions="{ item }">
           <router-link
             :to="`/membros/detalhes/${item.id}`"
-            class="text-primary-600 hover:text-primary-700 text-sm font-medium whitespace-nowrap"
+            class="link text-sm whitespace-nowrap"
             @click.stop
           >
             Ver Detalhes

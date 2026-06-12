@@ -1,5 +1,5 @@
 <template>
-  <div class="flex bg-[#f7f8f9] min-h-screen">
+  <div class="flex bg-surface-page min-h-screen">
     <!-- Mobile menu button -->
     <button
       @click="toggleHamburger"
@@ -8,27 +8,39 @@
       <Bars3Icon class="w-6 h-6 text-neutral-600" />
     </button>
 
-    <!-- Top Navigation Bar - Full Width -->
-    <header class="fixed top-0 left-0 right-0 z-30 bg-white shadow-sm border-b border-neutral-200">
-      <div
-        class="flex items-center justify-between px-6 py-2"
-        :class="{
-          'lg:pl-64': sidebarOpen && !sidebarCollapsed,
-          'lg:pl-20': sidebarOpen && sidebarCollapsed,
-        }"
-      >
-        <!-- Left side - Hamburger menu -->
-        <div class="flex items-center">
-          <button
-            @click="toggleHamburger"
-            class="p-2 ml-5 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
-          >
-            <Bars3Icon class="w-7 h-7" />
-          </button>
+    <!-- Top Navigation Bar -->
+    <header
+      :class="[
+        'fixed top-0 right-0 z-30 bg-white border-b border-neutral-200 h-16',
+        sidebarOpen && !sidebarCollapsed
+          ? 'lg:left-64'
+          : sidebarOpen && sidebarCollapsed
+            ? 'lg:left-20'
+            : 'left-0',
+      ]"
+    >
+      <div class="flex items-center gap-3 px-4 h-full">
+        <button
+          @click="toggleHamburger"
+          class="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-xl transition-colors shrink-0"
+        >
+          <Bars3Icon class="w-6 h-6" />
+        </button>
+
+        <div class="flex-1 max-w-sm hidden sm:block">
+          <div class="relative">
+            <MagnifyingGlassIcon
+              class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none"
+            />
+            <input
+              type="text"
+              placeholder="Pesquisar"
+              class="w-full pl-10 pr-3 py-2 bg-surface-page border border-neutral-200 rounded-lg text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-colors"
+            />
+          </div>
         </div>
 
-        <!-- Right side - User profile and notifications -->
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center gap-2 ml-auto shrink-0">
           <!-- Notifications -->
           <div class="relative">
             <button
@@ -90,7 +102,7 @@
                   :key="notification.id"
                   class="px-4 py-3 hover:bg-neutral-50 cursor-pointer flex flex-col"
                   :class="{
-                    'bg-blue-50': !notification.readBy.some((u) => u.id === authStore.user?.id),
+                    'bg-primary-50': !notification.readBy.some((u) => u.id === authStore.user?.id),
                   }"
                   @click="notificationsStore.markAsRead(notification.id)"
                 >
@@ -108,24 +120,22 @@
           <div class="relative">
             <button
               @click="toggleUserMenu"
-              class="flex items-center space-x-3 p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+              class="flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 bg-white border border-neutral-200 rounded-full hover:bg-neutral-50 transition-colors max-w-[280px]"
             >
-              <div class="flex items-center space-x-3">
-                <div
-                  class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-medium"
-                >
-                  {{ authStore.userInitials }}
-                </div>
-                <div class="hidden md:block text-left">
-                  <p class="text-sm font-medium text-neutral-900">
-                    {{ authStore.user?.firstName }} {{ authStore.user?.lastName }}
-                  </p>
-                  <p class="text-xs text-neutral-500">
-                    {{ authStore.user?.email }}
-                  </p>
-                </div>
-                <ChevronDownIcon class="w-4 h-4 text-neutral-500" />
+              <div
+                class="w-9 h-9 bg-primary-600 text-white rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
+              >
+                {{ authStore.userInitials }}
               </div>
+              <div class="hidden md:block text-left min-w-0">
+                <p class="text-sm font-semibold text-neutral-900 leading-tight truncate">
+                  {{ authStore.user?.firstName }} {{ authStore.user?.lastName }}
+                </p>
+                <p class="text-xs text-neutral-500 leading-tight truncate">
+                  {{ authStore.user?.email }}
+                </p>
+              </div>
+              <ChevronDownIcon class="hidden md:block w-4 h-4 text-neutral-400 shrink-0" />
             </button>
 
             <!-- Dropdown Menu -->
@@ -176,212 +186,137 @@
     <!-- Sidebar -->
     <nav
       :class="[
-        'fixed inset-y-0 left-0 z-40 bg-white border-r border-neutral-200 transition-all duration-300 ease-in-out pt-20 flex flex-col overflow-visible px-3',
+        'fixed inset-y-0 left-0 z-40 bg-white border-r border-neutral-200 transition-all duration-300 ease-in-out flex flex-col overflow-hidden',
         !sidebarOpen ? 'w-0' : sidebarCollapsed ? 'w-20' : 'w-64',
       ]"
     >
-      <div class="flex flex-col h-full">
-        <!-- Logo -->
-        <div
-          class="flex items-center justify-center mb-12"
-          v-if="sidebarOpen"
-          :class="sidebarCollapsed ? 'w-14 h-14' : ''"
+      <div
+        v-if="sidebarOpen"
+        class="h-16 shrink-0 flex items-center px-4 mt-4"
+      >
+        <router-link
+          to="/home"
+          :class="['flex items-center gap-3 min-w-0', sidebarCollapsed ? 'justify-center w-full' : '']"
         >
-          <router-link to="/home" class="flex items-center justify-center w-[80%] h-full">
-            <img
-              :src="logoSrc"
-              :class="sidebarCollapsed ? 'w-12 h-12' : 'w-[85px] h-[85px]'"
-              class="object-contain rounded-lg"
-              alt="Abapai Logo"
-            />
-          </router-link>
-        </div>
-        <!-- Navigation Menu -->
-        <div class="flex flex-col justify-between h-full pb-6">
-          <ul class="space-y-2 px-0">
-            <li class="flex">
-              <router-link to="/home" class="w-full">
-                <span
-                  :class="[
-                    'flex items-center px-4 py-1 rounded-xl transition-all duration-200',
-                    $route.path === '/home'
-                      ? 'bg-blue-100 text-blue-700 shadow-sm'
-                      : 'hover:bg-neutral-100',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    'w-full',
-                  ]"
-                >
-                  <span class="flex items-center justify-center w-10 h-10">
-                    <HomeIcon class="w-5 h-5" />
-                  </span>
-                  <span v-show="!sidebarCollapsed" class="label">Home</span>
-                </span>
-              </router-link>
-            </li>
+          <img
+            :src="logoSrc"
+            :class="sidebarCollapsed ? 'w-9 h-9' : 'w-12 h-12'"
+            class="object-contain rounded-lg shrink-0"
+            alt="Igreja Aba Pai"
+          />
+          <div v-show="!sidebarCollapsed" class="min-w-0">
+            <p class="text-base font-semibold text-neutral-900 leading-tight truncate">
+              Igreja Aba Pai
+            </p>
+            <p class="text-[10px] font-medium tracking-wider text-neutral-400 mt-0.5 truncate">
+              PAINEL ADMINISTRATIVO
+            </p>
+          </div>
+        </router-link>
+      </div>
 
-            <li v-if="authStore.hasPermission('visualizar_membros')" class="flex flex-col">
-              <div
-                @click="membrosDropdownOpen = !membrosDropdownOpen"
-                class="flex items-center px-4 py-1 rounded-xl transition-all duration-200 cursor-pointer select-none hover:bg-neutral-100"
+      <div class="flex-1 overflow-y-auto px-3 py-4 mt-3">
+        <ul class="space-y-1">
+          <li>
+            <router-link to="/home" class="block">
+              <span :class="navItemClass($route.path === '/home')">
+                <HomeIcon class="w-5 h-5 shrink-0" />
+                <span v-show="!sidebarCollapsed">Home</span>
+              </span>
+            </router-link>
+          </li>
+
+          <li v-if="authStore.hasPermission('visualizar_membros')">
+            <button
+              type="button"
+              @click="membrosDropdownOpen = !membrosDropdownOpen"
+              :class="[
+                navItemClass(isMembrosSectionActive()),
+                'w-full',
+                sidebarCollapsed ? 'justify-center' : '',
+              ]"
+            >
+              <UserGroupIcon class="w-5 h-5 shrink-0" />
+              <span v-show="!sidebarCollapsed" class="flex-1 text-left">Membros</span>
+              <ChevronDownIcon
+                v-show="!sidebarCollapsed"
                 :class="[
-                  !membrosDropdownOpen &&
-                  ($route.path === '/membros' || $route.path === '/membros/aniversariantes')
-                    ? 'bg-blue-100 text-blue-700 shadow-sm'
-                    : '',
-                  sidebarCollapsed ? 'justify-center' : 'justify-start',
-                  'w-full',
+                  'w-4 h-4 shrink-0 transition-transform',
+                  isMembrosSectionActive() ? 'text-primary-600' : 'text-neutral-400',
+                  membrosDropdownOpen ? 'rotate-180' : '',
                 ]"
-              >
-                <span class="flex items-center justify-center w-10 h-10">
-                  <UserGroupIcon class="w-5 h-5" />
-                </span>
-                <span v-show="!sidebarCollapsed" class="label flex-1">Membros</span>
-                <ChevronDownIcon
-                  v-show="!sidebarCollapsed"
-                  :class="[
-                    'w-4 h-4 ml-2 transition-transform',
-                    membrosDropdownOpen ? 'rotate-180' : '',
-                  ]"
-                />
-              </div>
-              <transition name="fade">
-                <ul v-show="membrosDropdownOpen && !sidebarCollapsed" class="pl-12 py-1 space-y-1">
-                  <li>
-                    <router-link
-                      to="/membros"
-                      class="block px-4 py-1 rounded-lg hover:bg-blue-50 flex items-center h-10"
-                      :class="{
-                        'text-blue-700 bg-blue-100 shadow-sm': $route.path === '/membros',
-                        'text-blue-700': $route.path === '/membros',
-                      }"
-                    >
-                      Cadastros
-                    </router-link>
-                  </li>
-                  <li>
-                    <router-link
-                      to="/membros/aniversariantes"
-                      class="block px-4 py-1 rounded-lg hover:bg-blue-50 flex items-center h-10"
-                      :class="{
-                        'text-blue-700 bg-blue-100 shadow-sm':
-                          $route.path === '/membros/aniversariantes',
-                        'text-blue-700': $route.path === '/membros/aniversariantes',
-                      }"
-                    >
-                      Aniversariantes
-                    </router-link>
-                  </li>
-                </ul>
-              </transition>
-            </li>
-
-            <li v-if="authStore.hasPermission('visualizar_analises')" class="flex">
-              <router-link to="/analises" class="w-full">
-                <span
-                  :class="[
-                    'flex items-center px-4 py-1 rounded-xl transition-all duration-200',
-                    $route.path === '/analises'
-                      ? 'bg-blue-100 text-blue-700 shadow-sm'
-                      : 'hover:bg-neutral-100',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    'w-full',
-                  ]"
+              />
+            </button>
+            <ul v-show="membrosDropdownOpen && !sidebarCollapsed" class="mt-1.5 space-y-1">
+              <li>
+                <router-link to="/membros" :class="subNavItemClass($route.path === '/membros')">
+                  Cadastros
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/membros/aniversariantes"
+                  :class="subNavItemClass($route.path === '/membros/aniversariantes')"
                 >
-                  <span class="flex items-center justify-center w-10 h-10">
-                    <ChartBarIcon class="w-5 h-5" />
-                  </span>
-                  <span v-show="!sidebarCollapsed" class="label">Análises</span>
-                </span>
-              </router-link>
-            </li>
+                  Aniversariantes
+                </router-link>
+              </li>
+            </ul>
+          </li>
 
-            <!-- <li v-if="authStore.hasPermission('visualizar_financas')" class="flex">
-              <router-link to="/financas" class="w-full">
-                <span
-                  :class="[
-                    'flex items-center px-4 py-1 rounded-xl transition-all duration-200',
-                    $route.path === '/financas'
-                      ? 'bg-blue-100 text-blue-700 shadow-sm'
-                      : 'hover:bg-neutral-100',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    'w-full',
-                  ]"
-                >
-                  <span class="flex items-center justify-center w-10 h-10">
-                    <CurrencyDollarIcon class="w-5 h-5 shrink-0" />
-                  </span>
-                  <span v-show="!sidebarCollapsed" class="label">Finançeiro</span>
-                </span>
-              </router-link>
-            </li> -->
+          <li v-if="authStore.hasPermission('visualizar_analises')">
+            <router-link to="/analises" class="block">
+              <span :class="navItemClass($route.path === '/analises')">
+                <ChartBarIcon class="w-5 h-5 shrink-0" />
+                <span v-show="!sidebarCollapsed">Análises</span>
+              </span>
+            </router-link>
+          </li>
 
-            <li v-if="authStore.hasPermission('visualizar_pedidos_oracao')" class="flex">
-              <router-link to="/pedidos-de-oracao" class="w-full">
-                <span
-                  :class="[
-                    'flex items-center px-4 py-1 rounded-xl transition-all duration-200',
-                    $route.path === '/pedidos-de-oracao'
-                      ? 'bg-blue-100 text-blue-700 shadow-sm'
-                      : 'hover:bg-neutral-100',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    'w-full',
-                  ]"
-                >
-                  <span class="flex items-center justify-center w-10 h-10">
-                    <HeartIcon class="w-5 h-5" />
-                  </span>
-                  <span v-show="!sidebarCollapsed" class="label">Oração</span>
-                </span>
-              </router-link>
-            </li>
+          <li v-if="authStore.hasPermission('visualizar_pedidos_oracao')">
+            <router-link to="/pedidos-de-oracao" class="block">
+              <span :class="navItemClass($route.path === '/pedidos-de-oracao')">
+                <HeartIcon class="w-5 h-5 shrink-0" />
+                <span v-show="!sidebarCollapsed">Oração</span>
+              </span>
+            </router-link>
+          </li>
 
-            <li v-if="authStore.hasPermission('gerenciar_website')" class="flex">
-              <router-link to="/website" class="w-full">
-                <span
-                  :class="[
-                    'flex items-center px-4 py-1 rounded-xl transition-all duration-200',
-                    $route.path.startsWith('/website')
-                      ? 'bg-blue-100 text-blue-700 shadow-sm'
-                      : 'hover:bg-neutral-100',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    'w-full',
-                  ]"
-                >
-                  <span class="flex items-center justify-center w-10 h-10">
-                    <GlobeAltIcon class="w-5 h-5" />
-                  </span>
-                  <span v-show="!sidebarCollapsed" class="label">Website</span>
-                </span>
-              </router-link>
-            </li>
+          <li v-if="authStore.hasPermission('gerenciar_website')">
+            <router-link to="/website" class="block">
+              <span :class="navItemClass($route.path.startsWith('/website'))">
+                <GlobeAltIcon class="w-5 h-5 shrink-0" />
+                <span v-show="!sidebarCollapsed">Website</span>
+              </span>
+            </router-link>
+          </li>
 
-            <li v-if="authStore.hasPermission('visualizar_usuarios')" class="flex">
-              <router-link to="/usuarios" class="w-full">
-                <span
-                  :class="[
-                    'flex items-center px-4 py-1 rounded-xl transition-all duration-200',
-                    $route.path.startsWith('/usuarios')
-                      ? 'bg-blue-100 text-blue-700 shadow-sm'
-                      : 'hover:bg-neutral-100',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    'w-full',
-                  ]"
-                >
-                  <span class="flex items-center justify-center w-10 h-10">
-                    <UsersIcon class="w-5 h-5" />
-                  </span>
-                  <span v-show="!sidebarCollapsed" class="label">Usuários do Sistema</span>
-                </span>
-              </router-link>
-            </li>
-          </ul>
+          <li v-if="authStore.hasPermission('visualizar_usuarios')">
+            <router-link to="/usuarios" class="block">
+              <span :class="navItemClass($route.path.startsWith('/usuarios'))">
+                <ShieldCheckIcon class="w-5 h-5 shrink-0" />
+                <span v-show="!sidebarCollapsed">Usuários do Sistema</span>
+              </span>
+            </router-link>
+          </li>
+        </ul>
+      </div>
+
+      <div v-show="!sidebarCollapsed" class="px-4 py-4 shrink-0 border-t border-neutral-100">
+        <div class="rounded-xl bg-surface-page border border-neutral-200 px-3.5 py-3.5">
+          <p class="text-[11px] italic text-neutral-500 leading-relaxed text-left">
+            "{{ sidebarVerse.text }}"
+          </p>
+          <p class="text-[10px] font-semibold tracking-wide text-neutral-500 text-left mt-2">
+            {{ sidebarVerse.reference }}
+          </p>
         </div>
       </div>
     </nav>
 
     <!-- Main Content Area -->
     <div
-      class="flex-1 flex flex-col pt-20"
+      class="flex-1 flex flex-col pt-16"
       :class="{
         'lg:ml-64': sidebarOpen && !sidebarCollapsed,
         'lg:ml-20': sidebarOpen && sidebarCollapsed,
@@ -389,7 +324,7 @@
     >
       <!-- Main Content -->
       <main class="flex w-full justify-center flex-1">
-        <div class="w-full max-w-7xl p-6">
+        <div class="w-full max-w-screen-2xl py-6 px-10">
           <router-view />
         </div>
       </main>
@@ -501,29 +436,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import {
   Bars3Icon,
   HomeIcon,
   UserGroupIcon,
   HeartIcon,
   ArrowRightOnRectangleIcon,
-  UsersIcon,
   BellIcon,
   ChevronDownIcon,
   KeyIcon,
   UserIcon,
   GlobeAltIcon,
   ChartBarIcon,
-  CurrencyDollarIcon,
+  MagnifyingGlassIcon,
+  ShieldCheckIcon,
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
 import { authService } from '@/services/auth'
 import abapaiLogo from '@/assets/images/abapai_logo.png'
+import { clearSessionBibleVerse, getSessionBibleVerse } from '@/constants/bibleVerses'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const notificationsStore = useNotificationsStore()
 const sidebarOpen = ref(true) // Start with sidebar open
@@ -534,9 +471,40 @@ const notificationsDropdownOpen = ref(false)
 
 const isDesktop = ref(window.innerWidth >= 1024)
 const logoSrc = abapaiLogo
+const sidebarVerse = ref(getSessionBibleVerse())
+
+function navItemClass(active: boolean) {
+  return [
+    'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm w-full',
+    active
+      ? 'bg-primary-50 text-primary-600 font-semibold'
+      : 'text-neutral-600 font-medium hover:bg-neutral-50 hover:text-neutral-800',
+    sidebarCollapsed.value ? 'justify-center' : '',
+  ]
+}
+
+function subNavItemClass(active: boolean) {
+  return [
+    'block ml-8 pl-3 pr-3 py-2.5 rounded-lg transition-colors text-sm',
+    active
+      ? 'bg-primary-50 text-primary-600 font-semibold'
+      : 'text-neutral-600 font-medium hover:bg-neutral-50 hover:text-neutral-800',
+  ]
+}
+
+function isMembrosSectionActive(): boolean {
+  return route.path.startsWith('/membros')
+}
+
+function syncMembrosDropdown() {
+  membrosDropdownOpen.value = route.path.startsWith('/membros')
+}
+
+watch(() => route.path, syncMembrosDropdown)
 
 // Fetch notifications on mount
 onMounted(() => {
+  syncMembrosDropdown()
   notificationsStore.fetchNotifications()
   // Set initial sidebar state based on screen size
   sidebarOpen.value = window.innerWidth >= 1024
@@ -605,6 +573,7 @@ function handleClickOutside(event: Event) {
 }
 
 async function handleLogout() {
+  clearSessionBibleVerse()
   await authService.logout()
   router.push('/login')
 }

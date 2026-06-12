@@ -69,7 +69,7 @@
                 'hover:bg-gray-50',
                 'text-gray-800',
                 isSelected(option.value)
-                  ? 'bg-blue-50 text-blue-700'
+                  ? 'bg-primary-50 text-primary-700'
                   : '',
               ]"
             >
@@ -77,7 +77,7 @@
               <font-awesome-icon
                 v-if="isSelected(option.value)"
                 icon="check"
-                class="text-xs text-blue-600"
+                class="text-xs text-primary-600"
               />
             </button>
           </div>
