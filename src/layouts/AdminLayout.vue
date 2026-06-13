@@ -44,15 +44,17 @@
           <!-- Notifications -->
           <div class="relative">
             <button
-              class="relative p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
+              class="p-2 text-neutral-600 hover:text-neutral-900 rounded-lg transition-colors"
               @click="toggleNotificationsDropdown"
             >
-              <BellIcon class="w-[24px] h-[24px]" />
-              <span
-                v-if="notificationsStore.unreadCount(authStore.user?.id || 0) > 0"
-                class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs flex items-center justify-center rounded-full"
-                >{{ notificationsStore.unreadCount(authStore.user?.id || 0) }}</span
-              >
+              <span class="relative inline-flex">
+                <BellIcon class="w-[24px] h-[24px]" />
+                <span
+                  v-if="notificationsStore.unreadCount(authStore.user?.id || 0) > 0"
+                  class="absolute -top-2 -right-1 min-w-4 h-4 px-1 bg-red-500 text-white text-[10px] leading-none font-medium flex items-center justify-center rounded-full"
+                  >{{ notificationsStore.unreadCount(authStore.user?.id || 0) }}</span
+                >
+              </span>
             </button>
             <!-- Notifications Dropdown -->
             <div
@@ -61,13 +63,21 @@
               style="max-height: 400px; overflow-y: auto"
             >
               <div
-                class="px-4 py-2 border-b border-neutral-100 font-semibold text-neutral-900 flex items-center justify-between"
+                class="px-4 py-2 border-b border-neutral-100 font-semibold text-neutral-900 flex items-center justify-between gap-2"
               >
-                Notificações
-                <button
-                  class="text-neutral-400 hover:text-neutral-700"
-                  @click="notificationsDropdownOpen = false"
-                >
+                <span>Notificações</span>
+                <div class="flex items-center gap-2">
+                  <button
+                    v-if="notificationsStore.unreadCount(authStore.user?.id || 0) > 0"
+                    class="text-xs font-medium text-primary-600 hover:text-primary-700 whitespace-nowrap"
+                    @click="markAllNotificationsAsRead"
+                  >
+                    Marcar todas como lidas
+                  </button>
+                  <button
+                    class="text-neutral-400 hover:text-neutral-700 shrink-0"
+                    @click="notificationsDropdownOpen = false"
+                  >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="h-5 w-5"
@@ -83,6 +93,7 @@
                     />
                   </svg>
                 </button>
+                </div>
               </div>
               <div v-if="notificationsStore.loading" class="p-4 space-y-2">
                 <div v-for="i in 3" :key="i" class="animate-pulse flex flex-col gap-2">
@@ -559,6 +570,12 @@ function toggleNotificationsDropdown() {
   if (notificationsDropdownOpen.value) {
     notificationsStore.fetchNotifications()
   }
+}
+
+async function markAllNotificationsAsRead() {
+  const userId = authStore.user?.id
+  if (!userId) return
+  await notificationsStore.markAllAsRead(userId)
 }
 
 function handleClickOutside(event: Event) {

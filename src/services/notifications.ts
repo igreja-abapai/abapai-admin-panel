@@ -1,15 +1,7 @@
 import { httpService } from './http'
+import type { Notification } from '@/types/notification'
 
-export interface Notification {
-  id: number
-  title: string
-  message: string
-  type: string
-  data?: any
-  createdAt: string
-  recipients: any[]
-  readBy: any[]
-}
+export type { Notification, NotificationData, NotificationUser } from '@/types/notification'
 
 class NotificationsService {
   async getMyNotifications(): Promise<Notification[]> {
@@ -18,6 +10,10 @@ class NotificationsService {
 
   async markAsRead(id: number): Promise<void> {
     await httpService.patch(`/notifications/${id}/read`)
+  }
+
+  async markAllAsRead(): Promise<void> {
+    await httpService.patch('/notifications/me/read-all')
   }
 }
 
