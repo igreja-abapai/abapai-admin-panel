@@ -68,7 +68,7 @@
         </div>
 
         <div v-else-if="filteredRequests.length === 0" class="text-center py-8">
-          <HeartIcon class="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+          <PrayingIcon class="w-12 h-12 text-neutral-400 mx-auto mb-4" />
           <p class="text-neutral-500">
             {{
               searchTerm || areaFilter
@@ -130,7 +130,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { PlusIcon, MagnifyingGlassIcon, HeartIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
+import PrayingIcon from '@/components/icons/PrayingIcon.vue'
 import { prayerRequestsService, type PrayerRequest } from '@/services/prayer-requests'
 import CustomSelect from '@/components/CustomSelect.vue'
 

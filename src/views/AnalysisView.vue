@@ -72,7 +72,9 @@
               <h3 class="text-3xl font-bold text-neutral-900 mt-1">
                 {{ stats.newConvertsPercentage }}%
               </h3>
-              <p class="text-sm text-neutral-500 mt-2">convertidos a menos de um ano</p>
+              <p class="text-sm text-neutral-500 mt-2">
+                {{ stats.newConvertsCount }} convertidos a menos de um ano
+              </p>
             </div>
             <div class="p-2 bg-purple-50 text-purple-600 rounded-lg">
               <UserPlusIcon class="w-6 h-6" />
@@ -199,6 +201,7 @@ const stats = reactive({
   baptizedPercentage: '0',
   averageAge: 0,
   newConvertsPercentage: '0',
+  newConvertsCount: 0,
   admissionTypes: {} as Record<string, number>,
   tenureCounts: {
     over10: 0,

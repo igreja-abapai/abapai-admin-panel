@@ -127,7 +127,7 @@
               >
                 {{ authStore.userInitials }}
               </div>
-              <div class="hidden md:block text-left min-w-0">
+              <div class="hidden md:block text-center min-w-0">
                 <p class="text-sm font-semibold text-neutral-900 leading-tight truncate">
                   {{ authStore.user?.firstName }} {{ authStore.user?.lastName }}
                 </p>
@@ -147,7 +147,6 @@
                 <p class="text-sm font-medium text-neutral-900">
                   {{ authStore.user?.firstName }} {{ authStore.user?.lastName }}
                 </p>
-                <p class="text-xs text-neutral-500">{{ authStore.user?.email }}</p>
                 <p
                   v-if="authStore.userRole"
                   class="text-xs text-primary-600 font-medium capitalize"
@@ -276,7 +275,7 @@
           <li v-if="authStore.hasPermission('visualizar_pedidos_oracao')">
             <router-link to="/pedidos-de-oracao" class="block">
               <span :class="navItemClass($route.path === '/pedidos-de-oracao')">
-                <HeartIcon class="w-5 h-5 shrink-0" />
+                <PrayingIcon class="w-5 h-5 shrink-0" />
                 <span v-show="!sidebarCollapsed">Oração</span>
               </span>
             </router-link>
@@ -442,7 +441,6 @@ import {
   Bars3Icon,
   HomeIcon,
   UserGroupIcon,
-  HeartIcon,
   ArrowRightOnRectangleIcon,
   BellIcon,
   ChevronDownIcon,
@@ -453,6 +451,7 @@ import {
   MagnifyingGlassIcon,
   ShieldCheckIcon,
 } from '@heroicons/vue/24/outline'
+import PrayingIcon from '@/components/icons/PrayingIcon.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
 import { authService } from '@/services/auth'

@@ -6,6 +6,7 @@ export interface MemberStats {
   baptizedPercentage: string
   averageAge: number
   newConvertsPercentage: string
+  newConvertsCount: number
   admissionTypes: Record<string, number>
   genderCounts: Record<string, number>
   ageCounts: {

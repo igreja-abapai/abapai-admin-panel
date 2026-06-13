@@ -4,10 +4,10 @@ import {
   PlusIcon,
   UserGroupIcon,
   UserIcon,
-  HeartIcon,
   UserMinusIcon,
   ChevronRightIcon,
 } from '@heroicons/vue/24/outline'
+import PrayingIcon from '@/components/icons/PrayingIcon.vue'
 import { membersService, type Member } from '@/services/members'
 import { prayerRequestsService, type PrayerRequest } from '@/services/prayer-requests'
 import { useAuthStore } from '@/stores/auth'
@@ -259,7 +259,7 @@ onMounted(async () => {
         :loading="loading"
       />
       <StatCard
-        :icon="HeartIcon"
+        :icon="PrayingIcon"
         title="Pedidos de oração"
         :value="stats.prayerRequests"
         :badge="statBadges.prayer.text"
@@ -355,9 +355,12 @@ onMounted(async () => {
       </div>
 
       <div class="bg-white rounded-2xl border border-neutral-200">
-        <div class="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
+        <div class="px-6 pt-4 pb-5 border-b border-neutral-100 flex items-center justify-between">
           <div>
-            <h3 class="text-base font-semibold text-neutral-900">Próximos aniversários</h3>
+            <div class="flex items-center gap-1.5">
+              <h3 class="text-base font-semibold text-neutral-900">Próximos aniversários</h3>
+              <span class="mb-1">🎂</span>
+            </div>
             <p class="text-sm text-neutral-500 mt-0.5">Aniversariantes mais próximos</p>
           </div>
           <router-link
@@ -431,7 +434,7 @@ onMounted(async () => {
         </div>
         <div class="px-6">
           <div v-if="recentPrayerRequests.length === 0" class="text-center py-10">
-            <HeartIcon class="w-10 h-10 text-neutral-300 mx-auto mb-3" />
+            <PrayingIcon class="w-10 h-10 text-neutral-300 mx-auto mb-3" />
             <p class="text-neutral-500 text-sm">Nenhum pedido de oração encontrado</p>
           </div>
           <div v-else class="divide-y divide-neutral-100">
