@@ -1,106 +1,72 @@
 <template>
   <div class="w-full">
     <!-- Header -->
-    <div class="w-full flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
-      <h1 class="text-neutral-900 font-medium text-[28px]">Membros</h1>
-      <router-link to="/membros/cadastro" class="btn btn-primary w-full sm:w-auto">
-        <PlusIcon class="w-4 h-4 mr-2" />
-        Cadastrar Membro
-      </router-link>
-    </div>
-
-    <!-- Search -->
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
-      <div class="flex flex-col md:flex-row gap-4">
-        <div class="flex-1">
-          <div class="relative">
-            <MagnifyingGlassIcon
-              class="absolute left-3 top-1/2 z-10 transform -translate-y-1/2 w-5 h-5 text-neutral-400 pointer-events-none"
-            />
-            <Input
-              v-model="searchTerm"
-              type="text"
-              placeholder="Pesquisar..."
-              input-class="pl-10"
-            />
-          </div>
-        </div>
-        <div class="md:w-48">
-          <Select
-            v-model="baptismFilter"
-            :options="[
-              { value: 'true', label: 'Batizados' },
-              { value: 'false', label: 'Não batizados' },
-            ]"
-            placeholder="Batismo"
-          />
-        </div>
-        <div class="md:w-48">
-          <Select
-            v-model="statusFilter"
-            :options="[
-              { value: 'true', label: 'Ativos' },
-              { value: 'false', label: 'Ausentes' },
-            ]"
-            placeholder="Status"
-          />
-        </div>
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-neutral-900 font-semibold text-[28px] leading-tight">Membros</h1>
+        <p class="text-sm text-neutral-500 mt-1">Gerencie os cadastros da sua comunidade.</p>
+      </div>
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <router-link to="/membros/cadastro" class="btn btn-primary w-full sm:w-auto">
+          <PlusIcon class="w-4 h-4 mr-2" />
+          Novo membro
+        </router-link>
       </div>
     </div>
 
-    <!-- Members Table -->
-    <div class="bg-white rounded-lg shadow w-full">
-      <div class="px-6 py-4 border-b border-neutral-200 flex items-center justify-between">
-        <h3 class="text-lg font-medium text-neutral-900">Membros ({{ totalMembers }})</h3>
-        <div ref="membersMenuRef" class="relative">
+    <DataTable
+      :card="true"
+      :search="searchTerm"
+      search-placeholder="Buscar membro..."
+      :tabs="tableTabs"
+      :active-tab="statusTab"
+      show-filters
+      :active-filters-count="activeFiltersCount"
+      :error="error || undefined"
+      :data="paginatedMembers"
+      :headers="tableHeaders"
+      :is-loading="loading"
+      :pagination="paginationInfo"
+      :clickable="true"
+      min-width="900px"
+      row-key="id"
+      @update:search="searchTerm = $event"
+      @tab-change="setStatusTab"
+      @filters-click="openFiltersModal"
+      @row-click="handleRowClick"
+      @sort="handleSort"
+      @page-change="handlePageChange"
+    >
+      <template #toolbar-actions>
+        <div ref="membersMenuRef" class="relative shrink-0">
           <button
             type="button"
             class="p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
-            aria-label="Mais opções"
+            aria-label="Opções da lista"
             @click="toggleMembersMenu"
           >
             <EllipsisHorizontalIcon class="w-5 h-5" />
           </button>
           <div
             v-if="membersMenuOpen"
-            class="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-20"
+            class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-20"
           >
             <router-link
               to="/membros/ex-membros"
               class="block w-full px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
               @click="membersMenuOpen = false"
             >
-              Ver Ex-membros
+              Ver ex-membros
             </router-link>
           </div>
         </div>
-      </div>
+      </template>
 
-      <div v-if="error" class="px-6 py-4">
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {{ error }}
-        </div>
-      </div>
-
-      <DataTable
-        v-else
-        :data="paginatedMembers"
-        :headers="tableHeaders"
-        :is-loading="loading"
-        :pagination="paginationInfo"
-        :clickable="true"
-        min-width="800px"
-        row-key="id"
-        @row-click="handleRowClick"
-        @sort="handleSort"
-        @page-change="handlePageChange"
-      >
-        <!-- Custom Name Column -->
-        <template #column-name="{ item }">
-          <div class="flex items-center">
+      <template #column-name="{ item }">
+          <div class="flex items-center min-w-0">
             <div
               v-if="item.photoUrl"
-              class="w-8 h-8 rounded-full overflow-hidden border-2 border-neutral-200 mr-3 flex-shrink-0"
+              class="w-10 h-10 rounded-full overflow-hidden shrink-0"
             >
               <img
                 :src="item.photoUrl"
@@ -110,138 +76,262 @@
             </div>
             <div
               v-else
-              class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-xs font-medium mr-3 flex-shrink-0"
+              :class="[
+                'w-10 h-10 text-white rounded-full flex items-center justify-center text-sm font-medium shrink-0',
+                getAvatarColor(item.name),
+              ]"
             >
               {{ getInitials(item.name) }}
             </div>
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2">
-                <div class="text-sm font-medium text-neutral-900 truncate">
-                  {{ item.name }}
-                </div>
-                <span
-                  v-if="!item.isActive"
-                  class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-800"
-                >
-                  Ausente
-                </span>
-              </div>
-              <div class="text-xs text-neutral-500 md:hidden">
-                {{ item.phone }}
-              </div>
+            <div class="ml-3 min-w-0">
+              <p class="font-medium text-neutral-900 truncate text-sm">{{ item.name }}</p>
+              <p class="text-xs text-neutral-500 mt-0.5">
+                {{ getMemberSinceLabel(item) || 'Membro' }}
+              </p>
             </div>
           </div>
         </template>
 
-        <!-- Custom Baptism Column -->
+        <template #column-birthdate="{ item }">
+          <span class="text-sm text-neutral-700">
+            {{ formatBirthdate(item as Member) }}
+          </span>
+        </template>
+
         <template #column-isBaptized="{ item }">
           <span
             v-if="item.isBaptized"
-            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700"
           >
             Batizado
           </span>
           <span
             v-else
-            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700"
           >
             Não Batizado
           </span>
         </template>
 
-        <!-- Custom Address Column -->
-        <template #column-address="{ item }">
-          <div
-            class="truncate max-w-[200px]"
-            :title="item.address?.streetName || 'Endereço não informado'"
+        <template #column-status="{ item }">
+          <span
+            v-if="item.isActive"
+            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700"
           >
-            {{ item.address?.streetName || 'Endereço não informado' }}
+            Ativo
+          </span>
+          <span
+            v-else
+            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700"
+          >
+            Ausente
+          </span>
+        </template>
+
+        <template #column-phone="{ item }">
+          <span class="text-sm text-neutral-700">
+            {{ item.phone ? formatPhoneNumber(item.phone) : '—' }}
+          </span>
+        </template>
+
+        <template #actions="{ item }">
+          <div class="flex justify-end" @click.stop>
+            <button
+              type="button"
+              class="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
+              aria-label="Opções do membro"
+              @click="toggleRowMenu(item.id, $event)"
+            >
+              <EllipsisVerticalIcon class="w-5 h-5" />
+            </button>
           </div>
         </template>
 
-        <!-- Actions Column -->
-        <template #actions="{ item }">
-          <router-link
-            :to="`/membros/detalhes/${item.id}`"
-            class="link text-sm whitespace-nowrap"
-            @click.stop
-          >
-            Ver Detalhes
-          </router-link>
-        </template>
-
-        <!-- Empty State -->
         <template #empty>
-          <div class="py-8 text-center">
-            <UserGroupIcon class="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+          <div class="py-10 text-center">
+            <UserGroupIcon class="w-12 h-12 text-neutral-300 mx-auto mb-4" />
             <p class="text-neutral-500">
               {{
-                searchTerm
+                searchTerm || appliedBaptismFilter
                   ? 'Nenhum membro encontrado com os filtros aplicados'
                   : 'Nenhum membro encontrado'
               }}
             </p>
           </div>
         </template>
-      </DataTable>
-    </div>
+    </DataTable>
+
+    <Teleport to="body">
+      <div
+        v-if="filtersModalOpen"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+        @click.self="closeFiltersModal"
+      >
+        <div
+          class="bg-white rounded-2xl border border-neutral-200 shadow-lg w-full max-w-md"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="filters-modal-title"
+          @click.stop
+        >
+          <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
+            <h2 id="filters-modal-title" class="text-lg font-semibold text-neutral-900">Filtros</h2>
+            <button
+              type="button"
+              class="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
+              aria-label="Fechar filtros"
+              @click="closeFiltersModal"
+            >
+              <XMarkIcon class="w-5 h-5" />
+            </button>
+          </div>
+
+          <div class="px-6 py-5">
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-2">Batismo</label>
+              <Select
+                v-model="baptismFilterDraft"
+                :options="[
+                  { value: 'true', label: 'Batizados' },
+                  { value: 'false', label: 'Não batizados' },
+                ]"
+                placeholder="Todos"
+              />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-neutral-100">
+            <button
+              type="button"
+              class="text-sm font-medium text-neutral-600 hover:text-neutral-900"
+              @click="clearFilters"
+            >
+              Limpar filtros
+            </button>
+            <div class="flex items-center gap-3">
+              <button type="button" class="btn btn-secondary" @click="closeFiltersModal">
+                Cancelar
+              </button>
+              <button type="button" class="btn btn-primary" @click="applyFiltersModal">
+                Aplicar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <Teleport to="body">
+      <div
+        v-if="openRowMenuId && rowMenuStyle"
+        class="member-row-menu fixed z-[10000] w-40 bg-white rounded-lg shadow-lg border border-neutral-200 py-1"
+        :style="rowMenuStyle"
+        @click.stop
+      >
+        <router-link
+          :to="`/membros/detalhes/${openRowMenuId}`"
+          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+          @click="closeRowMenu"
+        >
+          <EyeIcon class="w-4 h-4 text-neutral-500 shrink-0" />
+          Ver detalhes
+        </router-link>
+        <router-link
+          :to="`/membros/editar/${openRowMenuId}`"
+          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+          @click="closeRowMenu"
+        >
+          <PencilIcon class="w-4 h-4 text-neutral-500 shrink-0" />
+          Editar membro
+        </router-link>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import {
   PlusIcon,
-  MagnifyingGlassIcon,
   UserGroupIcon,
+  EllipsisVerticalIcon,
   EllipsisHorizontalIcon,
+  XMarkIcon,
+  EyeIcon,
+  PencilIcon,
 } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { formatDate } from '@/utils/dateFormat'
+import { formatPhoneNumber } from '@/utils/phoneMask'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 
+type StatusTab = 'all' | 'active' | 'inactive'
+
 const router = useRouter()
+const route = useRoute()
 const loading = ref(false)
 const members = ref<Member[]>([])
 const searchTerm = ref('')
-const baptismFilter = ref('')
-const statusFilter = ref('')
+const baptismFilterDraft = ref('')
+const appliedBaptismFilter = ref('')
+const statusTab = ref<StatusTab>('all')
+const filtersModalOpen = ref(false)
 const error = ref('')
+const openRowMenuId = ref<string | null>(null)
+const rowMenuStyle = ref<{ top: string; left: string } | null>(null)
 const membersMenuOpen = ref(false)
 const membersMenuRef = ref<HTMLElement | null>(null)
 
-function toggleMembersMenu() {
-  membersMenuOpen.value = !membersMenuOpen.value
-}
+const activeFiltersCount = computed(() => {
+  let count = 0
+  if (appliedBaptismFilter.value) count++
+  return count
+})
 
-function handleClickOutside(event: MouseEvent) {
-  if (membersMenuRef.value && !membersMenuRef.value.contains(event.target as Node)) {
-    membersMenuOpen.value = false
-  }
-}
+const tabCounts = ref({
+  all: 0,
+  active: 0,
+  inactive: 0,
+})
 
-// Sorting state - default to name ascending
+const statusTabs: { key: StatusTab; label: string }[] = [
+  { key: 'all', label: 'Todos' },
+  { key: 'active', label: 'Ativos' },
+  { key: 'inactive', label: 'Ausentes' },
+]
+
+const tableTabs = computed(() =>
+  statusTabs.map((tab) => ({
+    key: tab.key,
+    label: tab.label,
+    count: tabCounts.value[tab.key],
+  })),
+)
+
+const avatarColors = ['bg-emerald-500', 'bg-blue-500', 'bg-amber-500', 'bg-violet-500']
+
+const ROW_MENU_WIDTH = 160
+const ROW_MENU_HEIGHT = 88
+
 const sortKey = ref<string>('name')
 const sortDirection = ref<'asc' | 'desc' | 'none'>('asc')
 
-// Pagination state
 const currentPage = ref(1)
 const itemsPerPage = 10
 const totalMembers = ref(0)
 const totalPages = ref(1)
 
-// Table headers
 const tableHeaders = computed<TableHeader<Member>[]>(() => [
   {
     key: 'name',
-    label: 'NOME',
+    label: 'MEMBRO',
     sortable: true,
     sortKey: 'name',
     sortDirection: sortKey.value === 'name' ? sortDirection.value : 'none',
-    width: 0.25,
+    width: 0.28,
     align: 'left',
   },
   {
@@ -250,8 +340,8 @@ const tableHeaders = computed<TableHeader<Member>[]>(() => [
     sortable: true,
     sortKey: 'birthdate',
     sortDirection: sortKey.value === 'birthdate' ? sortDirection.value : 'none',
-    width: 0.15,
-    formatter: (value) => formatDate(value),
+    width: 0.16,
+    align: 'left',
   },
   {
     key: 'isBaptized',
@@ -259,33 +349,37 @@ const tableHeaders = computed<TableHeader<Member>[]>(() => [
     sortable: true,
     sortKey: 'isBaptized',
     sortDirection: sortKey.value === 'isBaptized' ? sortDirection.value : 'none',
-    width: 0.15,
+    width: 0.14,
+    align: 'left',
   },
   {
-    key: 'address',
-    label: 'ENDEREÇO',
+    key: 'status',
+    label: 'SITUAÇÃO',
     sortable: false,
-    width: 0.15,
+    width: 0.14,
     align: 'left',
   },
   {
     key: 'phone',
     label: 'CONTATO',
     sortable: false,
-    width: 0.2,
+    width: 0.18,
+    align: 'left',
   },
 ])
 
 const paginatedMembers = computed(() => members.value)
 
-const paginationInfo = computed(() => {
-  return {
-    currentPage: currentPage.value,
-    totalPages: totalPages.value || 1,
-    totalItems: totalMembers.value,
-    itemsPerPage,
-  }
-})
+const paginationInfo = computed(() => ({
+  currentPage: currentPage.value,
+  totalPages: totalPages.value || 1,
+  totalItems: totalMembers.value,
+  itemsPerPage,
+}))
+
+function formatBirthdate(member: Member): string {
+  return member.birthdate ? formatDate(member.birthdate) : '—'
+}
 
 function getInitials(name?: string): string {
   if (!name) return ''
@@ -297,13 +391,112 @@ function getInitials(name?: string): string {
     .slice(0, 2)
 }
 
+function getAvatarColor(name: string): string {
+  const index =
+    name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % avatarColors.length
+  return avatarColors[index]
+}
+
+function getMemberSinceLabel(member: Member): string {
+  if (!member.admissionDate) return ''
+
+  const parts = member.admissionDate.split('/').map((part) => part.trim())
+  const year = parts.length === 3 ? parts[2] : parts.length === 2 ? parts[1] : ''
+
+  if (!year) return ''
+
+  return `Membro desde ${year}`
+}
+
+function statusTabFromQuery(status: unknown): StatusTab {
+  if (typeof status !== 'string') return 'all'
+  const normalized = status.toLowerCase()
+  if (normalized === 'ausente') return 'inactive'
+  if (normalized === 'ativo') return 'active'
+  return 'all'
+}
+
+function applyFiltersFromQuery() {
+  statusTab.value = statusTabFromQuery(route.query.status)
+}
+
+function setStatusTab(tab: StatusTab | string) {
+  statusTab.value = tab as StatusTab
+  currentPage.value = 1
+
+  const query = { ...route.query }
+  if (tab === 'inactive') {
+    query.status = 'Ausente'
+  } else if (tab === 'active') {
+    query.status = 'Ativo'
+  } else {
+    delete query.status
+  }
+
+  router.replace({ query })
+}
+
+function closeRowMenu() {
+  openRowMenuId.value = null
+  rowMenuStyle.value = null
+}
+
+function toggleRowMenu(memberId: string, event: MouseEvent) {
+  if (openRowMenuId.value === memberId) {
+    closeRowMenu()
+    return
+  }
+
+  const button = event.currentTarget as HTMLElement
+  const rect = button.getBoundingClientRect()
+  let top = rect.bottom + 4
+  let left = rect.right - ROW_MENU_WIDTH
+
+  if (top + ROW_MENU_HEIGHT > window.innerHeight - 8) {
+    top = rect.top - ROW_MENU_HEIGHT - 4
+  }
+
+  if (left < 8) {
+    left = 8
+  }
+
+  openRowMenuId.value = memberId
+  rowMenuStyle.value = {
+    top: `${top}px`,
+    left: `${left}px`,
+  }
+}
+
+function toggleMembersMenu() {
+  membersMenuOpen.value = !membersMenuOpen.value
+}
+
+function openFiltersModal() {
+  baptismFilterDraft.value = appliedBaptismFilter.value
+  filtersModalOpen.value = true
+}
+
+function closeFiltersModal() {
+  filtersModalOpen.value = false
+}
+
+function applyFiltersModal() {
+  appliedBaptismFilter.value = baptismFilterDraft.value
+  currentPage.value = 1
+  closeFiltersModal()
+  loadMembers()
+}
+
+function clearFilters() {
+  baptismFilterDraft.value = ''
+}
+
 function handleRowClick(member: Member) {
   router.push(`/membros/detalhes/${member.id}`)
 }
 
 function handleSort(key: string) {
   if (sortKey.value === key) {
-    // Cycle through: none -> asc -> desc -> none
     if (sortDirection.value === 'none') {
       sortDirection.value = 'asc'
     } else if (sortDirection.value === 'asc') {
@@ -316,7 +509,6 @@ function handleSort(key: string) {
     sortKey.value = key
     sortDirection.value = 'asc'
   }
-  // Reset to first page when sorting changes
   currentPage.value = 1
   loadMembers()
 }
@@ -326,32 +518,56 @@ function handlePageChange(page: number) {
   loadMembers()
 }
 
+async function loadTabCounts() {
+  try {
+    const [allRes, activeRes, inactiveRes] = await Promise.all([
+      membersService.getMembers({ page: 1, limit: 1 }),
+      membersService.getMembers({ page: 1, limit: 1, isActive: true }),
+      membersService.getMembers({ page: 1, limit: 1, isActive: false }),
+    ])
+
+    tabCounts.value = {
+      all: allRes.total,
+      active: activeRes.total,
+      inactive: inactiveRes.total,
+    }
+  } catch (err) {
+    console.error('Error loading member tab counts:', err)
+  }
+}
+
 async function loadMembers() {
   loading.value = true
   error.value = ''
 
   try {
-    const params: any = {
+    const params: {
+      page: number
+      limit: number
+      search?: string
+      isBaptized?: boolean
+      isActive?: boolean
+      sortBy?: string
+      sortOrder?: 'ASC' | 'DESC'
+    } = {
       page: currentPage.value,
       limit: itemsPerPage,
     }
 
-    // Add search filter
     if (searchTerm.value) {
       params.search = searchTerm.value
     }
 
-    // Add baptism filter
-    if (baptismFilter.value) {
-      params.isBaptized = baptismFilter.value === 'true'
+    if (appliedBaptismFilter.value) {
+      params.isBaptized = appliedBaptismFilter.value === 'true'
     }
 
-    // Add status filter
-    if (statusFilter.value) {
-      params.isActive = statusFilter.value === 'true'
+    if (statusTab.value === 'active') {
+      params.isActive = true
+    } else if (statusTab.value === 'inactive') {
+      params.isActive = false
     }
 
-    // Add sorting
     if (sortKey.value && sortDirection.value !== 'none') {
       params.sortBy = sortKey.value
       params.sortOrder = sortDirection.value.toUpperCase() as 'ASC' | 'DESC'
@@ -361,26 +577,57 @@ async function loadMembers() {
     members.value = response.data
     totalMembers.value = response.total
     totalPages.value = response.totalPages
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error loading members:', err)
-    error.value = err.response?.data?.message || 'Erro ao carregar membros'
+    const apiError = err as { response?: { data?: { message?: string } } }
+    error.value = apiError.response?.data?.message || 'Erro ao carregar membros'
   } finally {
     loading.value = false
   }
 }
 
-// Reset to first page when filters change and reload
-watch([searchTerm, baptismFilter, statusFilter], () => {
+applyFiltersFromQuery()
+
+watch([searchTerm, appliedBaptismFilter, statusTab], () => {
   currentPage.value = 1
   loadMembers()
 })
 
+watch(
+  () => route.query.status,
+  () => {
+    const nextTab = statusTabFromQuery(route.query.status)
+    if (nextTab !== statusTab.value) {
+      statusTab.value = nextTab
+    }
+  },
+)
+
+function handleClickOutside(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  if (membersMenuRef.value && !membersMenuRef.value.contains(target)) {
+    membersMenuOpen.value = false
+  }
+  if (!target.closest('[aria-label="Opções do membro"]') && !target.closest('.member-row-menu')) {
+    closeRowMenu()
+  }
+}
+
+function handleScroll() {
+  if (openRowMenuId.value) {
+    closeRowMenu()
+  }
+}
+
 onMounted(() => {
   loadMembers()
+  loadTabCounts()
   document.addEventListener('click', handleClickOutside)
+  window.addEventListener('scroll', handleScroll, true)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('scroll', handleScroll, true)
 })
 </script>

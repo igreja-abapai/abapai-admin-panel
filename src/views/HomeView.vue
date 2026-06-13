@@ -257,6 +257,7 @@ onMounted(async () => {
         icon-bg-color="bg-orange-50"
         icon-color="text-orange-600"
         :loading="loading"
+        :to="{ path: '/membros', query: { status: 'Ausente' } }"
       />
       <StatCard
         :icon="PrayingIcon"

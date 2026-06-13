@@ -1,6 +1,90 @@
 <template>
-  <div>
-    <div class="overflow-x-auto">
+  <div :class="card ? 'bg-white rounded-2xl border border-neutral-200 shadow-sm w-full' : ''">
+    <div
+      v-if="showToolbar"
+      class="p-4 border-b border-neutral-100 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
+    >
+      <slot name="toolbar-left">
+        <div
+          v-if="tabs?.length"
+          class="inline-flex h-10 items-center p-1 bg-surface-page border border-neutral-200 rounded-xl w-full sm:w-auto overflow-x-auto"
+        >
+          <button
+            v-for="tab in tabs"
+            :key="tab.key"
+            type="button"
+            class="flex h-full items-center gap-2 px-4 text-[13px] font-medium rounded-lg whitespace-nowrap transition-all"
+            :class="
+              activeTab === tab.key
+                ? 'bg-white text-neutral-900 shadow-sm'
+                : 'text-neutral-600 hover:text-neutral-900'
+            "
+            @click="handleTabChange(tab.key)"
+          >
+            {{ tab.label }}
+            <span
+              v-if="tab.count !== undefined"
+              class="inline-flex items-center justify-center min-w-[1.25rem] px-1.5 py-0.5 rounded-full text-[12px] font-medium tabular-nums"
+              :class="
+                activeTab === tab.key
+                  ? 'bg-primary-50 text-primary-600'
+                  : 'bg-neutral-200/70 text-neutral-500'
+              "
+            >
+              {{ tab.count }}
+            </span>
+          </button>
+        </div>
+        <p
+          v-else-if="totalCount !== undefined"
+          class="text-lg font-medium text-neutral-900 tabular-nums"
+        >
+          {{ totalLabel }} ({{ totalCount }})
+        </p>
+      </slot>
+
+      <div class="flex items-center gap-2 w-full lg:w-auto shrink-0">
+        <div class="relative w-full lg:w-72 shrink-0">
+          <MagnifyingGlassIcon
+            class="absolute left-3 top-1/2 z-10 -translate-y-1/2 w-5 h-5 text-neutral-400 pointer-events-none"
+          />
+          <input
+            type="text"
+            :value="searchValue"
+            :placeholder="searchPlaceholder || 'Buscar...'"
+            class="block w-full pl-10 pr-4 rounded-lg bg-surface-page border border-neutral-200 h-10 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/10"
+            @input="handleSearchInput"
+          />
+        </div>
+        <button
+          v-if="showFilters"
+          type="button"
+          class="btn btn-secondary h-10 shrink-0 relative"
+          @click="emit('filtersClick')"
+        >
+          <FunnelIcon class="w-4 h-4 mr-2" />
+          Filtros
+          <span
+            v-if="activeFiltersCount > 0"
+            class="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-primary-600 text-white text-[10px] leading-none font-medium flex items-center justify-center rounded-full"
+          >
+            {{ activeFiltersCount }}
+          </span>
+        </button>
+        <slot name="toolbar-actions" />
+      </div>
+    </div>
+
+    <div v-if="error" class="px-6 py-4">
+      <slot name="error">
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {{ error }}
+        </div>
+      </slot>
+    </div>
+
+    <template v-else>
+      <div class="overflow-x-auto">
       <table class="w-full border-collapse" :class="minWidthClass">
         <thead>
           <tr>
@@ -196,15 +280,22 @@
         </button>
       </div>
     </div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts" generic="T">
-import { ref, computed, watch } from 'vue'
-import { TrashIcon } from '@heroicons/vue/24/outline'
+import { ref, computed, watch, useSlots } from 'vue'
+import { TrashIcon, MagnifyingGlassIcon, FunnelIcon } from '@heroicons/vue/24/outline'
 import LoadingSpinner from './LoadingSpinner.vue'
 
 // Types
+export interface TableTab {
+  key: string
+  label: string
+  count?: number
+}
+
 export interface TableHeader<T = any> {
   key: keyof T | string
   label: string
@@ -237,6 +328,17 @@ export interface DataTableProps<T = any> {
   rowKey?: keyof T | ((item: T, index: number) => string | number)
   deletableKey?: keyof T | string
   selectableKey?: keyof T | string
+  card?: boolean
+  totalCount?: number
+  totalLabel?: string
+  tabs?: TableTab[]
+  activeTab?: string
+  search?: string
+  searchPlaceholder?: string
+  showSearch?: boolean
+  showFilters?: boolean
+  activeFiltersCount?: number
+  error?: string
 }
 
 // Props
@@ -248,6 +350,12 @@ const props = withDefaults(defineProps<DataTableProps<T>>(), {
   clickable: false,
   minWidth: '1000px',
   rowKey: () => 'id',
+  card: false,
+  totalLabel: 'Total',
+  search: '',
+  searchPlaceholder: '',
+  showFilters: false,
+  activeFiltersCount: 0,
 })
 
 // Emits
@@ -258,20 +366,50 @@ const emit = defineEmits<{
   (e: 'cellClick', item: T, header: TableHeader<T>): void
   (e: 'delete', item: T): void
   (e: 'batchSelectionChange', selectedItems: (string | number)[]): void
+  (e: 'tabChange', tabKey: string): void
+  (e: 'filtersClick'): void
+  (e: 'update:search', value: string): void
 }>()
 
 // Slots
 defineSlots<{
-  [key: `column-${string}`]: (props: { value: any; item: T; header: TableHeader<T> }) => void
+  [key: `column-${string}`]: (props: { value: unknown; item: T; header: TableHeader<T> }) => void
   actions: (props: { item: T; index: number }) => void
   empty: () => void
+  'toolbar-left': () => void
+  'toolbar-actions': () => void
+  error: () => void
 }>()
+
+const slots = useSlots()
 
 // Refs
 const checkboxAll = ref<HTMLInputElement>()
 const selectedItems = ref<(string | number)[]>([])
 
 // Computed
+const hasToolbarLeft = computed(() => {
+  return (
+    !!slots['toolbar-left'] ||
+    (props.tabs && props.tabs.length > 0) ||
+    props.totalCount !== undefined
+  )
+})
+
+const showSearchField = computed(() => props.showSearch !== false)
+
+const searchValue = computed(() => props.search ?? '')
+
+const showToolbar = computed(() => {
+  if (!props.card) return false
+  return (
+    hasToolbarLeft.value ||
+    showSearchField.value ||
+    props.showFilters ||
+    !!slots['toolbar-actions']
+  )
+})
+
 const minWidthClass = computed(() => `min-w-[${props.minWidth}]`)
 
 const hasActions = computed(() => {
@@ -394,7 +532,7 @@ const getRowId = (item: T): string | number => {
   return getRowKey(item, 0)
 }
 
-const getValue = (item: T, key: string | keyof T): any => {
+const getValue = (item: T, key: string | keyof T): unknown => {
   if (typeof key === 'string' && key.includes('.')) {
     const keys = key.split('.')
     let value = item as any
@@ -406,11 +544,11 @@ const getValue = (item: T, key: string | keyof T): any => {
   return (item as any)[String(key)]
 }
 
-const formatValue = (value: any, header: TableHeader<T>): string => {
+const formatValue = (value: unknown, header: TableHeader<T>): string => {
   if (header.formatter) {
     return header.formatter(value)
   }
-  return value ?? '-'
+  return value == null || value === '' ? '-' : String(value)
 }
 
 const getHeaderClasses = (header: TableHeader<T>) => {
@@ -507,6 +645,14 @@ const handleCellClick = (item: T, header: TableHeader<T>) => {
 
 const handleDelete = (item: T) => {
   emit('delete', item)
+}
+
+function handleTabChange(tabKey: string) {
+  emit('tabChange', tabKey)
+}
+
+function handleSearchInput(event: Event) {
+  emit('update:search', (event.target as HTMLInputElement).value)
 }
 
 // Batch selection methods

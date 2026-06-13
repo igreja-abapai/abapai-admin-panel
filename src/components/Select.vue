@@ -6,7 +6,7 @@
       @click="toggleDropdown"
       :disabled="disabled"
       :class="[
-        'appearance-none w-full px-[14px] py-2.5 pr-10 text-sm font-medium rounded border transition-colors cursor-pointer relative text-left',
+        'appearance-none w-full px-[14px] py-2.5 pr-10 text-sm font-medium rounded-lg border transition-colors cursor-pointer relative text-left',
         'focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10',
         'hover:border-gray-300',
         disabled

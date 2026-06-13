@@ -1,5 +1,10 @@
 <template>
-  <div class="bg-white rounded-2xl border border-neutral-200 p-5">
+  <component
+    :is="to ? 'router-link' : 'div'"
+    :to="to"
+    class="bg-white rounded-2xl border border-neutral-200 p-5 block"
+    :class="{ 'hover:border-neutral-300 hover:shadow-sm transition-all cursor-pointer': to }"
+  >
     <div class="flex items-start justify-between mb-4">
       <div :class="`p-2.5 ${iconBgColor} rounded-xl`">
         <component v-if="!loading" :is="icon" :class="`w-5 h-5 ${iconColor}`" />
@@ -17,11 +22,12 @@
     <div v-else class="h-9 bg-neutral-200 rounded animate-pulse w-14 mb-2"></div>
     <p v-if="!loading" class="text-sm text-neutral-500 mt-1">{{ title }}</p>
     <div v-else class="h-4 bg-neutral-100 rounded animate-pulse w-28 mt-2"></div>
-  </div>
+  </component>
 </template>
 
 <script setup lang="ts">
 import type { Component } from 'vue'
+import type { RouteLocationRaw } from 'vue-router'
 
 interface Props {
   title: string
@@ -32,6 +38,7 @@ interface Props {
   badge?: string
   badgeClass?: string
   loading?: boolean
+  to?: RouteLocationRaw
 }
 
 withDefaults(defineProps<Props>(), {

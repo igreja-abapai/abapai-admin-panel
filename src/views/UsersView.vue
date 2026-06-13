@@ -1,56 +1,89 @@
 <template>
-  <div>
+  <div class="w-full">
     <!-- Header -->
-    <div class="w-full flex justify-between mb-8">
-      <h1 class="text-neutral-900 font-medium text-[28px]">Usuários do Sistema</h1>
-      <router-link to="/usuarios/novo" class="btn btn-primary">
-        <PlusIcon class="w-4 h-4 mr-2" />
-        Novo Usuário
-      </router-link>
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-neutral-900 font-semibold text-[28px] leading-tight">Usuários do Sistema</h1>
+        <p class="text-sm text-neutral-500 mt-1">Gerencie os acessos e permissões do sistema.</p>
+      </div>
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <router-link to="/usuarios/novo" class="btn btn-primary w-full sm:w-auto">
+          <PlusIcon class="w-4 h-4 mr-2" />
+          Novo Usuário
+        </router-link>
+      </div>
     </div>
 
-    <!-- Search and Filters -->
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
-      <div class="flex flex-col md:flex-row gap-4">
-        <div class="flex-1">
-          <div class="relative">
-            <MagnifyingGlassIcon
-              class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400"
-            />
-            <input
-              v-model="searchTerm"
-              type="text"
-              placeholder="Buscar usuários..."
-              class="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
+    <DataTable
+      :card="true"
+      :search="searchTerm"
+      search-placeholder="Buscar usuários..."
+      :total-count="filteredUsers.length"
+      :error="error || undefined"
+      :data="filteredUsers"
+      :headers="tableHeaders"
+      :is-loading="loading"
+      min-width="900px"
+      row-key="id"
+      @update:search="searchTerm = $event"
+    >
+      <template #column-name="{ item }">
+        <div class="flex items-center min-w-0">
+          <div
+            class="h-10 w-10 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-medium shrink-0"
+          >
+            {{ getUserInitials(item) }}
+          </div>
+          <div class="ml-3 min-w-0">
+            <p class="font-medium text-neutral-900 truncate text-sm">
+              {{ item.firstName }} {{ item.lastName }}
+            </p>
           </div>
         </div>
-      </div>
-    </div>
+      </template>
 
-    <!-- Users Table -->
-    <div class="bg-white rounded-lg shadow">
-      <div class="px-6 py-4 border-b border-neutral-200">
-        <h3 class="text-lg font-medium text-neutral-900">Usuários ({{ filteredUsers.length }})</h3>
-      </div>
+      <template #column-email="{ item }">
+        <span class="text-sm text-neutral-900">{{ item.email }}</span>
+      </template>
 
-      <div class="overflow-x-auto">
-        <div
-          v-if="error"
-          class="m-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
+      <template #column-role="{ item }">
+        <span
+          v-if="item.role"
+          class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 capitalize"
         >
-          {{ error }}
-        </div>
+          {{ item.role.name }}
+        </span>
+        <span v-else class="text-sm text-neutral-400">Sem cargo</span>
+      </template>
 
-        <div v-if="loading" class="text-center py-8">
-          <div
-            class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"
-          ></div>
-          <p class="mt-2 text-neutral-500">Carregando usuários...</p>
-        </div>
+      <template #column-createdAt="{ item }">
+        <span class="text-sm text-neutral-500">{{ formatDate(item.createdAt) }}</span>
+      </template>
 
-        <div v-else-if="filteredUsers.length === 0" class="text-center py-8">
-          <UserGroupIcon class="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+      <template #column-status>
+        <span
+          class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
+        >
+          Ativo
+        </span>
+      </template>
+
+      <template #actions="{ item }">
+        <div class="flex justify-end" @click.stop>
+          <button
+            type="button"
+            class="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
+            aria-label="Opções do usuário"
+            @click="toggleRowMenu(item.id, $event)"
+          >
+            <EllipsisVerticalIcon class="w-5 h-5" />
+          </button>
+        </div>
+      </template>
+
+      <template #empty>
+        <div class="py-10 text-center">
+          <UserGroupIcon class="w-12 h-12 text-neutral-300 mx-auto mb-4" />
           <p class="text-neutral-500">
             {{
               searchTerm
@@ -59,120 +92,66 @@
             }}
           </p>
         </div>
+      </template>
+    </DataTable>
 
-        <table v-else class="w-full">
-          <thead class="bg-neutral-50">
-            <tr>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
-              >
-                Nome
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
-              >
-                Email
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
-              >
-                Cargo
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
-              >
-                Data de Criação
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
-              >
-                Status
-              </th>
-              <th
-                class="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider"
-              >
-                Ações
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-neutral-200">
-            <tr
-              v-for="user in filteredUsers"
-              :key="user.id"
-              class="hover:bg-neutral-50 transition-colors"
-            >
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0 h-10 w-10">
-                    <div
-                      class="h-10 w-10 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-medium"
-                    >
-                      {{ getUserInitials(user) }}
-                    </div>
-                  </div>
-                  <div class="ml-4">
-                    <div class="text-sm font-medium text-neutral-900">
-                      {{ user.firstName }} {{ user.lastName }}
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-neutral-900">{{ user.email }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div v-if="user.role" class="text-sm text-neutral-900">
-                  <span
-                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 capitalize"
-                  >
-                    {{ user.role.name }}
-                  </span>
-                </div>
-                <div v-else class="text-sm text-neutral-400">Sem cargo</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-neutral-500">{{ formatDate(user.createdAt) }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span
-                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
-                >
-                  Ativo
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div class="flex items-center justify-end space-x-2">
-                  <router-link
-                    :to="`/usuarios/editar/${user.id}`"
-                    class="text-primary-600 hover:text-primary-900 px-3 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-800 hover:bg-blue-200"
-                  >
-                    Editar
-                  </router-link>
-                  <button
-                    @click="deleteUser(user)"
-                    class="text-red-600 hover:text-red-900 px-3 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-800 hover:bg-red-200"
-                  >
-                    Excluir
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <Teleport to="body">
+      <div
+        v-if="openRowMenuId && rowMenuStyle"
+        class="user-row-menu fixed z-[10000] w-40 bg-white rounded-lg shadow-lg border border-neutral-200 py-1"
+        :style="rowMenuStyle"
+        @click.stop
+      >
+        <router-link
+          :to="`/usuarios/editar/${openRowMenuId}`"
+          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+          @click="closeRowMenu"
+        >
+          <PencilIcon class="w-4 h-4 text-neutral-500 shrink-0" />
+          Editar
+        </router-link>
+        <button
+          type="button"
+          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+          @click="handleDeleteFromMenu"
+        >
+          <TrashIcon class="w-4 h-4 shrink-0" />
+          Excluir
+        </button>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { PlusIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import {
+  PlusIcon,
+  UserGroupIcon,
+  EllipsisVerticalIcon,
+  PencilIcon,
+  TrashIcon,
+} from '@heroicons/vue/24/outline'
+import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 import { usersService, type User } from '@/services/users'
+
+const ROW_MENU_WIDTH = 160
+const ROW_MENU_HEIGHT = 88
 
 const loading = ref(false)
 const users = ref<User[]>([])
 const searchTerm = ref('')
 const error = ref('')
+const openRowMenuId = ref<number | null>(null)
+const rowMenuStyle = ref<{ top: string; left: string } | null>(null)
+
+const tableHeaders = computed<TableHeader<User>[]>(() => [
+  { key: 'name', label: 'NOME', width: 0.24, align: 'left' },
+  { key: 'email', label: 'EMAIL', width: 0.24, align: 'left' },
+  { key: 'role', label: 'CARGO', width: 0.16, align: 'left' },
+  { key: 'createdAt', label: 'DATA DE CRIAÇÃO', width: 0.18, align: 'left' },
+  { key: 'status', label: 'STATUS', width: 0.12, align: 'left' },
+])
 
 const filteredUsers = computed(() => {
   let filtered = users.value
@@ -198,6 +177,45 @@ function getUserInitials(user: User): string {
   return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
 }
 
+function closeRowMenu() {
+  openRowMenuId.value = null
+  rowMenuStyle.value = null
+}
+
+function toggleRowMenu(userId: number, event: MouseEvent) {
+  if (openRowMenuId.value === userId) {
+    closeRowMenu()
+    return
+  }
+
+  const button = event.currentTarget as HTMLElement
+  const rect = button.getBoundingClientRect()
+  let top = rect.bottom + 4
+  let left = rect.right - ROW_MENU_WIDTH
+
+  if (top + ROW_MENU_HEIGHT > window.innerHeight - 8) {
+    top = rect.top - ROW_MENU_HEIGHT - 4
+  }
+
+  if (left < 8) {
+    left = 8
+  }
+
+  openRowMenuId.value = userId
+  rowMenuStyle.value = {
+    top: `${top}px`,
+    left: `${left}px`,
+  }
+}
+
+async function handleDeleteFromMenu() {
+  const user = users.value.find((item) => item.id === openRowMenuId.value)
+  closeRowMenu()
+  if (user) {
+    await deleteUser(user)
+  }
+}
+
 async function deleteUser(user: User) {
   if (!confirm('Tem certeza que deseja excluir este usuário?')) {
     return
@@ -205,7 +223,6 @@ async function deleteUser(user: User) {
 
   try {
     await usersService.deleteUser(user.id)
-    // Remove from local list
     const index = users.value.findIndex((u) => u.id === user.id)
     if (index > -1) {
       users.value.splice(index, 1)
@@ -230,7 +247,27 @@ async function loadUsers() {
   }
 }
 
+function handleClickOutside(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  if (!target.closest('[aria-label="Opções do usuário"]') && !target.closest('.user-row-menu')) {
+    closeRowMenu()
+  }
+}
+
+function handleScroll() {
+  if (openRowMenuId.value) {
+    closeRowMenu()
+  }
+}
+
 onMounted(() => {
   loadUsers()
+  document.addEventListener('click', handleClickOutside)
+  window.addEventListener('scroll', handleScroll, true)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('scroll', handleScroll, true)
 })
 </script>
