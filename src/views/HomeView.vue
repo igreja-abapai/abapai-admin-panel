@@ -280,12 +280,7 @@ onMounted(async () => {
             <h3 class="text-base font-semibold text-neutral-900">Membros recentes</h3>
             <p class="text-sm text-neutral-500 mt-0.5">Últimos cadastros realizados</p>
           </div>
-          <router-link
-            to="/membros"
-            class="link text-sm"
-          >
-            Ver todos
-          </router-link>
+          <router-link to="/membros" class="link text-sm"> Ver todos </router-link>
         </div>
         <div class="px-6">
           <div v-if="recentMembers.length === 0" class="text-center py-10">
@@ -299,10 +294,7 @@ onMounted(async () => {
               class="flex items-center justify-between py-4"
             >
               <div class="flex items-center min-w-0">
-                <div
-                  v-if="member.photoUrl"
-                  class="w-10 h-10 rounded-full overflow-hidden shrink-0"
-                >
+                <div v-if="member.photoUrl" class="w-10 h-10 rounded-full overflow-hidden shrink-0">
                   <img
                     :src="member.photoUrl"
                     :alt="`Foto de ${member.name}`"
@@ -364,12 +356,7 @@ onMounted(async () => {
             </div>
             <p class="text-sm text-neutral-500 mt-0.5">Aniversariantes mais próximos</p>
           </div>
-          <router-link
-            to="/membros/aniversariantes"
-            class="link text-sm"
-          >
-            Ver mais
-          </router-link>
+          <router-link to="/membros/aniversariantes" class="link text-sm"> Ver mais </router-link>
         </div>
         <div class="px-6">
           <div v-if="upcomingBirthdays.length === 0" class="text-center py-10">
@@ -426,12 +413,7 @@ onMounted(async () => {
             <h3 class="text-base font-semibold text-neutral-900">Pedidos de oração</h3>
             <p class="text-sm text-neutral-500 mt-0.5">Pedidos mais recentes</p>
           </div>
-          <router-link
-            to="/pedidos-de-oracao"
-            class="link text-sm"
-          >
-            Abrir
-          </router-link>
+          <router-link to="/pedidos-de-oracao" class="link text-sm"> Abrir </router-link>
         </div>
         <div class="px-6">
           <div v-if="recentPrayerRequests.length === 0" class="text-center py-10">
@@ -439,11 +421,7 @@ onMounted(async () => {
             <p class="text-neutral-500 text-sm">Nenhum pedido de oração encontrado</p>
           </div>
           <div v-else class="divide-y divide-neutral-100">
-            <div
-              v-for="request in recentPrayerRequests"
-              :key="request.id"
-              class="py-4"
-            >
+            <div v-for="request in recentPrayerRequests" :key="request.id" class="py-4">
               <div class="flex items-start gap-3">
                 <div
                   class="w-10 h-10 bg-violet-100 text-violet-700 rounded-full flex items-center justify-center text-sm font-medium shrink-0"
