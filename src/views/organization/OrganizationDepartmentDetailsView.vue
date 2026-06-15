@@ -284,6 +284,19 @@
               </p>
             </div>
           </div>
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Cargos Elegíveis</label>
+            <MultiSelect
+              v-model="linkedPositionIdsModel"
+              :options="churchPositionOptions"
+              :disabled="!canManagePositions"
+              placeholder="Selecione cargos para sugerir ao vincular membros"
+              empty-options-text="Nenhum cargo disponível"
+            />
+            <p class="mt-2 text-xs text-neutral-500 leading-relaxed">
+              Cargos vinculados ao departamento são sugeridos ao vincular novos membros.
+            </p>
+          </div>
           <label class="flex items-center gap-2 text-sm text-neutral-700">
             <input v-model="departmentForm.isActive" type="checkbox" class="rounded" />
             Ativo
@@ -325,6 +338,13 @@
               placeholder="Selecione a função"
             />
           </div>
+          <div
+            v-if="suggestedPositionNames.length"
+            class="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2.5"
+          >
+            <p class="text-xs font-medium text-blue-900 mb-1">Cargos sugeridos para este departamento</p>
+            <p class="text-sm text-blue-800">{{ suggestedPositionNames.join(', ') }}</p>
+          </div>
           <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
           <div class="flex justify-end gap-2 pt-2">
             <button type="button" class="btn btn-secondary" @click="showMemberModal = false">
@@ -359,7 +379,9 @@ import {
   type Department,
   type MemberDepartment,
   type DepartmentRoleEligibility,
+  type DepartmentPositionEligibility,
   type ServiceRole,
+  type ChurchPosition,
 } from '@/services/organization'
 import { membersService, type Member } from '@/services/members'
 import { useAuthStore } from '@/stores/auth'
@@ -376,6 +398,7 @@ const route = useRoute()
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_departamentos'))
 const canManageRoles = computed(() => authStore.hasPermission('gerenciar_funcoes_servico'))
+const canManagePositions = computed(() => authStore.hasPermission('gerenciar_cargos_igreja'))
 
 const loading = ref(true)
 const saving = ref(false)
@@ -386,6 +409,7 @@ const memberSearchTerm = ref('')
 const department = ref<Department | null>(null)
 const allDepartments = ref<Department[]>([])
 const serviceRoles = ref<ServiceRole[]>([])
+const churchPositions = ref<ChurchPosition[]>([])
 const members = ref<Member[]>([])
 
 const showEditModal = ref(false)
@@ -395,6 +419,8 @@ const memberRowMenuStyle = ref<{ top: string; left: string } | null>(null)
 
 const linkedRoles = ref<{ serviceRoleId: number; isDefault: boolean }[]>([])
 const initialRoleEligibilities = ref<DepartmentRoleEligibility[]>([])
+const linkedPositionIds = ref<number[]>([])
+const initialPositionEligibilities = ref<DepartmentPositionEligibility[]>([])
 
 const linkedRoleIdsModel = computed({
   get: () => linkedRoles.value.map((role) => role.serviceRoleId),
@@ -409,6 +435,13 @@ const linkedRoleIdsModel = computed({
         linkedRoles.value.push({ serviceRoleId, isDefault: true })
       }
     }
+  },
+})
+
+const linkedPositionIdsModel = computed({
+  get: () => linkedPositionIds.value,
+  set: (positionIds: number[]) => {
+    linkedPositionIds.value = positionIds
   },
 })
 
@@ -444,6 +477,16 @@ const departmentMembers = computed(() => department.value?.memberDepartments || 
 
 const departmentRoleEligibilities = computed(() => department.value?.roleEligibilities || [])
 
+const departmentPositionEligibilities = computed(
+  () => department.value?.positionEligibilities || [],
+)
+
+const suggestedPositionNames = computed(() =>
+  departmentPositionEligibilities.value
+    .map((elig) => elig.churchPosition?.name || getChurchPositionName(elig.churchPositionId))
+    .filter(Boolean),
+)
+
 const filteredMembers = computed(() => {
   const term = memberSearchTerm.value.trim().toLowerCase()
   if (!term) return departmentMembers.value
@@ -470,20 +513,28 @@ const serviceRoleOptions = computed(() =>
     .map((role) => ({ value: role.id, label: role.name })),
 )
 
+const churchPositionOptions = computed(() =>
+  churchPositions.value
+    .filter((position) => position.isActive)
+    .map((position) => ({ value: position.id, label: position.name })),
+)
+
 async function loadDepartment() {
   loading.value = true
   error.value = ''
   try {
     const id = Number(route.params.id)
-    const [dept, depts, rolesRes, membersRes] = await Promise.all([
+    const [dept, depts, rolesRes, positionsRes, membersRes] = await Promise.all([
       organizationService.getDepartment(id),
       organizationService.getDepartments(),
       organizationService.getServiceRoles(),
+      organizationService.getChurchPositions(),
       membersService.getMembers({ isPaginated: false, isActive: true }),
     ])
     department.value = dept
     allDepartments.value = depts
     serviceRoles.value = rolesRes
+    churchPositions.value = positionsRes
     members.value = membersRes.data
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Erro ao carregar departamento'
@@ -494,6 +545,10 @@ async function loadDepartment() {
 
 function getServiceRoleName(serviceRoleId: number): string {
   return serviceRoles.value.find((role) => role.id === serviceRoleId)?.name || '—'
+}
+
+function getChurchPositionName(churchPositionId: number): string {
+  return churchPositions.value.find((position) => position.id === churchPositionId)?.name || '—'
 }
 
 function openEditModal() {
@@ -510,6 +565,10 @@ function openEditModal() {
     serviceRoleId: elig.serviceRoleId,
     isDefault: elig.isDefault,
   }))
+  initialPositionEligibilities.value = [...departmentPositionEligibilities.value]
+  linkedPositionIds.value = departmentPositionEligibilities.value.map(
+    (elig) => elig.churchPositionId,
+  )
   formError.value = ''
   showEditModal.value = true
 }
@@ -551,6 +610,32 @@ async function syncDepartmentRoleEligibilities() {
   ])
 }
 
+async function syncDepartmentPositionEligibilities() {
+  if (!canManagePositions.value || !department.value) return
+
+  const initial = initialPositionEligibilities.value
+  const currentIds = linkedPositionIds.value
+
+  const positionsToAdd = currentIds.filter(
+    (positionId) => !initial.some((elig) => elig.churchPositionId === positionId),
+  )
+  const eligibilitiesToRemove = initial.filter(
+    (elig) => !currentIds.includes(elig.churchPositionId),
+  )
+
+  await Promise.all([
+    ...positionsToAdd.map((churchPositionId) =>
+      organizationService.createDepartmentPositionEligibility({
+        departmentId: department.value!.id,
+        churchPositionId,
+      }),
+    ),
+    ...eligibilitiesToRemove.map((elig) =>
+      organizationService.deleteDepartmentPositionEligibility(elig.id),
+    ),
+  ])
+}
+
 async function saveDepartment() {
   if (!department.value) return
   saving.value = true
@@ -566,6 +651,7 @@ async function saveDepartment() {
         : undefined,
     })
     await syncDepartmentRoleEligibilities()
+    await syncDepartmentPositionEligibilities()
     await loadDepartment()
     showEditModal.value = false
   } catch (err: any) {

@@ -103,7 +103,7 @@ function getPrayerRequestsThisWeek(requests: PrayerRequest[]): number {
 }
 
 function getMemberRoleLabel(member: Member): string {
-  return member.currentPosition || member.occupation || 'Membro'
+  return member.primaryPosition?.name || member.currentPosition || member.occupation || 'Membro'
 }
 
 function formatRelativeTime(dateString: string): string {

@@ -17,6 +17,11 @@ export const ServiceRoleCategory = {
   SUPPORT_AND_CARE: 'Apoio & Cuidado',
 } as const
 
+export const ChurchPositionCategory = {
+  MINISTERIAL: 'Ministerial',
+  OPERATIONAL: 'Operacional',
+} as const
+
 export const SERVICE_ROLE_CATEGORY_ORDER = [
   ServiceRoleCategory.DIRECTION_AND_WORD,
   ServiceRoleCategory.WORSHIP,

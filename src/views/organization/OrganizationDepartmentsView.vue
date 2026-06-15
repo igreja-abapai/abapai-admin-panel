@@ -186,6 +186,19 @@
               </p>
             </div>
           </div>
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Cargos Elegíveis</label>
+            <MultiSelect
+              v-model="linkedPositionIdsModel"
+              :options="churchPositionOptions"
+              :disabled="!canManagePositions"
+              placeholder="Selecione cargos para sugerir ao vincular membros"
+              empty-options-text="Nenhum cargo disponível"
+            />
+            <p class="mt-2 text-xs text-neutral-500 leading-relaxed">
+              Cargos vinculados ao departamento são sugeridos ao vincular novos membros.
+            </p>
+          </div>
           <label class="flex items-center gap-2 text-sm text-neutral-700">
             <input v-model="departmentForm.isActive" type="checkbox" class="rounded" />
             Ativo
@@ -217,7 +230,9 @@ import {
   organizationService,
   type Department,
   type DepartmentRoleEligibility,
+  type DepartmentPositionEligibility,
   type ServiceRole,
+  type ChurchPosition,
 } from '@/services/organization'
 import { useAuthStore } from '@/stores/auth'
 import { DepartmentType, MemberDepartmentRole, enumToSelectOptions } from '@/constants/organization'
@@ -226,6 +241,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_departamentos'))
 const canManageRoles = computed(() => authStore.hasPermission('gerenciar_funcoes_servico'))
+const canManagePositions = computed(() => authStore.hasPermission('gerenciar_cargos_igreja'))
 
 const ROW_MENU_WIDTH = 160
 const ROW_MENU_HEIGHT = 132
@@ -241,11 +257,14 @@ const searchTerm = ref('')
 
 const departments = ref<Department[]>([])
 const serviceRoles = ref<ServiceRole[]>([])
+const churchPositions = ref<ChurchPosition[]>([])
 
 const showDepartmentModal = ref(false)
 const editingDepartment = ref<Department | null>(null)
 const linkedRoles = ref<{ serviceRoleId: number; isDefault: boolean }[]>([])
 const initialRoleEligibilities = ref<DepartmentRoleEligibility[]>([])
+const linkedPositionIds = ref<number[]>([])
+const initialPositionEligibilities = ref<DepartmentPositionEligibility[]>([])
 
 const linkedRoleIdsModel = computed({
   get: () => linkedRoles.value.map((role) => role.serviceRoleId),
@@ -260,6 +279,13 @@ const linkedRoleIdsModel = computed({
         linkedRoles.value.push({ serviceRoleId, isDefault: true })
       }
     }
+  },
+})
+
+const linkedPositionIdsModel = computed({
+  get: () => linkedPositionIds.value,
+  set: (positionIds: number[]) => {
+    linkedPositionIds.value = positionIds
   },
 })
 
@@ -318,6 +344,12 @@ const serviceRoleOptions = computed(() =>
     .map((role) => ({ value: role.id, label: role.name })),
 )
 
+const churchPositionOptions = computed(() =>
+  churchPositions.value
+    .filter((position) => position.isActive)
+    .map((position) => ({ value: position.id, label: position.name })),
+)
+
 function getServiceRoleName(serviceRoleId: number): string {
   return serviceRoles.value.find((role) => role.id === serviceRoleId)?.name || '—'
 }
@@ -330,12 +362,14 @@ async function loadData() {
   loading.value = true
   error.value = ''
   try {
-    const [depts, rolesRes] = await Promise.all([
+    const [depts, rolesRes, positionsRes] = await Promise.all([
       organizationService.getDepartments(),
       organizationService.getServiceRoles(),
+      organizationService.getChurchPositions(),
     ])
     departments.value = depts
     serviceRoles.value = rolesRes
+    churchPositions.value = positionsRes
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Erro ao carregar dados'
   } finally {
@@ -361,9 +395,15 @@ async function openDepartmentModal(department?: Department) {
       serviceRoleId: elig.serviceRoleId,
       isDefault: elig.isDefault,
     }))
+    initialPositionEligibilities.value = [...(full.positionEligibilities || [])]
+    linkedPositionIds.value = (full.positionEligibilities || []).map(
+      (elig) => elig.churchPositionId,
+    )
   } else {
     initialRoleEligibilities.value = []
     linkedRoles.value = []
+    initialPositionEligibilities.value = []
+    linkedPositionIds.value = []
   }
 
   showDepartmentModal.value = true
@@ -406,11 +446,39 @@ async function syncDepartmentRoleEligibilities(departmentId: number) {
   ])
 }
 
+async function syncDepartmentPositionEligibilities(departmentId: number) {
+  if (!canManagePositions.value) return
+
+  const initial = initialPositionEligibilities.value
+  const currentIds = linkedPositionIds.value
+
+  const positionsToAdd = currentIds.filter(
+    (positionId) => !initial.some((elig) => elig.churchPositionId === positionId),
+  )
+  const eligibilitiesToRemove = initial.filter(
+    (elig) => !currentIds.includes(elig.churchPositionId),
+  )
+
+  await Promise.all([
+    ...positionsToAdd.map((churchPositionId) =>
+      organizationService.createDepartmentPositionEligibility({
+        departmentId,
+        churchPositionId,
+      }),
+    ),
+    ...eligibilitiesToRemove.map((elig) =>
+      organizationService.deleteDepartmentPositionEligibility(elig.id),
+    ),
+  ])
+}
+
 function closeDepartmentModal() {
   showDepartmentModal.value = false
   editingDepartment.value = null
   linkedRoles.value = []
   initialRoleEligibilities.value = []
+  linkedPositionIds.value = []
+  initialPositionEligibilities.value = []
 }
 
 async function saveDepartment() {
@@ -433,6 +501,7 @@ async function saveDepartment() {
       departmentId = created.id
     }
     await syncDepartmentRoleEligibilities(departmentId)
+    await syncDepartmentPositionEligibilities(departmentId)
     closeDepartmentModal()
     await loadData()
   } catch (err: any) {

@@ -12,6 +12,7 @@ export interface Department {
   isActive: boolean
   memberDepartments?: MemberDepartment[]
   roleEligibilities?: DepartmentRoleEligibility[]
+  positionEligibilities?: DepartmentPositionEligibility[]
   createdAt?: string
   updatedAt?: string
 }
@@ -56,6 +57,23 @@ export interface DepartmentRoleEligibility {
   isDefault: boolean
   department?: Department
   serviceRole?: ServiceRole
+}
+
+export interface ChurchPosition {
+  id: number
+  name: string
+  category: string
+  description?: string
+  isActive: boolean
+  sortOrder?: number
+}
+
+export interface DepartmentPositionEligibility {
+  id: number
+  departmentId: number
+  churchPositionId: number
+  department?: Department
+  churchPosition?: ChurchPosition
 }
 
 export interface ServingGroupMember {
@@ -265,6 +283,45 @@ class OrganizationService {
   deleteDepartmentRoleEligibility(id: number) {
     return httpService.delete<void>(
       `/organization/service-roles/department-role-eligibilities/${id}`,
+    )
+  }
+
+  // Church positions
+  getChurchPositions() {
+    return httpService.get<ChurchPosition[]>('/organization/church-positions')
+  }
+
+  createChurchPosition(data: Partial<ChurchPosition>) {
+    return httpService.post<ChurchPosition>('/organization/church-positions', data)
+  }
+
+  updateChurchPosition(id: number, data: Partial<ChurchPosition>) {
+    return httpService.patch<ChurchPosition>(`/organization/church-positions/${id}`, data)
+  }
+
+  deleteChurchPosition(id: number) {
+    return httpService.delete<void>(`/organization/church-positions/${id}`)
+  }
+
+  getDepartmentPositionEligibilities() {
+    return httpService.get<DepartmentPositionEligibility[]>(
+      '/organization/church-positions/department-position-eligibilities/all',
+    )
+  }
+
+  createDepartmentPositionEligibility(data: {
+    departmentId: number
+    churchPositionId: number
+  }) {
+    return httpService.post<DepartmentPositionEligibility>(
+      '/organization/church-positions/department-position-eligibilities',
+      data,
+    )
+  }
+
+  deleteDepartmentPositionEligibility(id: number) {
+    return httpService.delete<void>(
+      `/organization/church-positions/department-position-eligibilities/${id}`,
     )
   }
 

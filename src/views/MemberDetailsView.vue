@@ -110,10 +110,22 @@
                   {{ member.isBaptized ? 'Batizado' : 'Não Batizado' }}
                 </span>
                 <span
-                  v-if="member.currentPosition"
+                  v-if="member.primaryPosition?.name"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                >
+                  {{ member.primaryPosition.name }}
+                </span>
+                <span
+                  v-else-if="member.currentPosition"
                   class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                 >
                   {{ member.currentPosition }}
+                </span>
+                <span
+                  v-if="member.secondaryPosition?.name"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 border border-sky-200"
+                >
+                  {{ member.secondaryPosition.name }}
                 </span>
                 <span
                   v-for="link in activeMemberDepartments"
@@ -324,8 +336,15 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-500 mb-1">Cargo Atual</label>
-            <p class="text-neutral-900">{{ member.currentPosition || 'Não informado' }}</p>
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Cargo Principal</label>
+            <p class="text-neutral-900">
+              {{ member.primaryPosition?.name || member.currentPosition || 'Não informado' }}
+            </p>
+          </div>
+
+          <div v-if="member.secondaryPosition?.name">
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Cargo Secundário</label>
+            <p class="text-neutral-900">{{ member.secondaryPosition.name }}</p>
           </div>
 
           <div>

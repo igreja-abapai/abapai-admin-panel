@@ -374,8 +374,21 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Cargo Atual</label>
-            <Input v-model="form.currentPosition" type="text" placeholder="Ex: Membro, Líder, etc." />
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Cargo Principal</label>
+            <Select
+              v-model="form.primaryPositionId"
+              :options="positionOptions"
+              placeholder="Selecione o cargo principal"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Cargo Secundário</label>
+            <Select
+              v-model="form.secondaryPositionId"
+              :options="secondaryPositionOptions"
+              placeholder="Selecione o cargo secundário (opcional)"
+            />
           </div>
 
           <div>
@@ -549,10 +562,11 @@
 </style>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import { membersService } from '@/services/members'
+import { organizationService, type ChurchPosition } from '@/services/organization'
 import { addressService, type CreateAddressRequest } from '@/services/address'
 import { uploadFileToS3, isValidImageFile, isValidFileSize } from '@/utils/s3Upload'
 import { formatPhoneNumber, unformatPhoneNumber } from '@/utils/phoneMask'
@@ -574,6 +588,20 @@ const photoFile = ref<File | null>(null)
 const uploadingPhoto = ref(false)
 const photoError = ref('')
 const photoInput = ref<HTMLInputElement>()
+
+const churchPositions = ref<ChurchPosition[]>([])
+
+const positionOptions = computed(() =>
+  churchPositions.value
+    .filter((p) => p.isActive)
+    .map((p) => ({ value: String(p.id), label: p.name })),
+)
+
+const secondaryPositionOptions = computed(() =>
+  positionOptions.value.filter(
+    (option) => !form.primaryPositionId || option.value !== form.primaryPositionId,
+  ),
+)
 
 const form = reactive({
   name: '',
@@ -597,6 +625,8 @@ const form = reactive({
   isBaptized: false,
   isBaptizedInTheHolySpirit: null as boolean | null,
   currentPosition: '',
+  primaryPositionId: '',
+  secondaryPositionId: '',
   wantsToBeAVolunteer: null as boolean | null,
   areaOfInterest: '',
   childrenCount: undefined as number | undefined,
@@ -770,6 +800,10 @@ async function handleSubmit() {
       birthdate: formattedBirthdate,
       admissionDate: formattedAdmissionDate,
       addressId: parseInt(address.id),
+      primaryPositionId: form.primaryPositionId ? Number(form.primaryPositionId) : undefined,
+      secondaryPositionId: form.secondaryPositionId
+        ? Number(form.secondaryPositionId)
+        : undefined,
       // Convert empty strings to undefined for enum fields
       admissionType: form.admissionType || undefined,
       // Convert empty childrenCount to undefined
@@ -793,4 +827,12 @@ async function handleSubmit() {
     loading.value = false
   }
 }
+
+onMounted(async () => {
+  try {
+    churchPositions.value = await organizationService.getChurchPositions()
+  } catch (err) {
+    console.error('Error loading church positions:', err)
+  }
+})
 </script>

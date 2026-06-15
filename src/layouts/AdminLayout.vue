@@ -306,6 +306,14 @@
               </li>
               <li>
                 <router-link
+                  to="/organizacao/cargos"
+                  :class="subNavItemClass($route.path === '/organizacao/cargos')"
+                >
+                  Cargos
+                </router-link>
+              </li>
+              <li>
+                <router-link
                   to="/organizacao/funcoes"
                   :class="subNavItemClass($route.path === '/organizacao/funcoes')"
                 >

@@ -507,12 +507,20 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Cargo Atual</label>
-            <input
-              v-model="form.currentPosition"
-              type="text"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: Membro, Líder, etc."
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Cargo Principal</label>
+            <CustomSelect
+              v-model="form.primaryPositionId"
+              :options="positionOptions"
+              placeholder="Selecione o cargo principal"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Cargo Secundário</label>
+            <CustomSelect
+              v-model="form.secondaryPositionId"
+              :options="secondaryPositionOptions"
+              placeholder="Selecione o cargo secundário (opcional)"
             />
           </div>
 
@@ -711,6 +719,7 @@ import {
   organizationService,
   type MemberServiceCapability,
   type ServiceRole,
+  type ChurchPosition,
 } from '@/services/organization'
 import { useAuthStore } from '@/stores/auth'
 import { CapabilitySource } from '@/constants/organization'
@@ -749,6 +758,19 @@ const memberCapabilities = ref<MemberServiceCapability[]>([])
 const initialManualCapabilities = ref<MemberServiceCapability[]>([])
 const manualRoleIds = ref<number[]>([])
 const serviceRoles = ref<ServiceRole[]>([])
+const churchPositions = ref<ChurchPosition[]>([])
+
+const positionOptions = computed(() =>
+  churchPositions.value
+    .filter((p) => p.isActive)
+    .map((p) => ({ value: String(p.id), label: p.name })),
+)
+
+const secondaryPositionOptions = computed(() =>
+  positionOptions.value.filter(
+    (option) => !form.primaryPositionId || option.value !== form.primaryPositionId,
+  ),
+)
 
 const departmentCapabilities = computed(() =>
   memberCapabilities.value.filter(
@@ -792,6 +814,8 @@ const form = reactive({
   isBaptized: false,
   isBaptizedInTheHolySpirit: null as boolean | null,
   currentPosition: '',
+  primaryPositionId: '',
+  secondaryPositionId: '',
   wantsToBeAVolunteer: null as boolean | null,
   areaOfInterest: '',
   childrenCount: undefined as number | undefined,
@@ -939,6 +963,12 @@ function populateForm() {
     isBaptized: member.value.isBaptized,
     isBaptizedInTheHolySpirit: member.value.isBaptizedInTheHolySpirit || null,
     currentPosition: member.value.currentPosition || '',
+    primaryPositionId: member.value.primaryPositionId
+      ? String(member.value.primaryPositionId)
+      : '',
+    secondaryPositionId: member.value.secondaryPositionId
+      ? String(member.value.secondaryPositionId)
+      : '',
     wantsToBeAVolunteer: member.value.wantsToBeAVolunteer ?? null,
     areaOfInterest: member.value.areaOfInterest || '',
     childrenCount:
@@ -992,11 +1022,13 @@ function createLocalDate(dateString: string): Date {
 async function loadMemberCapabilities() {
   loadingCapabilities.value = true
   try {
-    const [caps, roles] = await Promise.all([
+    const [caps, roles, positions] = await Promise.all([
       organizationService.getMemberCapabilities(),
       organizationService.getServiceRoles(),
+      organizationService.getChurchPositions(),
     ])
     serviceRoles.value = roles
+    churchPositions.value = positions
     const memberNumericId = Number(memberId.value)
     memberCapabilities.value = caps.filter((cap) => cap.memberId === memberNumericId)
     initialManualCapabilities.value = memberCapabilities.value.filter(
@@ -1100,6 +1132,10 @@ async function handleSubmit() {
       ...form,
       birthdate: formattedBirthdate,
       admissionDate: formattedAdmissionDate,
+      primaryPositionId: form.primaryPositionId ? Number(form.primaryPositionId) : null,
+      secondaryPositionId: form.secondaryPositionId
+        ? Number(form.secondaryPositionId)
+        : null,
       // Convert empty strings to undefined for enum fields
       admissionType: form.admissionType || undefined,
       // Convert empty childrenCount to undefined (handle both empty string and null/undefined)

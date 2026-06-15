@@ -134,6 +134,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, permission: 'visualizar_organizacao' },
       },
       {
+        path: 'organizacao/cargos',
+        name: 'organization-church-positions',
+        component: () => import('@/views/organization/OrganizationChurchPositionsView.vue'),
+        meta: { requiresAuth: true, permission: 'visualizar_organizacao' },
+      },
+      {
         path: 'organizacao/funcoes',
         name: 'organization-service-roles',
         component: () => import('@/views/organization/OrganizationServiceRolesView.vue'),

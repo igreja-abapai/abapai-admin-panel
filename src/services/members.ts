@@ -1,5 +1,6 @@
 import { httpService } from './http'
 import type { Address } from './address'
+import type { ChurchPosition } from './organization'
 
 export interface Member {
   id: string
@@ -24,6 +25,10 @@ export interface Member {
   isBaptized: boolean
   isBaptizedInTheHolySpirit?: boolean | null
   currentPosition?: string
+  primaryPositionId?: number | null
+  secondaryPositionId?: number | null
+  primaryPosition?: ChurchPosition
+  secondaryPosition?: ChurchPosition
   wantsToBeAVolunteer?: boolean | null
   areaOfInterest?: string
   photoUrl?: string
@@ -67,6 +72,8 @@ export interface CreateMemberRequest {
   isBaptized: boolean
   isBaptizedInTheHolySpirit?: boolean | null
   currentPosition?: string
+  primaryPositionId?: number | null
+  secondaryPositionId?: number | null
   wantsToBeAVolunteer?: boolean | null
   areaOfInterest?: string
   photoUrl?: string
@@ -103,6 +110,8 @@ export interface UpdateMemberRequest {
   isBaptized?: boolean
   isBaptizedInTheHolySpirit?: boolean | null
   currentPosition?: string
+  primaryPositionId?: number | null
+  secondaryPositionId?: number | null
   wantsToBeAVolunteer?: boolean | null
   areaOfInterest?: string
   photoUrl?: string
