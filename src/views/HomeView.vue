@@ -17,6 +17,7 @@ import {
   formatDaysUntilBadge,
   type UpcomingBirthday,
 } from '@/utils/birthdays'
+import { getMemberSinceLabel } from '@/utils/dateFormat'
 import StatCard from '@/components/StatCard.vue'
 import RecentMembersSkeleton from '@/components/RecentMembersSkeleton.vue'
 
@@ -99,17 +100,6 @@ function getPrayerRequestsThisWeek(requests: PrayerRequest[]): number {
   const weekAgo = new Date()
   weekAgo.setDate(weekAgo.getDate() - 7)
   return requests.filter((request) => new Date(request.createdAt) >= weekAgo).length
-}
-
-function getMemberSinceLabel(member: Member): string {
-  if (!member.admissionDate) return ''
-
-  const parts = member.admissionDate.split('/').map((part) => part.trim())
-  const year = parts.length === 3 ? parts[2] : parts.length === 2 ? parts[1] : ''
-
-  if (!year) return ''
-
-  return `Membro desde ${year}`
 }
 
 function getMemberRoleLabel(member: Member): string {
@@ -328,8 +318,8 @@ onMounted(async () => {
                     <span class="text-xs text-neutral-400">·</span>
                     <span class="text-xs text-neutral-500">
                       {{ getMemberRoleLabel(member) }}
-                      <template v-if="getMemberSinceLabel(member)">
-                        · {{ getMemberSinceLabel(member) }}
+                      <template v-if="getMemberSinceLabel(member.admissionDate)">
+                        · {{ getMemberSinceLabel(member.admissionDate) }}
                       </template>
                     </span>
                   </div>

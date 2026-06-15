@@ -281,7 +281,7 @@ const paginationInfo = computed(() => ({
 const tableHeaders = computed<TableHeader<PrayerRequest>[]>(() => [
   {
     key: 'name',
-    label: 'SOLICITANTE',
+    label: 'Solicitante',
     sortable: true,
     sortKey: 'name',
     sortDirection: sortKey.value === 'name' ? sortDirection.value : 'none',
@@ -290,14 +290,14 @@ const tableHeaders = computed<TableHeader<PrayerRequest>[]>(() => [
   },
   {
     key: 'request',
-    label: 'PEDIDO',
+    label: 'Pedido',
     sortable: false,
     width: 0.36,
     align: 'left',
   },
   {
     key: 'area',
-    label: 'ÁREA',
+    label: 'Área',
     sortable: true,
     sortKey: 'area',
     sortDirection: sortKey.value === 'area' ? sortDirection.value : 'none',
@@ -306,7 +306,7 @@ const tableHeaders = computed<TableHeader<PrayerRequest>[]>(() => [
   },
   {
     key: 'createdAt',
-    label: 'DATA',
+    label: 'Data',
     sortable: true,
     sortKey: 'createdAt',
     sortDirection: sortKey.value === 'createdAt' ? sortDirection.value : 'none',

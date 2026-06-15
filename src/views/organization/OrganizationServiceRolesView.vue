@@ -176,9 +176,9 @@ const roleForm = ref<{
 const categoryOptions = enumToSelectOptions(ServiceRoleCategory)
 
 const roleHeaders = computed<TableHeader<ServiceRole>[]>(() => [
-  { key: 'name', label: 'NOME', width: 0.4, align: 'left' },
-  { key: 'category', label: 'CATEGORIA', width: 0.3, align: 'left' },
-  { key: 'isActive', label: 'STATUS', width: 0.3, align: 'left' },
+  { key: 'name', label: 'Nome', width: 0.4, align: 'left' },
+  { key: 'category', label: 'Categoria', width: 0.3, align: 'left' },
+  { key: 'isActive', label: 'Status', width: 0.3, align: 'left' },
 ])
 
 const filteredRoles = computed(() => {

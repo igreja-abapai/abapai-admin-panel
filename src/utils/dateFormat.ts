@@ -1,4 +1,55 @@
 /**
+ * Extracts a 4-digit year from partial admission date strings.
+ * Supports: yyyy, mm/yyyy, dd/mm/yyyy, and ISO yyyy-mm-dd.
+ */
+export function extractAdmissionYear(admissionDate?: string | null): string | null {
+  if (!admissionDate?.trim()) return null
+
+  const value = admissionDate.trim()
+
+  if (/^\d{4}$/.test(value)) {
+    return value
+  }
+
+  const isoMatch = value.match(/^(\d{4})(?:-\d{2})?(?:-\d{2})?$/)
+  if (isoMatch) {
+    return isoMatch[1]
+  }
+
+  const parts = value.split('/').map((part) => part.trim()).filter(Boolean)
+
+  if (parts.length === 3) {
+    const year = parts[2]
+    return /^\d{4}$/.test(year) ? year : null
+  }
+
+  if (parts.length === 2) {
+    const year = parts[1]
+    return /^\d{4}$/.test(year) ? year : null
+  }
+
+  if (parts.length === 1 && /^\d{4}$/.test(parts[0])) {
+    return parts[0]
+  }
+
+  const parsed = new Date(value)
+  if (!isNaN(parsed.getTime())) {
+    return String(parsed.getFullYear())
+  }
+
+  return null
+}
+
+/**
+ * Returns the member tenure label shown in lists (e.g. "Membro desde 2006").
+ */
+export function getMemberSinceLabel(admissionDate?: string | null): string {
+  const year = extractAdmissionYear(admissionDate)
+  if (!year) return ''
+  return `Membro desde ${year}`
+}
+
+/**
  * Formats a date string to Brazilian Portuguese format
  * @param dateString - The date string to format
  * @returns Formatted date string

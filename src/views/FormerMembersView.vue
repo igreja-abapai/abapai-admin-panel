@@ -120,7 +120,7 @@ const totalPages = ref(1)
 const tableHeaders = computed<TableHeader<Member>[]>(() => [
   {
     key: 'name',
-    label: 'NOME',
+    label: 'Nome',
     sortable: true,
     sortKey: 'name',
     sortDirection: sortKey.value === 'name' ? sortDirection.value : 'none',
@@ -129,7 +129,7 @@ const tableHeaders = computed<TableHeader<Member>[]>(() => [
   },
   {
     key: 'birthdate',
-    label: 'DATA DE NASCIMENTO',
+    label: 'Data de nascimento',
     sortable: true,
     sortKey: 'birthdate',
     sortDirection: sortKey.value === 'birthdate' ? sortDirection.value : 'none',
@@ -138,7 +138,7 @@ const tableHeaders = computed<TableHeader<Member>[]>(() => [
   },
   {
     key: 'deletedAt',
-    label: 'DATA DE EXCLUSÃO',
+    label: 'Data de exclusão',
     sortable: true,
     sortKey: 'deletedAt',
     sortDirection: sortKey.value === 'deletedAt' ? sortDirection.value : 'none',
@@ -147,7 +147,7 @@ const tableHeaders = computed<TableHeader<Member>[]>(() => [
   },
   {
     key: 'phone',
-    label: 'CONTATO',
+    label: 'Contato',
     sortable: false,
     width: 0.25,
   },

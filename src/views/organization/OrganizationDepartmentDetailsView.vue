@@ -83,22 +83,40 @@
               {{ department.isActive ? 'Ativo' : 'Inativo' }}
             </dd>
           </div>
-          <div>
+          <div class="sm:col-span-2">
             <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
               Funções de Serviço
             </dt>
-            <dd class="mt-1">
+            <dd class="mt-1.5">
               <div
                 v-if="departmentRoleEligibilities.length"
-                class="flex flex-wrap gap-2"
+                class="flex flex-wrap gap-1.5"
               >
-                <span
+                <div
                   v-for="elig in departmentRoleEligibilities"
                   :key="elig.id"
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800"
+                  class="inline-flex items-center gap-2 rounded-md border border-neutral-200 bg-surface-page px-2.5 py-1.5"
                 >
-                  {{ elig.serviceRole?.name || '—' }}
-                </span>
+                  <span class="text-xs font-medium text-neutral-900">
+                    {{ elig.serviceRole?.name || '—' }}
+                  </span>
+                  <span
+                    :class="[
+                      'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold',
+                      elig.isDefault
+                        ? 'bg-amber-50 text-amber-700'
+                        : 'bg-neutral-100 text-neutral-600',
+                    ]"
+                  >
+                    <span
+                      :class="[
+                        'w-1 h-1 rounded-full',
+                        elig.isDefault ? 'bg-amber-500' : 'bg-neutral-400',
+                      ]"
+                    />
+                    {{ elig.isDefault ? 'Obrigatória' : 'Opcional' }}
+                  </span>
+                </div>
               </div>
               <span v-else class="text-sm text-neutral-900">—</span>
             </dd>
@@ -205,7 +223,7 @@
       v-if="showEditModal"
       class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 max-h-[90vh] overflow-y-auto">
         <h2 class="text-lg font-semibold text-neutral-900 mb-4">Editar Departamento</h2>
         <form class="space-y-4" @submit.prevent="saveDepartment">
           <div>
@@ -235,12 +253,36 @@
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Funções de Serviço</label>
             <MultiSelect
-              v-model="linkedRoleIds"
+              v-model="linkedRoleIdsModel"
               :options="serviceRoleOptions"
               :disabled="!canManageRoles"
               placeholder="Selecione funções para adicionar"
               empty-options-text="Nenhuma função disponível"
             />
+            <div v-if="linkedRoles.length" class="mt-3 space-y-2">
+              <div
+                v-for="linked in linkedRoles"
+                :key="linked.serviceRoleId"
+                class="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-surface-page px-3 py-2.5"
+              >
+                <span class="text-sm font-medium text-neutral-900">
+                  {{ getServiceRoleName(linked.serviceRoleId) }}
+                </span>
+                <label class="flex items-center gap-2 text-sm text-neutral-600 shrink-0">
+                  <input
+                    v-model="linked.isDefault"
+                    type="checkbox"
+                    class="rounded"
+                    :disabled="!canManageRoles"
+                  />
+                  Atribuir automaticamente
+                </label>
+              </div>
+              <p class="text-xs text-neutral-500 leading-relaxed">
+                Funções obrigatórias são atribuídas automaticamente aos membros do departamento.
+                Funções opcionais apenas os tornam elegíveis para escalas.
+              </p>
+            </div>
           </div>
           <label class="flex items-center gap-2 text-sm text-neutral-700">
             <input v-model="departmentForm.isActive" type="checkbox" class="rounded" />
@@ -351,8 +393,24 @@ const showMemberModal = ref(false)
 const openMemberRowMenuId = ref<number | null>(null)
 const memberRowMenuStyle = ref<{ top: string; left: string } | null>(null)
 
-const linkedRoleIds = ref<number[]>([])
+const linkedRoles = ref<{ serviceRoleId: number; isDefault: boolean }[]>([])
 const initialRoleEligibilities = ref<DepartmentRoleEligibility[]>([])
+
+const linkedRoleIdsModel = computed({
+  get: () => linkedRoles.value.map((role) => role.serviceRoleId),
+  set: (roleIds: number[]) => {
+    const currentIds = new Set(linkedRoles.value.map((role) => role.serviceRoleId))
+    const nextIds = new Set(roleIds)
+
+    linkedRoles.value = linkedRoles.value.filter((role) => nextIds.has(role.serviceRoleId))
+
+    for (const serviceRoleId of roleIds) {
+      if (!currentIds.has(serviceRoleId)) {
+        linkedRoles.value.push({ serviceRoleId, isDefault: true })
+      }
+    }
+  },
+})
 
 const departmentForm = ref<{
   name: string
@@ -377,9 +435,9 @@ const departmentTypeOptions = enumToSelectOptions(DepartmentType)
 const memberDepartmentRoleOptions = enumToSelectOptions(MemberDepartmentRole)
 
 const memberHeaders = computed<TableHeader<MemberDepartment>[]>(() => [
-  { key: 'member', label: 'MEMBRO', width: 0.45, align: 'left' },
-  { key: 'role', label: 'FUNÇÃO', width: 0.3, align: 'left' },
-  { key: 'isActive', label: 'STATUS', width: 0.25, align: 'left' },
+  { key: 'member', label: 'Membro', width: 0.45, align: 'left' },
+  { key: 'role', label: 'Função', width: 0.3, align: 'left' },
+  { key: 'isActive', label: 'Status', width: 0.25, align: 'left' },
 ])
 
 const departmentMembers = computed(() => department.value?.memberDepartments || [])
@@ -434,6 +492,10 @@ async function loadDepartment() {
   }
 }
 
+function getServiceRoleName(serviceRoleId: number): string {
+  return serviceRoles.value.find((role) => role.id === serviceRoleId)?.name || '—'
+}
+
 function openEditModal() {
   if (!department.value) return
   departmentForm.value = {
@@ -444,7 +506,10 @@ function openEditModal() {
     isActive: department.value.isActive,
   }
   initialRoleEligibilities.value = [...departmentRoleEligibilities.value]
-  linkedRoleIds.value = departmentRoleEligibilities.value.map((elig) => elig.serviceRoleId)
+  linkedRoles.value = departmentRoleEligibilities.value.map((elig) => ({
+    serviceRoleId: elig.serviceRoleId,
+    isDefault: elig.isDefault,
+  }))
   formError.value = ''
   showEditModal.value = true
 }
@@ -452,20 +517,34 @@ function openEditModal() {
 async function syncDepartmentRoleEligibilities() {
   if (!canManageRoles.value || !department.value) return
 
-  const initialRoleIds = initialRoleEligibilities.value.map((elig) => elig.serviceRoleId)
-  const rolesToAdd = linkedRoleIds.value.filter((roleId) => !initialRoleIds.includes(roleId))
-  const eligibilitiesToRemove = initialRoleEligibilities.value.filter(
-    (elig) => !linkedRoleIds.value.includes(elig.serviceRoleId),
+  const initial = initialRoleEligibilities.value
+  const current = linkedRoles.value
+
+  const rolesToAdd = current.filter(
+    (role) => !initial.some((elig) => elig.serviceRoleId === role.serviceRoleId),
   )
+  const eligibilitiesToRemove = initial.filter(
+    (elig) => !current.some((role) => role.serviceRoleId === elig.serviceRoleId),
+  )
+  const rolesToUpdate = current.filter((role) => {
+    const existing = initial.find((elig) => elig.serviceRoleId === role.serviceRoleId)
+    return existing && existing.isDefault !== role.isDefault
+  })
 
   await Promise.all([
-    ...rolesToAdd.map((serviceRoleId) =>
+    ...rolesToAdd.map((role) =>
       organizationService.createDepartmentRoleEligibility({
         departmentId: department.value!.id,
-        serviceRoleId,
-        isDefault: true,
+        serviceRoleId: role.serviceRoleId,
+        isDefault: role.isDefault,
       }),
     ),
+    ...rolesToUpdate.map((role) => {
+      const existing = initial.find((elig) => elig.serviceRoleId === role.serviceRoleId)!
+      return organizationService.updateDepartmentRoleEligibility(existing.id, {
+        isDefault: role.isDefault,
+      })
+    }),
     ...eligibilitiesToRemove.map((elig) =>
       organizationService.deleteDepartmentRoleEligibility(elig.id),
     ),

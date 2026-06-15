@@ -28,7 +28,7 @@
       :data="filteredDepartments"
       :headers="departmentHeaders"
       :is-loading="loading"
-      min-width="800px"
+      min-width="960px"
       row-key="id"
       @update:search="searchTerm = $event"
       @row-click="goToDepartment"
@@ -38,6 +38,23 @@
       </template>
       <template #column-type="{ item }">
         <span class="text-sm text-neutral-700">{{ (item as Department).type }}</span>
+      </template>
+      <template #column-memberCount="{ item }">
+        <span class="text-sm text-neutral-700 tabular-nums">
+          {{ getMemberCount(item as Department) }}
+        </span>
+      </template>
+      <template #column-hasLeader="{ item }">
+        <span
+          :class="[
+            'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
+            departmentHasLeader(item as Department)
+              ? 'bg-green-100 text-green-800'
+              : 'bg-neutral-100 text-neutral-600',
+          ]"
+        >
+          {{ departmentHasLeader(item as Department) ? 'Sim' : 'Não' }}
+        </span>
       </template>
       <template #column-isActive="{ item }">
         <span
@@ -106,7 +123,7 @@
       v-if="showDepartmentModal"
       class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 max-h-[90vh] overflow-y-auto">
         <h2 class="text-lg font-semibold text-neutral-900 mb-4">
           {{ editingDepartment ? 'Editar Departamento' : 'Novo Departamento' }}
         </h2>
@@ -135,6 +152,40 @@
             <label class="block text-sm font-medium text-neutral-700 mb-1">Descrição</label>
             <Input v-model="departmentForm.description" />
           </div>
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Funções de Serviço</label>
+            <MultiSelect
+              v-model="linkedRoleIdsModel"
+              :options="serviceRoleOptions"
+              :disabled="!canManageRoles"
+              placeholder="Selecione funções para adicionar"
+              empty-options-text="Nenhuma função disponível"
+            />
+            <div v-if="linkedRoles.length" class="mt-3 space-y-2">
+              <div
+                v-for="linked in linkedRoles"
+                :key="linked.serviceRoleId"
+                class="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-surface-page px-3 py-2.5"
+              >
+                <span class="text-sm font-medium text-neutral-900">
+                  {{ getServiceRoleName(linked.serviceRoleId) }}
+                </span>
+                <label class="flex items-center gap-2 text-sm text-neutral-600 shrink-0">
+                  <input
+                    v-model="linked.isDefault"
+                    type="checkbox"
+                    class="rounded"
+                    :disabled="!canManageRoles"
+                  />
+                  Atribuir automaticamente
+                </label>
+              </div>
+              <p class="text-xs text-neutral-500 leading-relaxed">
+                Funções obrigatórias são atribuídas automaticamente aos membros do departamento.
+                Funções opcionais apenas os tornam elegíveis para escalas.
+              </p>
+            </div>
+          </div>
           <label class="flex items-center gap-2 text-sm text-neutral-700">
             <input v-model="departmentForm.isActive" type="checkbox" class="rounded" />
             Ativo
@@ -161,13 +212,20 @@ import { PlusIcon, PencilIcon, TrashIcon, EllipsisVerticalIcon, EyeIcon } from '
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
-import { organizationService, type Department } from '@/services/organization'
+import MultiSelect from '@/components/MultiSelect.vue'
+import {
+  organizationService,
+  type Department,
+  type DepartmentRoleEligibility,
+  type ServiceRole,
+} from '@/services/organization'
 import { useAuthStore } from '@/stores/auth'
-import { DepartmentType, enumToSelectOptions } from '@/constants/organization'
+import { DepartmentType, MemberDepartmentRole, enumToSelectOptions } from '@/constants/organization'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_departamentos'))
+const canManageRoles = computed(() => authStore.hasPermission('gerenciar_funcoes_servico'))
 
 const ROW_MENU_WIDTH = 160
 const ROW_MENU_HEIGHT = 132
@@ -182,9 +240,28 @@ const formError = ref('')
 const searchTerm = ref('')
 
 const departments = ref<Department[]>([])
+const serviceRoles = ref<ServiceRole[]>([])
 
 const showDepartmentModal = ref(false)
 const editingDepartment = ref<Department | null>(null)
+const linkedRoles = ref<{ serviceRoleId: number; isDefault: boolean }[]>([])
+const initialRoleEligibilities = ref<DepartmentRoleEligibility[]>([])
+
+const linkedRoleIdsModel = computed({
+  get: () => linkedRoles.value.map((role) => role.serviceRoleId),
+  set: (roleIds: number[]) => {
+    const currentIds = new Set(linkedRoles.value.map((role) => role.serviceRoleId))
+    const nextIds = new Set(roleIds)
+
+    linkedRoles.value = linkedRoles.value.filter((role) => nextIds.has(role.serviceRoleId))
+
+    for (const serviceRoleId of roleIds) {
+      if (!currentIds.has(serviceRoleId)) {
+        linkedRoles.value.push({ serviceRoleId, isDefault: true })
+      }
+    }
+  },
+})
 
 const departmentForm = ref({
   name: '',
@@ -197,10 +274,26 @@ const departmentForm = ref({
 const departmentTypeOptions = enumToSelectOptions(DepartmentType)
 
 const departmentHeaders = computed<TableHeader<Department>[]>(() => [
-  { key: 'name', label: 'NOME', width: 0.45, align: 'left' },
-  { key: 'type', label: 'TIPO', width: 0.3, align: 'left' },
-  { key: 'isActive', label: 'STATUS', width: 0.25, align: 'left' },
+  { key: 'name', label: 'Nome', width: 0.3, align: 'left' },
+  { key: 'type', label: 'Tipo', width: 0.18, align: 'left' },
+  { key: 'memberCount', label: 'Membros', width: 0.12, align: 'left' },
+  { key: 'hasLeader', label: 'Possui líder', width: 0.16, align: 'left' },
+  { key: 'isActive', label: 'Status', width: 0.14, align: 'left' },
 ])
+
+function getActiveMemberLinks(department: Department) {
+  return (department.memberDepartments || []).filter((link) => link.isActive)
+}
+
+function getMemberCount(department: Department): number {
+  return getActiveMemberLinks(department).length
+}
+
+function departmentHasLeader(department: Department): boolean {
+  return getActiveMemberLinks(department).some(
+    (link) => link.role === MemberDepartmentRole.LEADER,
+  )
+}
 
 const filteredDepartments = computed(() => {
   const term = searchTerm.value.trim().toLowerCase()
@@ -219,6 +312,16 @@ const parentDepartmentOptions = computed(() =>
     .map((d) => ({ value: String(d.id), label: d.name })),
 )
 
+const serviceRoleOptions = computed(() =>
+  serviceRoles.value
+    .filter((role) => role.isActive)
+    .map((role) => ({ value: role.id, label: role.name })),
+)
+
+function getServiceRoleName(serviceRoleId: number): string {
+  return serviceRoles.value.find((role) => role.id === serviceRoleId)?.name || '—'
+}
+
 function goToDepartment(department: Department) {
   router.push(`/organizacao/departamentos/${department.id}`)
 }
@@ -227,7 +330,12 @@ async function loadData() {
   loading.value = true
   error.value = ''
   try {
-    departments.value = await organizationService.getDepartments()
+    const [depts, rolesRes] = await Promise.all([
+      organizationService.getDepartments(),
+      organizationService.getServiceRoles(),
+    ])
+    departments.value = depts
+    serviceRoles.value = rolesRes
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Erro ao carregar dados'
   } finally {
@@ -235,7 +343,7 @@ async function loadData() {
   }
 }
 
-function openDepartmentModal(department?: Department) {
+async function openDepartmentModal(department?: Department) {
   editingDepartment.value = department || null
   departmentForm.value = {
     name: department?.name || '',
@@ -245,12 +353,64 @@ function openDepartmentModal(department?: Department) {
     isActive: department?.isActive ?? true,
   }
   formError.value = ''
+
+  if (department) {
+    const full = await organizationService.getDepartment(department.id)
+    initialRoleEligibilities.value = [...(full.roleEligibilities || [])]
+    linkedRoles.value = (full.roleEligibilities || []).map((elig) => ({
+      serviceRoleId: elig.serviceRoleId,
+      isDefault: elig.isDefault,
+    }))
+  } else {
+    initialRoleEligibilities.value = []
+    linkedRoles.value = []
+  }
+
   showDepartmentModal.value = true
+}
+
+async function syncDepartmentRoleEligibilities(departmentId: number) {
+  if (!canManageRoles.value) return
+
+  const initial = initialRoleEligibilities.value
+  const current = linkedRoles.value
+
+  const rolesToAdd = current.filter(
+    (role) => !initial.some((elig) => elig.serviceRoleId === role.serviceRoleId),
+  )
+  const eligibilitiesToRemove = initial.filter(
+    (elig) => !current.some((role) => role.serviceRoleId === elig.serviceRoleId),
+  )
+  const rolesToUpdate = current.filter((role) => {
+    const existing = initial.find((elig) => elig.serviceRoleId === role.serviceRoleId)
+    return existing && existing.isDefault !== role.isDefault
+  })
+
+  await Promise.all([
+    ...rolesToAdd.map((role) =>
+      organizationService.createDepartmentRoleEligibility({
+        departmentId,
+        serviceRoleId: role.serviceRoleId,
+        isDefault: role.isDefault,
+      }),
+    ),
+    ...rolesToUpdate.map((role) => {
+      const existing = initial.find((elig) => elig.serviceRoleId === role.serviceRoleId)!
+      return organizationService.updateDepartmentRoleEligibility(existing.id, {
+        isDefault: role.isDefault,
+      })
+    }),
+    ...eligibilitiesToRemove.map((elig) =>
+      organizationService.deleteDepartmentRoleEligibility(elig.id),
+    ),
+  ])
 }
 
 function closeDepartmentModal() {
   showDepartmentModal.value = false
   editingDepartment.value = null
+  linkedRoles.value = []
+  initialRoleEligibilities.value = []
 }
 
 async function saveDepartment() {
@@ -264,11 +424,15 @@ async function saveDepartment() {
       isActive: departmentForm.value.isActive,
       parentId: departmentForm.value.parentId ? Number(departmentForm.value.parentId) : undefined,
     }
+    let departmentId: number
     if (editingDepartment.value) {
       await organizationService.updateDepartment(editingDepartment.value.id, payload)
+      departmentId = editingDepartment.value.id
     } else {
-      await organizationService.createDepartment(payload)
+      const created = await organizationService.createDepartment(payload)
+      departmentId = created.id
     }
+    await syncDepartmentRoleEligibilities(departmentId)
     closeDepartmentModal()
     await loadData()
   } catch (err: any) {
@@ -327,11 +491,11 @@ function handleViewDepartmentFromMenu() {
   }
 }
 
-function handleEditDepartmentFromMenu() {
+async function handleEditDepartmentFromMenu() {
   const department = departments.value.find((d) => d.id === openDepartmentRowMenuId.value)
   closeDepartmentRowMenu()
   if (department) {
-    openDepartmentModal(department)
+    await openDepartmentModal(department)
   }
 }
 

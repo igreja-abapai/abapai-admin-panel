@@ -115,6 +115,13 @@
                 >
                   {{ member.currentPosition }}
                 </span>
+                <span
+                  v-for="link in activeMemberDepartments"
+                  :key="link.id"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800"
+                >
+                  {{ formatDepartmentBadgeName(link.department?.name || '') }}
+                </span>
               </div>
             </div>
           </div>
@@ -588,8 +595,8 @@ import {
 } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { usersService, type User } from '@/services/users'
-import { organizationService, type MemberServiceCapability } from '@/services/organization'
-import { CapabilitySource } from '@/constants/organization'
+import { organizationService, type MemberServiceCapability, type MemberDepartment } from '@/services/organization'
+import { CapabilitySource, formatDepartmentBadgeName } from '@/constants/organization'
 import { formatDate, formatDateTimeWithRelative } from '@/utils/dateFormat'
 import html2pdf from 'html2pdf.js'
 import MemberCard from '@/components/MemberCard.vue'
@@ -615,9 +622,16 @@ const togglingStatus = ref(false)
 
 const loadingCapabilities = ref(false)
 const memberCapabilities = ref<MemberServiceCapability[]>([])
+const memberDepartments = ref<MemberDepartment[]>([])
 
 const activeMemberCapabilities = computed(() =>
   memberCapabilities.value.filter((cap) => cap.isActive),
+)
+
+const activeMemberDepartments = computed(() =>
+  memberDepartments.value.filter(
+    (link) => link.isActive && link.department?.name && link.department.isActive !== false,
+  ),
 )
 
 function openAusenteModal() {
@@ -1043,11 +1057,23 @@ async function loadMember() {
     }
 
     await loadMemberCapabilities()
+    await loadMemberDepartments()
   } catch (err: any) {
     console.error('Error loading member:', err)
     error.value = err.response?.data?.message || 'Erro ao carregar detalhes do membro'
   } finally {
     loading.value = false
+  }
+}
+
+async function loadMemberDepartments() {
+  if (!member.value) return
+  try {
+    const links = await organizationService.getMemberDepartments()
+    const memberId = Number(member.value.id)
+    memberDepartments.value = links.filter((link) => link.memberId === memberId)
+  } catch (err) {
+    console.error('Error loading member departments:', err)
   }
 }
 

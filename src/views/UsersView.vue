@@ -146,11 +146,11 @@ const openRowMenuId = ref<number | null>(null)
 const rowMenuStyle = ref<{ top: string; left: string } | null>(null)
 
 const tableHeaders = computed<TableHeader<User>[]>(() => [
-  { key: 'name', label: 'NOME', width: 0.24, align: 'left' },
-  { key: 'email', label: 'EMAIL', width: 0.24, align: 'left' },
-  { key: 'role', label: 'CARGO', width: 0.16, align: 'left' },
-  { key: 'createdAt', label: 'DATA DE CRIAÇÃO', width: 0.18, align: 'left' },
-  { key: 'status', label: 'STATUS', width: 0.12, align: 'left' },
+  { key: 'name', label: 'Nome', width: 0.24, align: 'left' },
+  { key: 'email', label: 'E-mail', width: 0.24, align: 'left' },
+  { key: 'role', label: 'Cargo', width: 0.16, align: 'left' },
+  { key: 'createdAt', label: 'Data de criação', width: 0.18, align: 'left' },
+  { key: 'status', label: 'Status', width: 0.12, align: 'left' },
 ])
 
 const filteredUsers = computed(() => {

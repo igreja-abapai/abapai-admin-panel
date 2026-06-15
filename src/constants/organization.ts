@@ -56,3 +56,7 @@ export const AssignmentStatus = {
 export function enumToSelectOptions(values: Record<string, string>) {
   return Object.values(values).map((value) => ({ value, label: value }))
 }
+
+export function formatDepartmentBadgeName(name: string): string {
+  return name.replace(/\bDepartamento\b/gi, 'Dep.').replace(/\s+/g, ' ').trim()
+}

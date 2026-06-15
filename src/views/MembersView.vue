@@ -86,7 +86,7 @@
             <div class="ml-3 min-w-0">
               <p class="font-medium text-neutral-900 truncate text-sm">{{ item.name }}</p>
               <p class="text-xs text-neutral-500 mt-0.5">
-                {{ getMemberSinceLabel(item) || 'Membro' }}
+                {{ getMemberSinceLabel(item.admissionDate) || 'Membro' }}
               </p>
             </div>
           </div>
@@ -262,7 +262,7 @@ import {
   PencilIcon,
 } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
-import { formatDate } from '@/utils/dateFormat'
+import { formatDate, getMemberSinceLabel } from '@/utils/dateFormat'
 import { formatPhoneNumber } from '@/utils/phoneMask'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
@@ -327,7 +327,7 @@ const totalPages = ref(1)
 const tableHeaders = computed<TableHeader<Member>[]>(() => [
   {
     key: 'name',
-    label: 'MEMBRO',
+    label: 'Membro',
     sortable: true,
     sortKey: 'name',
     sortDirection: sortKey.value === 'name' ? sortDirection.value : 'none',
@@ -336,7 +336,7 @@ const tableHeaders = computed<TableHeader<Member>[]>(() => [
   },
   {
     key: 'birthdate',
-    label: 'DATA DE NASCIMENTO',
+    label: 'Data de nascimento',
     sortable: true,
     sortKey: 'birthdate',
     sortDirection: sortKey.value === 'birthdate' ? sortDirection.value : 'none',
@@ -345,7 +345,7 @@ const tableHeaders = computed<TableHeader<Member>[]>(() => [
   },
   {
     key: 'isBaptized',
-    label: 'BATISMO',
+    label: 'Batismo',
     sortable: true,
     sortKey: 'isBaptized',
     sortDirection: sortKey.value === 'isBaptized' ? sortDirection.value : 'none',
@@ -354,14 +354,14 @@ const tableHeaders = computed<TableHeader<Member>[]>(() => [
   },
   {
     key: 'status',
-    label: 'SITUAÇÃO',
+    label: 'Situação',
     sortable: false,
     width: 0.14,
     align: 'left',
   },
   {
     key: 'phone',
-    label: 'CONTATO',
+    label: 'Contato',
     sortable: false,
     width: 0.18,
     align: 'left',
@@ -395,17 +395,6 @@ function getAvatarColor(name: string): string {
   const index =
     name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % avatarColors.length
   return avatarColors[index]
-}
-
-function getMemberSinceLabel(member: Member): string {
-  if (!member.admissionDate) return ''
-
-  const parts = member.admissionDate.split('/').map((part) => part.trim())
-  const year = parts.length === 3 ? parts[2] : parts.length === 2 ? parts[1] : ''
-
-  if (!year) return ''
-
-  return `Membro desde ${year}`
 }
 
 function statusTabFromQuery(status: unknown): StatusTab {

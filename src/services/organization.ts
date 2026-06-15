@@ -248,6 +248,20 @@ class OrganizationService {
     )
   }
 
+  updateDepartmentRoleEligibility(
+    id: number,
+    data: {
+      departmentId?: number
+      serviceRoleId?: number
+      isDefault?: boolean
+    },
+  ) {
+    return httpService.patch<DepartmentRoleEligibility>(
+      `/organization/service-roles/department-role-eligibilities/${id}`,
+      data,
+    )
+  }
+
   deleteDepartmentRoleEligibility(id: number) {
     return httpService.delete<void>(
       `/organization/service-roles/department-role-eligibilities/${id}`,
