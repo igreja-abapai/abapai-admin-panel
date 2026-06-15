@@ -284,7 +284,7 @@
   </div>
 </template>
 
-<script setup lang="ts" generic="T">
+<script setup lang="ts" generic="T = any">
 import { ref, computed, watch, useSlots } from 'vue'
 import { TrashIcon, MagnifyingGlassIcon, FunnelIcon } from '@heroicons/vue/24/outline'
 import LoadingSpinner from './LoadingSpinner.vue'

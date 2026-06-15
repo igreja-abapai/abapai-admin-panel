@@ -225,7 +225,7 @@
         </router-link>
       </div>
 
-      <div class="flex-1 overflow-y-auto px-3 py-4 mt-3">
+      <div class="sidebar-nav-scroll flex-1 overflow-y-auto px-3 py-4 mt-3">
         <ul class="space-y-1">
           <li>
             <router-link to="/home" class="block">
@@ -274,6 +274,71 @@
             </ul>
           </li>
 
+          <li v-if="authStore.hasPermission('visualizar_organizacao')">
+            <button
+              type="button"
+              @click="organizacaoDropdownOpen = !organizacaoDropdownOpen"
+              :class="[
+                navItemClass(isOrganizacaoSectionActive()),
+                'w-full',
+                sidebarCollapsed ? 'justify-center' : '',
+              ]"
+            >
+              <CalendarDaysIcon class="w-5 h-5 shrink-0" />
+              <span v-show="!sidebarCollapsed" class="flex-1 text-left">Organização</span>
+              <ChevronDownIcon
+                v-show="!sidebarCollapsed"
+                :class="[
+                  'w-4 h-4 shrink-0 transition-transform',
+                  isOrganizacaoSectionActive() ? 'text-primary-600' : 'text-neutral-400',
+                  organizacaoDropdownOpen ? 'rotate-180' : '',
+                ]"
+              />
+            </button>
+            <ul v-show="organizacaoDropdownOpen && !sidebarCollapsed" class="mt-1.5 space-y-1">
+              <li>
+                <router-link
+                  to="/organizacao/departamentos"
+                  :class="subNavItemClass($route.path === '/organizacao/departamentos')"
+                >
+                  Departamentos
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/organizacao/funcoes"
+                  :class="subNavItemClass($route.path === '/organizacao/funcoes')"
+                >
+                  Funções de Serviço
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/organizacao/cultos"
+                  :class="subNavItemClass($route.path === '/organizacao/cultos')"
+                >
+                  Modelos de Culto
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/organizacao/escalas"
+                  :class="subNavItemClass($route.path.startsWith('/organizacao/escalas'))"
+                >
+                  Escalas
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/organizacao/grupos"
+                  :class="subNavItemClass($route.path === '/organizacao/grupos')"
+                >
+                  Grupos de Serviço
+                </router-link>
+              </li>
+            </ul>
+          </li>
+
           <li v-if="authStore.hasPermission('visualizar_analises')">
             <router-link to="/analises" class="block">
               <span :class="navItemClass($route.path === '/analises')">
@@ -310,17 +375,6 @@
             </router-link>
           </li>
         </ul>
-      </div>
-
-      <div v-show="!sidebarCollapsed" class="px-4 py-4 shrink-0 border-t border-neutral-100">
-        <div class="rounded-xl bg-surface-page border border-neutral-200 px-3.5 py-3.5">
-          <p class="text-[11px] italic text-neutral-500 leading-relaxed text-left">
-            "{{ sidebarVerse.text }}"
-          </p>
-          <p class="text-[10px] font-semibold tracking-wide text-neutral-500 text-left mt-2">
-            {{ sidebarVerse.reference }}
-          </p>
-        </div>
       </div>
     </nav>
 
@@ -461,13 +515,13 @@ import {
   ChartBarIcon,
   MagnifyingGlassIcon,
   ShieldCheckIcon,
+  CalendarDaysIcon,
 } from '@heroicons/vue/24/outline'
 import PrayingIcon from '@/components/icons/PrayingIcon.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
 import { authService } from '@/services/auth'
 import abapaiLogo from '@/assets/images/abapai_logo.png'
-import { clearSessionBibleVerse, getSessionBibleVerse } from '@/constants/bibleVerses'
 
 const router = useRouter()
 const route = useRoute()
@@ -477,11 +531,11 @@ const sidebarOpen = ref(true) // Start with sidebar open
 const sidebarCollapsed = ref(false)
 const userMenuOpen = ref(false)
 const membrosDropdownOpen = ref(false)
+const organizacaoDropdownOpen = ref(false)
 const notificationsDropdownOpen = ref(false)
 
 const isDesktop = ref(window.innerWidth >= 1024)
 const logoSrc = abapaiLogo
-const sidebarVerse = ref(getSessionBibleVerse())
 
 function navItemClass(active: boolean) {
   return [
@@ -506,15 +560,20 @@ function isMembrosSectionActive(): boolean {
   return route.path.startsWith('/membros')
 }
 
-function syncMembrosDropdown() {
-  membrosDropdownOpen.value = route.path.startsWith('/membros')
+function isOrganizacaoSectionActive(): boolean {
+  return route.path.startsWith('/organizacao')
 }
 
-watch(() => route.path, syncMembrosDropdown)
+function syncSidebarDropdowns() {
+  membrosDropdownOpen.value = route.path.startsWith('/membros')
+  organizacaoDropdownOpen.value = route.path.startsWith('/organizacao')
+}
+
+watch(() => route.path, syncSidebarDropdowns)
 
 // Fetch notifications on mount
 onMounted(() => {
-  syncMembrosDropdown()
+  syncSidebarDropdowns()
   notificationsStore.fetchNotifications()
   // Set initial sidebar state based on screen size
   sidebarOpen.value = window.innerWidth >= 1024
@@ -589,7 +648,6 @@ function handleClickOutside(event: Event) {
 }
 
 async function handleLogout() {
-  clearSessionBibleVerse()
   await authService.logout()
   router.push('/login')
 }
@@ -631,3 +689,9 @@ async function handleChangePassword() {
   }
 }
 </script>
+
+<style scoped>
+.sidebar-nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+</style>

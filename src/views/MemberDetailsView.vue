@@ -322,6 +322,31 @@
           </div>
 
           <div>
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Funções de Serviço</label>
+            <div v-if="loadingCapabilities" class="text-sm text-neutral-500">Carregando...</div>
+            <div v-else-if="activeMemberCapabilities.length" class="flex flex-wrap gap-2">
+              <span
+                v-for="cap in activeMemberCapabilities"
+                :key="cap.id"
+                :class="[
+                  'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                  cap.source === CapabilitySource.DEPARTMENT
+                    ? 'bg-neutral-100 text-neutral-700'
+                    : 'bg-primary-100 text-primary-800',
+                ]"
+                :title="
+                  cap.source === CapabilitySource.DEPARTMENT
+                    ? 'Origem: departamento'
+                    : 'Origem: manual'
+                "
+              >
+                {{ cap.serviceRole?.name || '—' }}
+              </span>
+            </div>
+            <p v-else class="text-neutral-900">Não informado</p>
+          </div>
+
+          <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Área de Interesse</label>
             <p class="text-neutral-900">{{ member.areaOfInterest || 'Não informado' }}</p>
           </div>
@@ -386,16 +411,22 @@
             >
             <p class="text-neutral-900">
               <span
-                v-if="member.wantsToBeAVolunteer"
+                v-if="member.wantsToBeAVolunteer === true"
                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
               >
                 Sim
               </span>
               <span
+                v-else-if="member.wantsToBeAVolunteer === false"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+              >
+                Não
+              </span>
+              <span
                 v-else
                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
               >
-                Não
+                Não informado
               </span>
             </p>
           </div>
@@ -537,15 +568,15 @@
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   PencilIcon,
-  PlusIcon,
   ExclamationTriangleIcon,
   ArrowLeftIcon,
   TrashIcon,
@@ -557,6 +588,8 @@ import {
 } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { usersService, type User } from '@/services/users'
+import { organizationService, type MemberServiceCapability } from '@/services/organization'
+import { CapabilitySource } from '@/constants/organization'
 import { formatDate, formatDateTimeWithRelative } from '@/utils/dateFormat'
 import html2pdf from 'html2pdf.js'
 import MemberCard from '@/components/MemberCard.vue'
@@ -579,6 +612,13 @@ const showAusenteConfirmation = ref(false)
 const absenceReason = ref('')
 const absenceReasonError = ref('')
 const togglingStatus = ref(false)
+
+const loadingCapabilities = ref(false)
+const memberCapabilities = ref<MemberServiceCapability[]>([])
+
+const activeMemberCapabilities = computed(() =>
+  memberCapabilities.value.filter((cap) => cap.isActive),
+)
 
 function openAusenteModal() {
   absenceReason.value = ''
@@ -1001,11 +1041,27 @@ async function loadMember() {
         console.error('Error loading updated by user:', err)
       }
     }
+
+    await loadMemberCapabilities()
   } catch (err: any) {
     console.error('Error loading member:', err)
     error.value = err.response?.data?.message || 'Erro ao carregar detalhes do membro'
   } finally {
     loading.value = false
+  }
+}
+
+async function loadMemberCapabilities() {
+  if (!member.value) return
+  loadingCapabilities.value = true
+  try {
+    const caps = await organizationService.getMemberCapabilities()
+    const memberId = Number(member.value.id)
+    memberCapabilities.value = caps.filter((cap) => cap.memberId === memberId)
+  } catch (err) {
+    console.error('Error loading member capabilities:', err)
+  } finally {
+    loadingCapabilities.value = false
   }
 }
 

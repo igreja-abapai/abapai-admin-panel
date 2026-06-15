@@ -24,7 +24,7 @@ export interface Member {
   isBaptized: boolean
   isBaptizedInTheHolySpirit?: boolean | null
   currentPosition?: string
-  wantsToBeAVolunteer?: boolean
+  wantsToBeAVolunteer?: boolean | null
   areaOfInterest?: string
   photoUrl?: string
   childrenCount?: number
@@ -67,7 +67,7 @@ export interface CreateMemberRequest {
   isBaptized: boolean
   isBaptizedInTheHolySpirit?: boolean | null
   currentPosition?: string
-  wantsToBeAVolunteer?: boolean
+  wantsToBeAVolunteer?: boolean | null
   areaOfInterest?: string
   photoUrl?: string
   childrenCount?: number
@@ -103,7 +103,7 @@ export interface UpdateMemberRequest {
   isBaptized?: boolean
   isBaptizedInTheHolySpirit?: boolean | null
   currentPosition?: string
-  wantsToBeAVolunteer?: boolean
+  wantsToBeAVolunteer?: boolean | null
   areaOfInterest?: string
   photoUrl?: string
   childrenCount?: number

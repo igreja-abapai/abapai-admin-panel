@@ -378,16 +378,32 @@
             <Input v-model="form.currentPosition" type="text" placeholder="Ex: Membro, Líder, etc." />
           </div>
 
-          <div class="flex items-center">
-            <input
-              v-model="form.isBaptized"
-              type="checkbox"
-              id="isBaptized"
-              class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 rounded focus:ring-primary-500 focus:ring-2"
-            />
-            <label for="isBaptized" class="ml-2 text-sm font-medium text-neutral-700">
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">
               É batizado nas águas *
             </label>
+            <div class="flex items-center gap-6">
+              <label class="flex items-center">
+                <input
+                  v-model="form.isBaptized"
+                  type="radio"
+                  :value="true"
+                  name="isBaptized"
+                  class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
+                />
+                <span class="ml-2 text-sm text-neutral-700">Sim</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  v-model="form.isBaptized"
+                  type="radio"
+                  :value="false"
+                  name="isBaptized"
+                  class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
+                />
+                <span class="ml-2 text-sm text-neutral-700">Não</span>
+              </label>
+            </div>
           </div>
 
           <div v-if="form.isBaptized">
@@ -404,12 +420,13 @@
             <label class="block text-sm font-medium text-neutral-700 mb-2">
               É batizado no Espírito Santo
             </label>
-            <div class="space-y-2">
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
               <label class="flex items-center">
                 <input
                   v-model="form.isBaptizedInTheHolySpirit"
                   type="radio"
                   :value="true"
+                  name="isBaptizedInTheHolySpirit"
                   class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
                 />
                 <span class="ml-2 text-sm text-neutral-700">Sim</span>
@@ -419,6 +436,7 @@
                   v-model="form.isBaptizedInTheHolySpirit"
                   type="radio"
                   :value="false"
+                  name="isBaptizedInTheHolySpirit"
                   class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
                 />
                 <span class="ml-2 text-sm text-neutral-700">Não</span>
@@ -428,6 +446,7 @@
                   v-model="form.isBaptizedInTheHolySpirit"
                   type="radio"
                   :value="null"
+                  name="isBaptizedInTheHolySpirit"
                   class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
                 />
                 <span class="ml-2 text-sm text-neutral-700">Não informado</span>
@@ -435,19 +454,45 @@
             </div>
           </div>
 
-          <div class="flex items-center">
-            <input
-              v-model="form.wantsToBeAVolunteer"
-              type="checkbox"
-              id="wantsToBeAVolunteer"
-              class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 rounded focus:ring-primary-500 focus:ring-2"
-            />
-            <label for="wantsToBeAVolunteer" class="ml-2 text-sm font-medium text-neutral-700">
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">
               Deseja ser voluntário
             </label>
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <label class="flex items-center">
+                <input
+                  v-model="form.wantsToBeAVolunteer"
+                  type="radio"
+                  :value="true"
+                  name="wantsToBeAVolunteer"
+                  class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
+                />
+                <span class="ml-2 text-sm text-neutral-700">Sim</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  v-model="form.wantsToBeAVolunteer"
+                  type="radio"
+                  :value="false"
+                  name="wantsToBeAVolunteer"
+                  class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
+                />
+                <span class="ml-2 text-sm text-neutral-700">Não</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  v-model="form.wantsToBeAVolunteer"
+                  type="radio"
+                  :value="null"
+                  name="wantsToBeAVolunteer"
+                  class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
+                />
+                <span class="ml-2 text-sm text-neutral-700">Não informado</span>
+              </label>
+            </div>
           </div>
 
-          <div v-if="form.wantsToBeAVolunteer">
+          <div v-if="form.wantsToBeAVolunteer === true">
             <label class="block text-sm font-medium text-neutral-700 mb-2">Área de Interesse</label>
             <Input
               v-model="form.areaOfInterest"
@@ -552,7 +597,7 @@ const form = reactive({
   isBaptized: false,
   isBaptizedInTheHolySpirit: null as boolean | null,
   currentPosition: '',
-  wantsToBeAVolunteer: false,
+  wantsToBeAVolunteer: null as boolean | null,
   areaOfInterest: '',
   childrenCount: undefined as number | undefined,
   fatherName: '',

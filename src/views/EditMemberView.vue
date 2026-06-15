@@ -516,16 +516,46 @@
             />
           </div>
 
-          <div class="flex items-center">
-            <input
-              v-model="form.isBaptized"
-              type="checkbox"
-              id="isBaptized"
-              class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 rounded focus:ring-primary-500 focus:ring-2"
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Funções de Serviço</label>
+            <div v-if="loadingCapabilities" class="text-sm text-neutral-500">Carregando...</div>
+            <MultiSelect
+              v-else
+              v-model="manualRoleIds"
+              :options="serviceRoleOptions"
+              :fixed-badges="departmentRoleBadges"
+              :disabled="!canManageServiceRoles"
+              placeholder="Selecione funções para adicionar"
+              empty-options-text="Nenhuma função disponível"
             />
-            <label for="isBaptized" class="ml-2 text-sm font-medium text-neutral-700">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">
               É batizado nas águas *
             </label>
+            <div class="flex items-center gap-6">
+              <label class="flex items-center">
+                <input
+                  v-model="form.isBaptized"
+                  type="radio"
+                  :value="true"
+                  name="isBaptized"
+                  class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
+                />
+                <span class="ml-2 text-sm text-neutral-700">Sim</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  v-model="form.isBaptized"
+                  type="radio"
+                  :value="false"
+                  name="isBaptized"
+                  class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
+                />
+                <span class="ml-2 text-sm text-neutral-700">Não</span>
+              </label>
+            </div>
           </div>
 
           <div v-if="form.isBaptized">
@@ -552,12 +582,13 @@
             <label class="block text-sm font-medium text-neutral-700 mb-2">
               É batizado no Espírito Santo
             </label>
-            <div class="space-y-2">
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
               <label class="flex items-center">
                 <input
                   v-model="form.isBaptizedInTheHolySpirit"
                   type="radio"
                   :value="true"
+                  name="isBaptizedInTheHolySpirit"
                   class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
                 />
                 <span class="ml-2 text-sm text-neutral-700">Sim</span>
@@ -567,6 +598,7 @@
                   v-model="form.isBaptizedInTheHolySpirit"
                   type="radio"
                   :value="false"
+                  name="isBaptizedInTheHolySpirit"
                   class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
                 />
                 <span class="ml-2 text-sm text-neutral-700">Não</span>
@@ -576,6 +608,7 @@
                   v-model="form.isBaptizedInTheHolySpirit"
                   type="radio"
                   :value="null"
+                  name="isBaptizedInTheHolySpirit"
                   class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
                 />
                 <span class="ml-2 text-sm text-neutral-700">Não informado</span>
@@ -583,19 +616,45 @@
             </div>
           </div>
 
-          <div class="flex items-center">
-            <input
-              v-model="form.wantsToBeAVolunteer"
-              type="checkbox"
-              id="wantsToBeAVolunteer"
-              class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 rounded focus:ring-primary-500 focus:ring-2"
-            />
-            <label for="wantsToBeAVolunteer" class="ml-2 text-sm font-medium text-neutral-700">
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">
               Deseja ser voluntário
             </label>
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <label class="flex items-center">
+                <input
+                  v-model="form.wantsToBeAVolunteer"
+                  type="radio"
+                  :value="true"
+                  name="wantsToBeAVolunteer"
+                  class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
+                />
+                <span class="ml-2 text-sm text-neutral-700">Sim</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  v-model="form.wantsToBeAVolunteer"
+                  type="radio"
+                  :value="false"
+                  name="wantsToBeAVolunteer"
+                  class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
+                />
+                <span class="ml-2 text-sm text-neutral-700">Não</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  v-model="form.wantsToBeAVolunteer"
+                  type="radio"
+                  :value="null"
+                  name="wantsToBeAVolunteer"
+                  class="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 focus:ring-primary-500 focus:ring-2"
+                />
+                <span class="ml-2 text-sm text-neutral-700">Não informado</span>
+              </label>
+            </div>
           </div>
 
-          <div v-if="form.wantsToBeAVolunteer">
+          <div v-if="form.wantsToBeAVolunteer === true">
             <label class="block text-sm font-medium text-neutral-700 mb-2">Área de Interesse</label>
             <input
               v-model="form.areaOfInterest"
@@ -648,6 +707,13 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeftIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { addressService, type Address } from '@/services/address'
+import {
+  organizationService,
+  type MemberServiceCapability,
+  type ServiceRole,
+} from '@/services/organization'
+import { useAuthStore } from '@/stores/auth'
+import { CapabilitySource } from '@/constants/organization'
 import { uploadFileToS3, isValidImageFile, isValidFileSize } from '@/utils/s3Upload'
 import { formatPhoneNumber, unformatPhoneNumber } from '@/utils/phoneMask'
 import { formatCPF, unformatCPF } from '@/utils/cpfMask'
@@ -656,9 +722,11 @@ import { formatDateForInput } from '@/utils/dateFormat'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import CustomSelect from '@/components/CustomSelect.vue'
+import MultiSelect from '@/components/MultiSelect.vue'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 const member = ref<Member | null>(null)
 const loading = ref(false)
 const submitting = ref(false)
@@ -673,6 +741,34 @@ const photoError = ref('')
 const photoInput = ref<HTMLInputElement>()
 
 const memberId = computed(() => route.params.id as string)
+
+const canManageServiceRoles = computed(() => authStore.hasPermission('gerenciar_funcoes_servico'))
+
+const loadingCapabilities = ref(false)
+const memberCapabilities = ref<MemberServiceCapability[]>([])
+const initialManualCapabilities = ref<MemberServiceCapability[]>([])
+const manualRoleIds = ref<number[]>([])
+const serviceRoles = ref<ServiceRole[]>([])
+
+const departmentCapabilities = computed(() =>
+  memberCapabilities.value.filter(
+    (cap) => cap.isActive && cap.source === CapabilitySource.DEPARTMENT,
+  ),
+)
+
+const departmentRoleBadges = computed(() =>
+  departmentCapabilities.value.map((cap) => ({
+    value: cap.serviceRoleId,
+    label: cap.serviceRole?.name || '—',
+    title: 'Origem: departamento',
+  })),
+)
+
+const serviceRoleOptions = computed(() =>
+  serviceRoles.value
+    .filter((role) => role.isActive)
+    .map((role) => ({ value: role.id, label: role.name })),
+)
 
 const form = reactive({
   name: '',
@@ -696,7 +792,7 @@ const form = reactive({
   isBaptized: false,
   isBaptizedInTheHolySpirit: null as boolean | null,
   currentPosition: '',
-  wantsToBeAVolunteer: false,
+  wantsToBeAVolunteer: null as boolean | null,
   areaOfInterest: '',
   childrenCount: undefined as number | undefined,
   fatherName: '',
@@ -843,7 +939,7 @@ function populateForm() {
     isBaptized: member.value.isBaptized,
     isBaptizedInTheHolySpirit: member.value.isBaptizedInTheHolySpirit || null,
     currentPosition: member.value.currentPosition || '',
-    wantsToBeAVolunteer: member.value.wantsToBeAVolunteer || false,
+    wantsToBeAVolunteer: member.value.wantsToBeAVolunteer ?? null,
     areaOfInterest: member.value.areaOfInterest || '',
     childrenCount:
       member.value.childrenCount !== null && member.value.childrenCount !== undefined
@@ -893,6 +989,48 @@ function createLocalDate(dateString: string): Date {
   return new Date(dateString)
 }
 
+async function loadMemberCapabilities() {
+  loadingCapabilities.value = true
+  try {
+    const [caps, roles] = await Promise.all([
+      organizationService.getMemberCapabilities(),
+      organizationService.getServiceRoles(),
+    ])
+    serviceRoles.value = roles
+    const memberNumericId = Number(memberId.value)
+    memberCapabilities.value = caps.filter((cap) => cap.memberId === memberNumericId)
+    initialManualCapabilities.value = memberCapabilities.value.filter(
+      (cap) => cap.isActive && cap.source === CapabilitySource.MANUAL,
+    )
+    manualRoleIds.value = initialManualCapabilities.value.map((cap) => cap.serviceRoleId)
+  } catch (err) {
+    console.error('Error loading member capabilities:', err)
+  } finally {
+    loadingCapabilities.value = false
+  }
+}
+
+async function syncMemberCapabilities() {
+  if (!canManageServiceRoles.value) return
+
+  const initialRoleIds = initialManualCapabilities.value.map((cap) => cap.serviceRoleId)
+  const rolesToAdd = manualRoleIds.value.filter((roleId) => !initialRoleIds.includes(roleId))
+  const capsToRemove = initialManualCapabilities.value.filter(
+    (cap) => !manualRoleIds.value.includes(cap.serviceRoleId),
+  )
+
+  await Promise.all([
+    ...rolesToAdd.map((serviceRoleId) =>
+      organizationService.createMemberCapability({
+        memberId: Number(memberId.value),
+        serviceRoleId,
+        source: CapabilitySource.MANUAL,
+      }),
+    ),
+    ...capsToRemove.map((cap) => organizationService.deleteMemberCapability(cap.id)),
+  ])
+}
+
 async function loadMember() {
   loading.value = true
   error.value = ''
@@ -900,6 +1038,7 @@ async function loadMember() {
   try {
     member.value = await membersService.getMember(memberId.value)
     populateForm()
+    await loadMemberCapabilities()
   } catch (err: any) {
     console.error('Error loading member:', err)
     error.value = err.response?.data?.message || 'Erro ao carregar dados do membro'
@@ -972,6 +1111,8 @@ async function handleSubmit() {
     }
 
     await membersService.updateMember(memberId.value, memberData)
+
+    await syncMemberCapabilities()
 
     // Redirect to member details
     router.push(`/membros/detalhes/${memberId.value}`)
