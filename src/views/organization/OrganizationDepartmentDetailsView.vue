@@ -385,6 +385,7 @@ import {
 } from '@/services/organization'
 import { membersService, type Member } from '@/services/members'
 import { useAuthStore } from '@/stores/auth'
+import { confirmRemove } from '@/composables/useConfirm'
 import {
   DepartmentType,
   MemberDepartmentRole,
@@ -690,13 +691,13 @@ async function saveMemberDepartment() {
 }
 
 async function handleRemoveMember(link: MemberDepartment) {
-  if (!confirm(`Remover "${link.member?.name}" deste departamento?`)) return
-  try {
-    await organizationService.deleteMemberDepartment(link.id)
-    await loadDepartment()
-  } catch (err: any) {
-    error.value = err.response?.data?.message || 'Erro ao remover vínculo'
-  }
+  await confirmRemove({
+    message: `Remover "${link.member?.name}" deste departamento?`,
+    onConfirm: async () => {
+      await organizationService.deleteMemberDepartment(link.id)
+      await loadDepartment()
+    },
+  })
 }
 
 function closeMemberRowMenu() {

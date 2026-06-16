@@ -236,6 +236,7 @@ import {
 } from '@/services/organization'
 import { useAuthStore } from '@/stores/auth'
 import { DepartmentType, MemberDepartmentRole, enumToSelectOptions } from '@/constants/organization'
+import { confirmDelete } from '@/composables/useConfirm'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -512,13 +513,13 @@ async function saveDepartment() {
 }
 
 async function handleDeleteDepartment(department: Department) {
-  if (!confirm(`Excluir "${department.name}"?`)) return
-  try {
-    await organizationService.deleteDepartment(department.id)
-    await loadData()
-  } catch (err: any) {
-    error.value = err.response?.data?.message || 'Erro ao excluir departamento'
-  }
+  await confirmDelete({
+    message: `Tem certeza que deseja excluir "${department.name}"?`,
+    onConfirm: async () => {
+      await organizationService.deleteDepartment(department.id)
+      await loadData()
+    },
+  })
 }
 
 function closeDepartmentRowMenu() {

@@ -443,6 +443,7 @@ import {
   Weekday,
   enumToSelectOptions,
 } from '@/constants/organization'
+import { confirmDelete, confirmRemove } from '@/composables/useConfirm'
 
 const WEEKDAY_ABBREVIATIONS: Record<string, string> = {
   [Weekday.SUNDAY]: 'DOM',
@@ -664,16 +665,16 @@ async function saveTemplate() {
 }
 
 async function handleDeleteTemplate(template: WorshipServiceType) {
-  if (!confirm(`Excluir "${template.name}"?`)) return
-  try {
-    await organizationService.deleteWorshipServiceType(template.id)
-    if (selectedTemplate.value?.id === template.id) {
-      selectedTemplate.value = null
-    }
-    await loadData()
-  } catch (err: any) {
-    formError.value = err.response?.data?.message || 'Erro ao excluir modelo'
-  }
+  await confirmDelete({
+    message: `Tem certeza que deseja excluir "${template.name}"?`,
+    onConfirm: async () => {
+      await organizationService.deleteWorshipServiceType(template.id)
+      if (selectedTemplate.value?.id === template.id) {
+        selectedTemplate.value = null
+      }
+      await loadData()
+    },
+  })
 }
 
 function openTypeRoleModal(typeRole?: WorshipServiceTypeRole) {
@@ -735,13 +736,13 @@ async function updateTypeRoleQuantity(typeRole: WorshipServiceTypeRole, delta: n
 }
 
 async function handleDeleteTypeRole(typeRole: WorshipServiceTypeRole) {
-  if (!confirm('Remover esta função do modelo?')) return
-  try {
-    await organizationService.deleteWorshipServiceTypeRole(typeRole.id)
-    await loadData()
-  } catch (err: any) {
-    formError.value = err.response?.data?.message || 'Erro ao remover função'
-  }
+  await confirmRemove({
+    message: 'Remover esta função do modelo?',
+    onConfirm: async () => {
+      await organizationService.deleteWorshipServiceTypeRole(typeRole.id)
+      await loadData()
+    },
+  })
 }
 
 onMounted(loadData)

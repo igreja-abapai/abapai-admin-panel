@@ -142,6 +142,7 @@ import Select from '@/components/Select.vue'
 import { organizationService, type ServiceRole } from '@/services/organization'
 import { useAuthStore } from '@/stores/auth'
 import { ServiceRoleCategory, enumToSelectOptions } from '@/constants/organization'
+import { confirmDelete } from '@/composables/useConfirm'
 
 const ROW_MENU_WIDTH = 160
 const ROW_MENU_HEIGHT = 88
@@ -233,13 +234,13 @@ async function saveRole() {
 }
 
 async function handleDeleteRole(role: ServiceRole) {
-  if (!confirm(`Excluir "${role.name}"?`)) return
-  try {
-    await organizationService.deleteServiceRole(role.id)
-    await loadData()
-  } catch (err: any) {
-    error.value = err.response?.data?.message || 'Erro ao excluir função'
-  }
+  await confirmDelete({
+    message: `Tem certeza que deseja excluir "${role.name}"?`,
+    onConfirm: async () => {
+      await organizationService.deleteServiceRole(role.id)
+      await loadData()
+    },
+  })
 }
 
 function closeRoleRowMenu() {

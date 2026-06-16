@@ -142,6 +142,7 @@ import Select from '@/components/Select.vue'
 import { organizationService, type ChurchPosition } from '@/services/organization'
 import { useAuthStore } from '@/stores/auth'
 import { ChurchPositionCategory, enumToSelectOptions } from '@/constants/organization'
+import { confirmDelete } from '@/composables/useConfirm'
 
 const ROW_MENU_WIDTH = 160
 const ROW_MENU_HEIGHT = 88
@@ -233,13 +234,13 @@ async function savePosition() {
 }
 
 async function handleDeletePosition(position: ChurchPosition) {
-  if (!confirm(`Excluir "${position.name}"?`)) return
-  try {
-    await organizationService.deleteChurchPosition(position.id)
-    await loadData()
-  } catch (err: any) {
-    error.value = err.response?.data?.message || 'Erro ao excluir cargo'
-  }
+  await confirmDelete({
+    message: `Tem certeza que deseja excluir "${position.name}"?`,
+    onConfirm: async () => {
+      await organizationService.deleteChurchPosition(position.id)
+      await loadData()
+    },
+  })
 }
 
 function closePositionRowMenu() {

@@ -374,6 +374,7 @@ import { organizationService, type ServingGroup, type ServiceRole } from '@/serv
 import { membersService, type Member } from '@/services/members'
 import { ServiceRoleCategory } from '@/constants/organization'
 import { useAuthStore } from '@/stores/auth'
+import { confirmDelete, confirmRemove } from '@/composables/useConfirm'
 
 const AVATAR_COLORS = [
   'bg-blue-100 text-blue-700',
@@ -539,14 +540,14 @@ async function saveGroup() {
 }
 
 async function handleDeleteGroup(group: ServingGroup) {
-  if (!confirm(`Excluir "${group.name}"?`)) return
-  try {
-    await organizationService.deleteServingGroup(group.id)
-    if (selectedGroup.value?.id === group.id) selectedGroup.value = null
-    await loadData()
-  } catch (err: any) {
-    formError.value = err.response?.data?.message || 'Erro ao excluir grupo'
-  }
+  await confirmDelete({
+    message: `Tem certeza que deseja excluir "${group.name}"?`,
+    onConfirm: async () => {
+      await organizationService.deleteServingGroup(group.id)
+      if (selectedGroup.value?.id === group.id) selectedGroup.value = null
+      await loadData()
+    },
+  })
 }
 
 function openMemberModal() {
@@ -574,13 +575,13 @@ async function saveMember() {
 }
 
 async function handleRemoveMember(memberLinkId: number) {
-  if (!confirm('Remover membro do grupo?')) return
-  try {
-    await organizationService.deleteServingGroupMember(memberLinkId)
-    await loadData()
-  } catch (err: any) {
-    formError.value = err.response?.data?.message || 'Erro ao remover membro'
-  }
+  await confirmRemove({
+    message: 'Remover membro do grupo?',
+    onConfirm: async () => {
+      await organizationService.deleteServingGroupMember(memberLinkId)
+      await loadData()
+    },
+  })
 }
 
 onMounted(loadData)

@@ -504,10 +504,13 @@
         </button>
       </div>
     </div>
+
+    <ConfirmModal />
   </div>
 </template>
 
 <script setup lang="ts">
+import ConfirmModal from '@/components/ConfirmModal.vue'
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {

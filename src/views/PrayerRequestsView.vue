@@ -178,6 +178,7 @@ import { prayerRequestsService, type PrayerRequest } from '@/services/prayer-req
 import { formatPhoneNumber } from '@/utils/phoneMask'
 import Select from '@/components/Select.vue'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
+import { confirmDelete } from '@/composables/useConfirm'
 
 const AREA_OPTIONS = [
   'Família',
@@ -399,20 +400,16 @@ function handlePageChange(page: number) {
 }
 
 async function deleteRequest(request: PrayerRequest) {
-  if (!confirm('Tem certeza que deseja excluir este pedido de oração?')) {
-    return
-  }
-
-  try {
-    await prayerRequestsService.deletePrayerRequest(request.id)
-    const index = requests.value.findIndex((r) => r.id === request.id)
-    if (index > -1) {
-      requests.value.splice(index, 1)
-    }
-  } catch (err: unknown) {
-    console.error('Error deleting prayer request:', err)
-    error.value = 'Erro ao excluir pedido de oração'
-  }
+  await confirmDelete({
+    message: 'Tem certeza que deseja excluir este pedido de oração?',
+    onConfirm: async () => {
+      await prayerRequestsService.deletePrayerRequest(request.id)
+      const index = requests.value.findIndex((r) => r.id === request.id)
+      if (index > -1) {
+        requests.value.splice(index, 1)
+      }
+    },
+  })
 }
 
 async function loadPrayerRequests() {

@@ -8,15 +8,26 @@
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-        <button
+        <SplitButton
           v-if="canManage"
-          type="button"
-          class="btn btn-secondary w-full sm:w-auto"
-          @click="openGenerateModal()"
+          label="Gerar Cultos"
+          :icon="SparklesIcon"
+          variant="secondary"
+          class="w-full sm:w-auto"
+          toggle-title="Mais opções de geração"
+          @click="openGenerateServicesModal()"
         >
-          <SparklesIcon class="w-4 h-4 mr-2" />
-          Gerar mês
-        </button>
+          <template #menu>
+            <button
+              type="button"
+              class="flex items-center w-full px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
+              @click="openGenerateAssignmentsModal()"
+            >
+              <SparklesIcon class="w-5 h-5 mr-3 text-neutral-400 shrink-0" />
+              Gerar Escalas
+            </button>
+          </template>
+        </SplitButton>
         <button
           v-if="canManage"
           type="button"
@@ -45,26 +56,41 @@
     </div>
 
     <div class="rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
-      <div class="flex items-center justify-start gap-4 px-6 py-5 border-b border-neutral-100">
-        <button
-          type="button"
-          class="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50 transition-colors"
-          aria-label="Mês anterior"
-          @click="prevMonth"
-        >
-          <ChevronLeftIcon class="w-5 h-5" />
-        </button>
-        <span class="text-sm font-semibold text-neutral-900">
-          {{ viewMonthLabel }}
-        </span>
-        <button
-          type="button"
-          class="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50 transition-colors"
-          aria-label="Próximo mês"
-          @click="nextMonth"
-        >
-          <ChevronRightIcon class="w-5 h-5" />
-        </button>
+      <div class="flex items-center justify-between gap-4 px-6 py-5 border-b border-neutral-100">
+        <div class="flex items-center gap-4">
+          <button
+            type="button"
+            class="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50 transition-colors"
+            aria-label="Mês anterior"
+            @click="prevMonth"
+          >
+            <ChevronLeftIcon class="w-5 h-5" />
+          </button>
+          <span class="text-sm font-semibold text-neutral-900">
+            {{ viewMonthLabel }}
+          </span>
+          <button
+            type="button"
+            class="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50 transition-colors"
+            aria-label="Próximo mês"
+            @click="nextMonth"
+          >
+            <ChevronRightIcon class="w-5 h-5" />
+          </button>
+        </div>
+        <div v-if="canManage && monthStats.total > 0" class="flex items-center gap-2 shrink-0">
+          <button
+            v-if="monthAssignedSlots > 0"
+            type="button"
+            class="btn btn-secondary text-sm"
+            @click="handleClearAssignments"
+          >
+            Limpar escalados
+          </button>
+          <button type="button" class="btn btn-secondary text-sm" @click="handleClearMonth">
+            Deletar cultos
+          </button>
+        </div>
       </div>
 
       <div v-if="loading" class="p-12 text-center">
@@ -154,17 +180,42 @@
                 <div class="hidden lg:flex items-center gap-1.5">
                   <template v-if="getAssignedVolunteers(service).length">
                     <div class="flex -space-x-2.5">
-                      <div
+                      <Tooltip
                         v-for="(volunteer, index) in getAssignedVolunteers(service).slice(0, 4)"
-                        :key="`${service.id}-${volunteer.id}-${index}`"
-                        :class="[
-                          'flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-xs font-bold',
-                          getAvatarColor(volunteer.name),
-                        ]"
-                        :title="volunteer.name"
+                        :key="`${service.id}-${volunteer.member.id}-${index}`"
+                        position="center"
+                        width="auto"
                       >
-                        {{ getInitials(volunteer.name) }}
-                      </div>
+                        <div
+                          class="h-9 w-9 rounded-full border-2 border-white shrink-0 overflow-hidden"
+                        >
+                          <img
+                            v-if="volunteer.member.photoUrl"
+                            :src="volunteer.member.photoUrl"
+                            :alt="`Foto de ${volunteer.member.name}`"
+                            class="h-full w-full object-cover"
+                          />
+                          <div
+                            v-else
+                            :class="[
+                              'flex h-full w-full items-center justify-center text-xs font-bold',
+                              getAvatarColor(volunteer.member.name),
+                            ]"
+                          >
+                            {{ getInitials(volunteer.member.name) }}
+                          </div>
+                        </div>
+                        <template #content>
+                          <span class="whitespace-nowrap">
+                            {{
+                              formatVolunteerTooltipLabel(
+                                volunteer.roleNames,
+                                volunteer.member.name,
+                              )
+                            }}
+                          </span>
+                        </template>
+                      </Tooltip>
                     </div>
                     <span
                       v-if="getAssignedVolunteers(service).length > 4"
@@ -173,7 +224,9 @@
                       +{{ getAssignedVolunteers(service).length - 4 }}
                     </span>
                   </template>
-                  <span v-else class="text-xs text-neutral-400 whitespace-nowrap">Sem voluntários</span>
+                  <span v-else class="text-xs text-neutral-400 whitespace-nowrap"
+                    >Sem voluntários</span
+                  >
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0 w-[88px]">
@@ -183,13 +236,17 @@
                       :style="{ width: `${progressPercent(service)}%` }"
                     ></div>
                   </div>
-                  <span class="text-xs font-semibold text-neutral-600 tabular-nums whitespace-nowrap">
+                  <span
+                    class="text-xs font-semibold text-neutral-600 tabular-nums whitespace-nowrap"
+                  >
                     {{ filledSlots(service) }}/{{ totalSlots(service) }}
                   </span>
                 </div>
               </div>
 
-              <ChevronRightIcon class="w-4 h-4 text-neutral-300 shrink-0 group-hover:text-neutral-400" />
+              <ChevronRightIcon
+                class="w-4 h-4 text-neutral-300 shrink-0 group-hover:text-neutral-400"
+              />
 
               <button
                 v-if="canManage"
@@ -280,7 +337,9 @@
       v-if="showCreateModal"
       class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+      <div
+        class="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
+      >
         <div class="px-6 pt-6 pb-4 shrink-0">
           <h2 class="text-lg font-semibold text-neutral-900">Novo Culto</h2>
         </div>
@@ -336,20 +395,17 @@
                   placeholder="Selecione"
                   required
                 />
-                <p v-if="selectedCreateTemplate?.defaultWeekday" class="text-xs text-neutral-500 mt-1">
+                <p
+                  v-if="selectedCreateTemplate?.defaultWeekday"
+                  class="text-xs text-neutral-500 mt-1"
+                >
                   Padrão do modelo: {{ selectedCreateTemplate.defaultWeekday }}
                 </p>
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-neutral-700 mb-1">Quantidade</label>
-                  <Input
-                    v-model="createForm.count"
-                    type="number"
-                    min="1"
-                    max="52"
-                    required
-                  />
+                  <Input v-model="createForm.count" type="number" min="1" max="52" required />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-neutral-700 mb-1">A partir de</label>
@@ -388,7 +444,9 @@
                 class="mt-0.5 w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
               />
               <span>
-                <span class="block text-sm font-medium text-neutral-700 mb-5">Criar como rascunho</span>
+                <span class="block text-sm font-medium text-neutral-700 mb-5"
+                  >Criar como rascunho</span
+                >
               </span>
             </label>
           </div>
@@ -407,34 +465,178 @@
       </div>
     </div>
 
-    <!-- Generate month -->
+    <!-- Generate services -->
     <div
-      v-if="showGenerateModal"
+      v-if="showGenerateServicesModal"
       class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
     >
       <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Gerar Escalas do Mês</h2>
+        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Gerar Cultos</h2>
         <p class="text-sm text-neutral-500 mb-4">
-          Cria instâncias de culto para todos os modelos ativos com dia padrão configurado.
+          Cria cultos para todos os modelos ativos com dia padrão configurado.
         </p>
-        <form class="space-y-4" @submit.prevent="generateMonth">
+        <form class="space-y-4" @submit.prevent="generateServices">
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-1">Mês</label>
-              <Select v-model="generateForm.month" :options="monthOptions" />
+              <Select v-model="generateServicesForm.month" :options="monthOptions" />
             </div>
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-1">Ano</label>
-              <Select v-model="generateForm.year" :options="yearOptions" />
+              <Select v-model="generateServicesForm.year" :options="yearOptions" />
             </div>
           </div>
+
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input
+              v-model="generateServicesForm.alsoGenerateAssignments"
+              type="checkbox"
+              class="mt-0.5 w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+            />
+            <span>
+              <span class="block text-sm font-medium text-neutral-700"
+                >Gerar escalas automaticamente</span
+              >
+              <span class="block text-xs text-neutral-500 mt-0.5">
+                Atribui membros às vagas dos cultos gerados.
+              </span>
+            </span>
+          </label>
+
+          <div v-if="generateServicesForm.alsoGenerateAssignments">
+            <label class="block text-sm font-medium text-neutral-700 mb-2"
+              >Funções para escalar</label
+            >
+            <div
+              class="max-h-44 overflow-y-auto rounded-lg border border-neutral-200 p-3 space-y-2"
+            >
+              <label
+                v-for="role in generateRoleOptions"
+                :key="role.value"
+                class="flex items-center gap-2 text-sm text-neutral-700"
+              >
+                <input
+                  v-model="generateServicesForm.autoAssignRoleIds"
+                  type="checkbox"
+                  :value="role.value"
+                  class="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span>{{ role.label }}</span>
+              </label>
+              <p v-if="generateRoleOptions.length === 0" class="text-sm text-neutral-500">
+                Nenhuma função ativa encontrada.
+              </p>
+            </div>
+          </div>
+
           <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
           <div class="flex justify-end gap-2 pt-2">
-            <button type="button" class="btn btn-secondary" @click="showGenerateModal = false">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="showGenerateServicesModal = false"
+            >
               Cancelar
             </button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'Gerando...' : 'Gerar' }}
+            <button
+              type="submit"
+              class="btn btn-primary relative flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+              :disabled="saving"
+              :aria-busy="saving"
+            >
+              <span
+                class="inline-flex items-center justify-center"
+                :class="{ invisible: saving }"
+                aria-hidden="true"
+              >
+                Gerar cultos
+              </span>
+              <span v-if="saving" class="absolute inset-0 flex items-center justify-center">
+                <span
+                  class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
+                ></span>
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Generate assignments -->
+    <div
+      v-if="showGenerateAssignmentsModal"
+      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    >
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Gerar Escalas</h2>
+        <p class="text-sm text-neutral-500 mb-4">
+          Atribui membros automaticamente às vagas em aberto dos cultos já criados no mês.
+        </p>
+        <form class="space-y-4" @submit.prevent="generateAssignments">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1">Mês</label>
+              <Select v-model="generateAssignmentsForm.month" :options="monthOptions" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1">Ano</label>
+              <Select v-model="generateAssignmentsForm.year" :options="yearOptions" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2"
+              >Funções para escalar</label
+            >
+            <div
+              class="max-h-44 overflow-y-auto rounded-lg border border-neutral-200 p-3 space-y-2"
+            >
+              <label
+                v-for="role in generateRoleOptions"
+                :key="role.value"
+                class="flex items-center gap-2 text-sm text-neutral-700"
+              >
+                <input
+                  v-model="generateAssignmentsForm.autoAssignRoleIds"
+                  type="checkbox"
+                  :value="role.value"
+                  class="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span>{{ role.label }}</span>
+              </label>
+              <p v-if="generateRoleOptions.length === 0" class="text-sm text-neutral-500">
+                Nenhuma função ativa encontrada.
+              </p>
+            </div>
+          </div>
+
+          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
+          <div class="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="showGenerateAssignmentsModal = false"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary relative flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+              :disabled="saving"
+              :aria-busy="saving"
+            >
+              <span
+                class="inline-flex items-center justify-center"
+                :class="{ invisible: saving }"
+                aria-hidden="true"
+              >
+                Gerar escalas
+              </span>
+              <span v-if="saving" class="absolute inset-0 flex items-center justify-center">
+                <span
+                  class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
+                ></span>
+              </span>
             </button>
           </div>
         </form>
@@ -458,8 +660,13 @@ import {
 } from '@heroicons/vue/24/outline'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
+import SplitButton from '@/components/SplitButton.vue'
+import Tooltip from '@/components/Tooltip.vue'
 import {
   organizationService,
+  type AutoAssignIncompleteService,
+  type GenerateWorshipServicesMonthResult,
+  type ServiceRole,
   type WorshipService,
   type WorshipServiceType,
 } from '@/services/organization'
@@ -471,6 +678,8 @@ import {
   AssignmentStatus,
   enumToSelectOptions,
 } from '@/constants/organization'
+import { formatVolunteerTooltipLabel } from '@/utils/nameFormat'
+import { confirmAction, confirmDelete, showAlert } from '@/composables/useConfirm'
 
 const ROW_MENU_WIDTH = 176
 const ROW_MENU_HEIGHT = 132
@@ -521,10 +730,12 @@ const formError = ref('')
 
 const services = ref<WorshipService[]>([])
 const templates = ref<WorshipServiceType[]>([])
+const serviceRoles = ref<ServiceRole[]>([])
 
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
-const showGenerateModal = ref(false)
+const showGenerateServicesModal = ref(false)
+const showGenerateAssignmentsModal = ref(false)
 const editingService = ref<WorshipService | null>(null)
 const openServiceRowMenuId = ref<number | null>(null)
 const serviceRowMenuStyle = ref<{ top: string; left: string } | null>(null)
@@ -558,9 +769,17 @@ const editForm = ref({
   notes: '',
 })
 
-const generateForm = ref({
+const generateServicesForm = ref({
   month: String(now.getMonth() + 1),
   year: String(now.getFullYear()),
+  alsoGenerateAssignments: false,
+  autoAssignRoleIds: [] as number[],
+})
+
+const generateAssignmentsForm = ref({
+  month: String(now.getMonth() + 1),
+  year: String(now.getFullYear()),
+  autoAssignRoleIds: [] as number[],
 })
 
 const monthOptions = [
@@ -586,6 +805,16 @@ const yearOptions = computed(() => {
   }))
 })
 
+const generateRoleOptions = computed(() =>
+  serviceRoles.value
+    .filter((role) => role.isActive)
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((role) => ({
+      value: role.id,
+      label: role.name,
+    })),
+)
+
 const viewMonthLabel = computed(() => {
   const month = monthOptions.find((option) => option.value === viewMonth.value)?.label
   return `${month} ${viewYear.value}`
@@ -602,6 +831,10 @@ const monthStats = computed(() => {
   )
   return { total, published, openSlots }
 })
+
+const monthAssignedSlots = computed(() =>
+  services.value.reduce((sum, service) => sum + filledSlots(service), 0),
+)
 
 interface ScheduleDateGroup {
   dateKey: string
@@ -748,14 +981,77 @@ function getStatusDisplay(service: WorshipService) {
   return { label: 'Rascunho', badgeClass: `${base} bg-neutral-100 text-neutral-600` }
 }
 
-function getAssignedVolunteers(service: WorshipService): Member[] {
-  const volunteers = new Map<string, Member>()
+interface AssignedVolunteer {
+  member: Member
+  roleNames: string[]
+  serviceRoleId: number
+  slotNumber: number
+}
+
+function getWorshipServiceTypeRoles(type?: WorshipServiceType) {
+  return type?.typeRoles ?? type?.requiredRoles ?? []
+}
+
+function getRoleGroupOrder(service: WorshipService): Map<number, number> {
+  const order = new Map<number, number>()
+  const typeRoles = getWorshipServiceTypeRoles(service.worshipServiceType)
+
+  if (typeRoles.length > 0) {
+    for (const typeRole of typeRoles) {
+      order.set(typeRole.serviceRoleId, typeRole.sortOrder)
+    }
+    return order
+  }
+
+  let index = 0
   for (const assignment of service.assignments || []) {
-    if (assignment.member) {
-      volunteers.set(String(assignment.member.id), assignment.member)
+    if (!order.has(assignment.serviceRoleId)) {
+      order.set(assignment.serviceRoleId, index++)
     }
   }
-  return Array.from(volunteers.values())
+
+  return order
+}
+
+function getAssignedVolunteers(service: WorshipService): AssignedVolunteer[] {
+  const volunteers = new Map<string, AssignedVolunteer>()
+  const roleGroupOrder = getRoleGroupOrder(service)
+
+  for (const assignment of service.assignments || []) {
+    if (!assignment.member) continue
+
+    const roleName = assignment.serviceRole?.name || 'Função'
+    const memberKey = String(assignment.member.id)
+    const existing = volunteers.get(memberKey)
+
+    if (!existing) {
+      volunteers.set(memberKey, {
+        member: assignment.member,
+        roleNames: [roleName],
+        serviceRoleId: assignment.serviceRoleId,
+        slotNumber: assignment.slotNumber,
+      })
+      continue
+    }
+
+    if (!existing.roleNames.includes(roleName)) {
+      existing.roleNames.push(roleName)
+    }
+
+    if (assignment.slotNumber < existing.slotNumber) {
+      existing.slotNumber = assignment.slotNumber
+      existing.serviceRoleId = assignment.serviceRoleId
+    }
+  }
+
+  return Array.from(volunteers.values()).sort((a, b) => {
+    const roleOrderA = roleGroupOrder.get(a.serviceRoleId) ?? Number.MAX_SAFE_INTEGER
+    const roleOrderB = roleGroupOrder.get(b.serviceRoleId) ?? Number.MAX_SAFE_INTEGER
+    if (roleOrderA !== roleOrderB) return roleOrderA - roleOrderB
+    if (a.serviceRoleId !== b.serviceRoleId) return a.serviceRoleId - b.serviceRoleId
+    if (a.slotNumber !== b.slotNumber) return a.slotNumber - b.slotNumber
+    return a.member.name.localeCompare(b.member.name, 'pt-BR')
+  })
 }
 
 function getInitials(name: string) {
@@ -793,9 +1089,7 @@ function totalSlots(service: WorshipService) {
 }
 
 function filledSlots(service: WorshipService) {
-  return (
-    service.assignments?.filter((a) => a.memberId || a.servingGroupId).length || 0
-  )
+  return service.assignments?.filter((a) => a.memberId || a.servingGroupId).length || 0
 }
 
 function goToDetail(service: WorshipService) {
@@ -938,21 +1232,52 @@ async function saveService() {
 
 async function handleDeleteService(service: WorshipService) {
   const label = service.name || service.worshipServiceType?.name || 'este culto'
-  if (!confirm(`Excluir "${label}"?`)) return
-  try {
-    await organizationService.deleteWorshipService(service.id)
-    await loadServices()
-  } catch (err: any) {
-    error.value = err.response?.data?.message || 'Erro ao excluir culto'
-  }
+  await confirmDelete({
+    message: `Tem certeza que deseja excluir "${label}"?`,
+    onConfirm: async () => {
+      await organizationService.deleteWorshipService(service.id)
+      await loadServices()
+    },
+  })
+}
+
+async function handleClearMonth() {
+  const count = monthStats.value.total
+  await confirmDelete({
+    title: 'Limpar mês',
+    message: `Tem certeza que deseja excluir todos os ${count} cultos de ${viewMonthLabel.value}?`,
+    confirmLabel: 'Limpar',
+    onConfirm: async () => {
+      await organizationService.deleteWorshipServicesForMonth(
+        Number(viewMonth.value),
+        Number(viewYear.value),
+      )
+      await loadServices()
+    },
+  })
+}
+
+async function handleClearAssignments() {
+  const cultos = monthStats.value.total
+  const escalados = monthAssignedSlots.value
+  await confirmAction({
+    title: 'Limpar escalados',
+    message: `Remover todos os membros escalados (${escalados} atribuições) dos ${cultos} cultos de ${viewMonthLabel.value}? Os cultos serão mantidos.`,
+    variant: 'danger',
+    confirmLabel: 'Limpar escalados',
+    onConfirm: async () => {
+      await organizationService.clearWorshipServiceAssignmentsForMonth(
+        Number(viewMonth.value),
+        Number(viewYear.value),
+      )
+      await loadServices()
+    },
+  })
 }
 
 function handleClickOutside(event: MouseEvent) {
   const target = event.target as HTMLElement
-  if (
-    !target.closest('[aria-label="Opções da escala"]') &&
-    !target.closest('.service-row-menu')
-  ) {
+  if (!target.closest('[aria-label="Opções da escala"]') && !target.closest('.service-row-menu')) {
     closeServiceRowMenu()
   }
 }
@@ -1021,13 +1346,177 @@ function openCreateModal() {
   showCreateModal.value = true
 }
 
-function openGenerateModal() {
-  generateForm.value = {
+function openGenerateServicesModal() {
+  generateServicesForm.value = {
     month: viewMonth.value,
     year: viewYear.value,
+    alsoGenerateAssignments: false,
+    autoAssignRoleIds: [],
   }
   formError.value = ''
-  showGenerateModal.value = true
+  showGenerateServicesModal.value = true
+}
+
+function openGenerateAssignmentsModal() {
+  generateAssignmentsForm.value = {
+    month: viewMonth.value,
+    year: viewYear.value,
+    autoAssignRoleIds: [],
+  }
+  formError.value = ''
+  showGenerateAssignmentsModal.value = true
+}
+
+async function runGenerationWithConfirmation<T extends { proceedWithWarnings?: boolean }>(
+  buildPayload: (proceedWithWarnings?: boolean) => T,
+  request: (payload: T) => Promise<GenerateWorshipServicesMonthResult>,
+) {
+  let result = await request(buildPayload())
+
+  if (result.requiresConfirmation) {
+    let confirmedResult: GenerateWorshipServicesMonthResult | null = null
+    const confirmed = await confirmAction({
+      title: 'Continuar geração?',
+      message:
+        result.warningMessage ||
+        'Não há pessoas suficientes para repetições na mesma semana. Deseja continuar mesmo assim?',
+      variant: 'primary',
+      confirmLabel: 'Continuar',
+      onConfirm: async () => {
+        confirmedResult = await request(buildPayload(true))
+      },
+    })
+
+    if (!confirmed || !confirmedResult) {
+      return null
+    }
+
+    return confirmedResult
+  }
+
+  return result
+}
+
+function formatServiceDateTime(value: string) {
+  return new Date(value).toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function buildIncompleteServicesMessage(incompleteServices: AutoAssignIncompleteService[]) {
+  if (!incompleteServices.length) return ''
+
+  const lines = incompleteServices.map(
+    (service) =>
+      `• ${service.serviceName} — ${formatServiceDateTime(service.scheduledAt)}: ${service.missingCount === 1 ? '1 vaga' : `${service.missingCount} vagas`} de ${service.serviceRoleName}`,
+  )
+
+  return ['Os cultos a seguir ficaram com vagas sem membro:', ...lines].join('\n')
+}
+
+async function showAutoAssignResultMessage(result: GenerateWorshipServicesMonthResult) {
+  if (!result.autoAssign || result.autoAssign.totalSlots === 0) return
+
+  const { assignedSlots, totalSlots, incompleteServices } = result.autoAssign
+  const notAssigned = totalSlots - assignedSlots
+
+  if (notAssigned > 0) {
+    const details = buildIncompleteServicesMessage(incompleteServices)
+    const message = [
+      `${assignedSlots} de ${totalSlots} vagas foram atribuídas automaticamente.`,
+      details,
+    ]
+      .filter(Boolean)
+      .join('\n\n')
+
+    await showAlert({
+      title: 'Atribuição automática',
+      message,
+    })
+    return
+  }
+
+  await showAlert({
+    title: 'Atribuição automática',
+    message: `Atribuição automática concluída: ${assignedSlots} vaga(s) preenchidas.`,
+  })
+}
+
+async function generateServices() {
+  saving.value = true
+  formError.value = ''
+
+  try {
+    if (
+      generateServicesForm.value.alsoGenerateAssignments &&
+      generateServicesForm.value.autoAssignRoleIds.length === 0
+    ) {
+      formError.value = 'Selecione ao menos uma função para gerar escalas'
+      return
+    }
+
+    const result = await runGenerationWithConfirmation(
+      (proceedWithWarnings) => ({
+        month: Number(generateServicesForm.value.month),
+        year: Number(generateServicesForm.value.year),
+        autoAssignRoleIds: generateServicesForm.value.alsoGenerateAssignments
+          ? generateServicesForm.value.autoAssignRoleIds
+          : undefined,
+        proceedWithWarnings,
+      }),
+      (payload) => organizationService.generateWorshipServicesForMonth(payload),
+    )
+
+    if (!result) return
+
+    viewMonth.value = generateServicesForm.value.month
+    viewYear.value = generateServicesForm.value.year
+    showGenerateServicesModal.value = false
+    await loadServices()
+    await showAutoAssignResultMessage(result)
+  } catch (err: any) {
+    formError.value = err.response?.data?.message || 'Erro ao gerar cultos'
+  } finally {
+    saving.value = false
+  }
+}
+
+async function generateAssignments() {
+  saving.value = true
+  formError.value = ''
+
+  try {
+    if (generateAssignmentsForm.value.autoAssignRoleIds.length === 0) {
+      formError.value = 'Selecione ao menos uma função para gerar escalas'
+      return
+    }
+
+    const result = await runGenerationWithConfirmation(
+      (proceedWithWarnings) => ({
+        month: Number(generateAssignmentsForm.value.month),
+        year: Number(generateAssignmentsForm.value.year),
+        autoAssignRoleIds: generateAssignmentsForm.value.autoAssignRoleIds,
+        proceedWithWarnings,
+      }),
+      (payload) => organizationService.generateWorshipAssignmentsForMonth(payload),
+    )
+
+    if (!result) return
+
+    viewMonth.value = generateAssignmentsForm.value.month
+    viewYear.value = generateAssignmentsForm.value.year
+    showGenerateAssignmentsModal.value = false
+    await loadServices()
+    await showAutoAssignResultMessage(result)
+  } catch (err: any) {
+    formError.value = err.response?.data?.message || 'Erro ao gerar escalas'
+  } finally {
+    saving.value = false
+  }
 }
 
 async function createService() {
@@ -1093,27 +1582,12 @@ async function createService() {
   }
 }
 
-async function generateMonth() {
-  saving.value = true
-  formError.value = ''
-  try {
-    await organizationService.generateWorshipServicesForMonth(
-      Number(generateForm.value.month),
-      Number(generateForm.value.year),
-    )
-    viewMonth.value = generateForm.value.month
-    viewYear.value = generateForm.value.year
-    showGenerateModal.value = false
-    await loadServices()
-  } catch (err: any) {
-    formError.value = err.response?.data?.message || 'Erro ao gerar escalas'
-  } finally {
-    saving.value = false
-  }
+async function loadServiceRoles() {
+  serviceRoles.value = await organizationService.getServiceRoles()
 }
 
 onMounted(async () => {
-  await Promise.all([loadServices(), loadTemplates()])
+  await Promise.all([loadServices(), loadTemplates(), loadServiceRoles()])
   document.addEventListener('click', handleClickOutside)
   window.addEventListener('scroll', handleScroll, true)
 })

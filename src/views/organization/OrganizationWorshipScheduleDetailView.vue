@@ -195,6 +195,12 @@
                     >
                       {{ assignmentLabel(assignment) }}
                     </p>
+                    <p
+                      v-if="assignment.notes?.trim()"
+                      class="text-sm text-neutral-500 mt-1 whitespace-pre-line"
+                    >
+                      <span class="text-neutral-400">Obs.:</span> {{ assignment.notes.trim() }}
+                    </p>
                   </div>
                 </div>
 
@@ -250,11 +256,32 @@
           </div>
           <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
           <div class="flex justify-end gap-2 pt-2">
-            <button type="button" class="btn btn-secondary" @click="closeAssignModal">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              :disabled="saving"
+              @click="closeAssignModal"
+            >
               Cancelar
             </button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'Salvando...' : 'Salvar' }}
+            <button
+              type="submit"
+              class="btn btn-primary relative flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+              :disabled="saving"
+              :aria-busy="saving"
+            >
+              <span
+                class="inline-flex items-center justify-center"
+                :class="{ invisible: saving }"
+                aria-hidden="true"
+              >
+                Salvar
+              </span>
+              <span v-if="saving" class="absolute inset-0 flex items-center justify-center">
+                <span
+                  class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
+                ></span>
+              </span>
             </button>
           </div>
         </form>
@@ -329,6 +356,7 @@ import {
   ServiceRoleCategory,
   SERVICE_ROLE_CATEGORY_ORDER,
 } from '@/constants/organization'
+import { confirmAction } from '@/composables/useConfirm'
 
 const AVATAR_COLORS = [
   'bg-blue-100 text-blue-700',
@@ -561,8 +589,10 @@ function assignmentLabel(assignment: ServiceAssignment) {
   return 'Vaga em aberto'
 }
 
-async function loadService() {
-  loading.value = true
+async function loadService(options?: { silent?: boolean }) {
+  if (!options?.silent) {
+    loading.value = true
+  }
   error.value = ''
   try {
     const id = Number(route.params.id)
@@ -579,7 +609,9 @@ async function loadService() {
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Erro ao carregar escala'
   } finally {
-    loading.value = false
+    if (!options?.silent) {
+      loading.value = false
+    }
   }
 }
 
@@ -612,10 +644,14 @@ async function saveAssignment() {
     await organizationService.assignServiceAssignment(service.value.id, {
       assignmentId: assigningAssignment.value.id,
       memberId: assignForm.value.memberId ? Number(assignForm.value.memberId) : undefined,
-      notes: assignForm.value.notes || undefined,
+      notes: assignForm.value.notes.trim() || null,
     })
+    await loadService({ silent: true })
+    if (error.value) {
+      formError.value = error.value
+      return
+    }
     closeAssignModal()
-    await loadService()
   } catch (err: any) {
     formError.value = err.response?.data?.message || 'Erro ao atribuir vaga'
   } finally {
@@ -624,15 +660,17 @@ async function saveAssignment() {
 }
 
 async function publishService() {
-  if (!service.value || !confirm('Publicar esta escala?')) return
-  actionLoading.value = true
-  try {
-    service.value = await organizationService.publishWorshipService(service.value.id)
-  } catch (err: any) {
-    error.value = err.response?.data?.message || 'Erro ao publicar escala'
-  } finally {
-    actionLoading.value = false
-  }
+  if (!service.value) return
+
+  await confirmAction({
+    title: 'Publicar escala',
+    message: 'Publicar esta escala?',
+    variant: 'primary',
+    confirmLabel: 'Publicar',
+    onConfirm: async () => {
+      service.value = await organizationService.publishWorshipService(service.value!.id)
+    },
+  })
 }
 
 async function openCopyModal() {

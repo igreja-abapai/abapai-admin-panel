@@ -90,12 +90,13 @@ const variantMainClasses = {
   primary:
     'bg-primary-600 text-white hover:bg-primary-700 border border-primary-600 border-r-white/35',
   secondary:
-    'bg-neutral-200 text-neutral-800 hover:bg-neutral-300 border border-neutral-300 border-r-neutral-400',
+    'bg-white text-neutral-800 hover:bg-neutral-50 border border-neutral-200 border-r-neutral-200',
 }
 
 const variantToggleClasses = {
   primary: 'bg-primary-600 text-white hover:bg-primary-700 border border-primary-600 border-l-0',
-  secondary: 'bg-neutral-200 text-neutral-800 hover:bg-neutral-300 border border-neutral-300 border-l-0',
+  secondary:
+    'bg-white text-neutral-800 hover:bg-neutral-50 border border-neutral-200 border-l-0',
 }
 
 const sizeClasses = {

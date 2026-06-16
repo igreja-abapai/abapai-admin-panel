@@ -134,6 +134,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 import { usersService, type User } from '@/services/users'
+import { confirmDelete } from '@/composables/useConfirm'
 
 const ROW_MENU_WIDTH = 160
 const ROW_MENU_HEIGHT = 88
@@ -217,20 +218,16 @@ async function handleDeleteFromMenu() {
 }
 
 async function deleteUser(user: User) {
-  if (!confirm('Tem certeza que deseja excluir este usuário?')) {
-    return
-  }
-
-  try {
-    await usersService.deleteUser(user.id)
-    const index = users.value.findIndex((u) => u.id === user.id)
-    if (index > -1) {
-      users.value.splice(index, 1)
-    }
-  } catch (err: any) {
-    console.error('Error deleting user:', err)
-    error.value = 'Erro ao excluir usuário'
-  }
+  await confirmDelete({
+    message: 'Tem certeza que deseja excluir este usuário?',
+    onConfirm: async () => {
+      await usersService.deleteUser(user.id)
+      const index = users.value.findIndex((u) => u.id === user.id)
+      if (index > -1) {
+        users.value.splice(index, 1)
+      }
+    },
+  })
 }
 
 async function loadUsers() {

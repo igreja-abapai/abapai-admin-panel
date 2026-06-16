@@ -101,6 +101,7 @@ export interface WorshipServiceType {
   defaultTime?: string
   isActive: boolean
   typeRoles?: WorshipServiceTypeRole[]
+  requiredRoles?: WorshipServiceTypeRole[]
 }
 
 export interface WorshipServiceTypeRole {
@@ -140,6 +141,37 @@ export interface WorshipService {
   publishedAt?: string
   worshipServiceType?: WorshipServiceType
   assignments?: ServiceAssignment[]
+}
+
+export interface AutoAssignWarningItem {
+  serviceName: string
+  scheduledAt: string
+  serviceRoleId: number
+  serviceRoleName: string
+  missingCount: number
+}
+
+export interface AutoAssignIncompleteService {
+  serviceName: string
+  scheduledAt: string
+  serviceRoleName: string
+  missingCount: number
+}
+
+export interface GenerateMonthAutoAssignResult {
+  selectedRoleIds: number[]
+  totalSlots: number
+  assignedSlots: number
+  unassignedSlots: number
+  warningItems: AutoAssignWarningItem[]
+  incompleteServices: AutoAssignIncompleteService[]
+}
+
+export interface GenerateWorshipServicesMonthResult {
+  createdServices: WorshipService[]
+  requiresConfirmation: boolean
+  warningMessage?: string
+  autoAssign?: GenerateMonthAutoAssignResult
 }
 
 class OrganizationService {
@@ -494,10 +526,41 @@ class OrganizationService {
     return httpService.delete<void>(`/organization/worship-schedules/services/${id}`)
   }
 
-  generateWorshipServicesForMonth(month: number, year: number) {
-    return httpService.post<WorshipService[]>(
+  deleteWorshipServicesForMonth(month: number, year: number) {
+    return httpService.delete<{ deletedCount: number }>(
+      '/organization/worship-schedules/services/month',
+      { params: { month, year } },
+    )
+  }
+
+  clearWorshipServiceAssignmentsForMonth(month: number, year: number) {
+    return httpService.delete<{ clearedCount: number }>(
+      '/organization/worship-schedules/services/month/assignments',
+      { params: { month, year } },
+    )
+  }
+
+  generateWorshipServicesForMonth(data: {
+    month: number
+    year: number
+    autoAssignRoleIds?: number[]
+    proceedWithWarnings?: boolean
+  }) {
+    return httpService.post<GenerateWorshipServicesMonthResult>(
       '/organization/worship-schedules/services/generate-month',
-      { month, year },
+      data,
+    )
+  }
+
+  generateWorshipAssignmentsForMonth(data: {
+    month: number
+    year: number
+    autoAssignRoleIds: number[]
+    proceedWithWarnings?: boolean
+  }) {
+    return httpService.post<GenerateWorshipServicesMonthResult>(
+      '/organization/worship-schedules/services/generate-assignments-month',
+      data,
     )
   }
 
@@ -507,7 +570,7 @@ class OrganizationService {
       assignmentId: number
       memberId?: number
       servingGroupId?: number
-      notes?: string
+      notes?: string | null
     },
   ) {
     return httpService.patch<ServiceAssignment>(
