@@ -83,15 +83,6 @@
 
       <div v-else-if="groupedServices.length === 0" class="p-12 text-center">
         <p class="text-sm text-neutral-500">Nenhuma escala encontrada para este mês.</p>
-        <button
-          v-if="canManage"
-          type="button"
-          class="btn btn-primary mt-4"
-          @click="openCreateModal()"
-        >
-          <PlusIcon class="w-4 h-4 mr-2" />
-          Novo culto
-        </button>
       </div>
 
       <div v-else class="divide-y divide-neutral-100">
