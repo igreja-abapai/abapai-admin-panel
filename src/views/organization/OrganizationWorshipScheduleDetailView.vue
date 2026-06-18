@@ -155,9 +155,9 @@
               >
                 <div class="flex items-center gap-3 min-w-0 flex-1">
                   <MemberAvatar
-                    v-if="assignment.member"
-                    :name="assignment.member.name"
-                    :photo-url="assignment.member.photoUrl"
+                    v-if="getAssignmentAvatarName(assignment)"
+                    :name="getAssignmentAvatarName(assignment)"
+                    :photo-url="assignment.member?.photoUrl"
                     size="md"
                   />
                   <div
@@ -175,6 +175,12 @@
                           (#{{ assignment.slotNumber }})
                         </span>
                       </p>
+                      <span
+                        v-if="assignment.guestName?.trim()"
+                        class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-violet-50 text-violet-700"
+                      >
+                        Convidado
+                      </span>
                       <span
                         v-if="isAssignmentRequired(assignment)"
                         class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-primary-50 text-primary-600"
@@ -234,13 +240,47 @@
       :error="formError"
       @submit="saveAssignment"
     >
-      <div>
+      <div v-if="allowsGuestAssignment" class="mb-4">
+        <label class="block text-sm font-medium text-neutral-700 mb-2">Tipo de atribuição</label>
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
+            :class="
+              assignForm.assigneeType === 'member'
+                ? 'border-primary-500 bg-primary-50 text-primary-700'
+                : 'border-neutral-200 text-neutral-700 hover:bg-neutral-50'
+            "
+            @click="assignForm.assigneeType = 'member'"
+          >
+            Membro da igreja
+          </button>
+          <button
+            type="button"
+            class="rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
+            :class="
+              assignForm.assigneeType === 'guest'
+                ? 'border-primary-500 bg-primary-50 text-primary-700'
+                : 'border-neutral-200 text-neutral-700 hover:bg-neutral-50'
+            "
+            @click="assignForm.assigneeType = 'guest'"
+          >
+            Convidado externo
+          </button>
+        </div>
+      </div>
+
+      <div v-if="!allowsGuestAssignment || assignForm.assigneeType === 'member'">
         <label class="block text-sm font-medium text-neutral-700 mb-1">Membro elegível</label>
         <Select
           v-model="assignForm.memberId"
           :options="eligibleMemberOptions"
           placeholder="Selecione o membro"
         />
+      </div>
+      <div v-else>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Nome do convidado</label>
+        <Input v-model="assignForm.guestName" placeholder="Ex.: Pr. João Silva" />
       </div>
       <div>
         <label class="block text-sm font-medium text-neutral-700 mb-1">Observações</label>
@@ -321,6 +361,11 @@ import {
   SERVICE_ROLE_CATEGORY_ORDER,
 } from '@/constants/organization'
 import { confirmAction } from '@/composables/useConfirm'
+import {
+  getAssignmentAvatarName,
+  getAssignmentDisplayName,
+  isAssignmentFilled,
+} from '@/utils/serviceAssignment'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -356,11 +401,17 @@ const assignModalSubtitle = computed(() => {
 })
 
 const assignForm = ref({
+  assigneeType: 'member' as 'member' | 'guest',
   memberId: '',
+  guestName: '',
   notes: '',
 })
 
 const copyForm = ref({ sourceWorshipServiceId: '' })
+
+const allowsGuestAssignment = computed(
+  () => Boolean(assigningAssignment.value?.serviceRole?.allowsGuestAssignment),
+)
 
 const sortedAssignments = computed(() => {
   const list = service.value?.assignments || []
@@ -478,10 +529,6 @@ function summaryStatusBadgeClass(status: string) {
   return `${base} border-neutral-200 bg-surface-page text-neutral-600`
 }
 
-function isAssignmentFilled(assignment: ServiceAssignment) {
-  return Boolean(assignment.memberId || assignment.servingGroupId)
-}
-
 function isAssignmentRequired(assignment: ServiceAssignment) {
   const typeRole = typeRoles.value.find(
     (role) => role.serviceRoleId === assignment.serviceRoleId,
@@ -506,15 +553,7 @@ function slotStatusLabel(assignment: ServiceAssignment) {
 }
 
 function assignmentLabel(assignment: ServiceAssignment) {
-  if (assignment.servingGroup) {
-    const members = assignment.servingGroup.members
-      ?.map((m) => m.member?.name)
-      .filter(Boolean)
-      .join(' · ')
-    return members ? `Grupo: ${assignment.servingGroup.name} (${members})` : `Grupo: ${assignment.servingGroup.name}`
-  }
-  if (assignment.member) return assignment.member.name
-  return 'Vaga em aberto'
+  return getAssignmentDisplayName(assignment) || 'Vaga em aberto'
 }
 
 async function loadService(options?: { silent?: boolean }) {
@@ -545,17 +584,24 @@ async function loadService(options?: { silent?: boolean }) {
 
 async function openAssignModal(assignment: ServiceAssignment) {
   assigningAssignment.value = assignment
+  const hasGuest = Boolean(assignment.guestName?.trim())
   assignForm.value = {
+    assigneeType: hasGuest ? 'guest' : 'member',
     memberId: assignment.memberId ? String(assignment.memberId) : '',
+    guestName: assignment.guestName?.trim() || '',
     notes: assignment.notes || '',
   }
   formError.value = ''
   showAssignModal.value = true
 
-  try {
-    eligibleMembers.value = await organizationService.getEligibleMembersForAssignment(assignment.id)
-  } catch (err: any) {
-    formError.value = err.response?.data?.message || 'Erro ao carregar opções'
+  if (!assignment.serviceRole?.allowsGuestAssignment || !hasGuest) {
+    try {
+      eligibleMembers.value = await organizationService.getEligibleMembersForAssignment(
+        assignment.id,
+      )
+    } catch (err: any) {
+      formError.value = err.response?.data?.message || 'Erro ao carregar opções'
+    }
   }
 }
 
@@ -568,10 +614,32 @@ async function saveAssignment() {
   if (!service.value || !assigningAssignment.value) return
   saving.value = true
   formError.value = ''
+
+  const guestName = assignForm.value.guestName.trim()
+  const memberId = assignForm.value.memberId ? Number(assignForm.value.memberId) : undefined
+
+  if (allowsGuestAssignment.value && assignForm.value.assigneeType === 'guest') {
+    if (!guestName) {
+      formError.value = 'Informe o nome do convidado'
+      saving.value = false
+      return
+    }
+  } else if (!memberId) {
+    formError.value = 'Selecione um membro'
+    saving.value = false
+    return
+  }
+
   try {
     await organizationService.assignServiceAssignment(service.value.id, {
       assignmentId: assigningAssignment.value.id,
-      memberId: assignForm.value.memberId ? Number(assignForm.value.memberId) : undefined,
+      memberId: allowsGuestAssignment.value && assignForm.value.assigneeType === 'guest'
+        ? undefined
+        : memberId,
+      guestName:
+        allowsGuestAssignment.value && assignForm.value.assigneeType === 'guest'
+          ? guestName
+          : null,
       notes: assignForm.value.notes.trim() || null,
     })
     await loadService({ silent: true })

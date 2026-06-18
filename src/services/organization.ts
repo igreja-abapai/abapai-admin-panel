@@ -35,6 +35,7 @@ export interface ServiceRole {
   category: string
   description?: string
   isActive: boolean
+  allowsGuestAssignment?: boolean
 }
 
 export interface MemberServiceCapability {
@@ -125,6 +126,7 @@ export interface ServiceAssignment {
   assignedBy?: number
   assignedAt?: string
   notes?: string
+  guestName?: string | null
   serviceRole?: ServiceRole
   member?: Member
   servingGroup?: ServingGroup
@@ -572,6 +574,7 @@ class OrganizationService {
       assignmentId: number
       memberId?: number
       servingGroupId?: number
+      guestName?: string | null
       notes?: string | null
     },
   ) {

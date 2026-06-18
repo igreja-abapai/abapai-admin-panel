@@ -113,6 +113,9 @@
         <Input v-model="roleForm.description" />
       </div>
       <Checkbox v-model="roleForm.isActive">Ativo</Checkbox>
+      <Checkbox v-model="roleForm.allowsGuestAssignment">
+        Permite atribuir convidado externo
+      </Checkbox>
 
       <template #footer-actions>
         <button type="button" class="btn btn-secondary" @click="showRoleModal = false">
@@ -161,11 +164,13 @@ const roleForm = ref<{
   category: string
   description: string
   isActive: boolean
+  allowsGuestAssignment: boolean
 }>({
   name: '',
   category: ServiceRoleCategory.SUPPORT_AND_CARE,
   description: '',
   isActive: true,
+  allowsGuestAssignment: false,
 })
 
 const categoryOptions = enumToSelectOptions(ServiceRoleCategory)
@@ -203,6 +208,7 @@ function openRoleModal(role?: ServiceRole) {
     category: role?.category || ServiceRoleCategory.SUPPORT_AND_CARE,
     description: role?.description || '',
     isActive: role?.isActive ?? true,
+    allowsGuestAssignment: role?.allowsGuestAssignment ?? false,
   }
   formError.value = ''
   showRoleModal.value = true

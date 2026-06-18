@@ -1,4 +1,5 @@
 import type { ServiceAssignment, WorshipService, WorshipServiceType } from '@/services/organization'
+import { getAssignmentDisplayName } from '@/utils/serviceAssignment'
 
 export interface WorshipSchedulePdfRow {
   roleName: string
@@ -35,23 +36,6 @@ function getRoleGroupOrder(service: WorshipService): Map<number, number> {
   }
 
   return order
-}
-
-export function getAssignmentDisplayName(assignment: ServiceAssignment): string | null {
-  if (assignment.member) return assignment.member.name
-
-  if (assignment.servingGroup) {
-    const members = assignment.servingGroup.members
-      ?.map((member) => member.member?.name)
-      .filter(Boolean)
-      .join(' · ')
-
-    return members
-      ? `Grupo: ${assignment.servingGroup.name} (${members})`
-      : `Grupo: ${assignment.servingGroup.name}`
-  }
-
-  return null
 }
 
 function formatWeekdayLabel(date: Date): string {

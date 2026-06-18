@@ -191,13 +191,13 @@
                     <div class="flex -space-x-2.5">
                       <Tooltip
                         v-for="(volunteer, index) in getAssignedVolunteers(service).slice(0, 4)"
-                        :key="`${service.id}-${volunteer.member.id}-${index}`"
+                        :key="`${service.id}-${volunteer.member?.id ?? volunteer.guestName}-${index}`"
                         position="center"
                         width="auto"
                       >
                         <MemberAvatar
-                          :name="volunteer.member.name"
-                          :photo-url="volunteer.member.photoUrl"
+                          :name="volunteer.displayName"
+                          :photo-url="volunteer.member?.photoUrl"
                           size="sm"
                           wrapper-class="border-2 border-white"
                         />
@@ -206,7 +206,7 @@
                             {{
                               formatVolunteerTooltipLabel(
                                 volunteer.roleNames,
-                                volunteer.member.name,
+                                volunteer.displayName,
                               )
                             }}
                           </span>
@@ -475,7 +475,7 @@
         v-model:included-member-ids="servicesIncludedMemberIds"
         v-model:members-section-open="servicesMembersSectionOpen"
         v-model:roles-section-open="servicesRolesSectionOpen"
-        :role-options="generateRoleOptions"
+        :role-options="allRoleOptions"
         :members="servicesEligibleMembers"
         :members-loading="servicesEligibleMembersLoading"
       />
@@ -531,7 +531,7 @@
         v-model:included-member-ids="assignmentsIncludedMemberIds"
         v-model:members-section-open="assignmentsMembersSectionOpen"
         v-model:roles-section-open="assignmentsRolesSectionOpen"
-        :role-options="generateRoleOptions"
+        :role-options="allRoleOptions"
         :members="assignmentsEligibleMembers"
         :members-loading="assignmentsEligibleMembersLoading"
       />
@@ -666,6 +666,7 @@ import {
   enumToSelectOptions,
 } from '@/constants/organization'
 import { formatVolunteerTooltipLabel } from '@/utils/nameFormat'
+import { isAssignmentFilled } from '@/utils/serviceAssignment'
 import { getCategoryIcon, getCategoryStyle } from '@/utils/serviceRoleCategory'
 import {
   buildWorshipSchedulePdfServices,
@@ -830,7 +831,7 @@ const yearOptions = computed(() => {
   }))
 })
 
-const generateRoleOptions = computed(() =>
+const allRoleOptions = computed(() =>
   serviceRoles.value
     .filter((role) => role.isActive)
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -846,13 +847,13 @@ const exportRoleOptions = computed(() => {
 
   for (const service of services.value) {
     for (const assignment of service.assignments || []) {
-      if ((assignment.memberId || assignment.servingGroupId) && assignment.serviceRoleId) {
+      if (isAssignmentFilled(assignment) && assignment.serviceRoleId) {
         assignedRoleIds.add(assignment.serviceRoleId)
       }
     }
   }
 
-  return generateRoleOptions.value.filter((role) => assignedRoleIds.has(role.value))
+  return allRoleOptions.value.filter((role) => assignedRoleIds.has(role.value))
 })
 
 const exportFormatOptions = [
@@ -1034,7 +1035,9 @@ function getStatusDisplay(service: WorshipService) {
 }
 
 interface AssignedVolunteer {
-  member: Member
+  member: Member | null
+  guestName: string | null
+  displayName: string
   roleNames: string[]
   serviceRoleId: number
   slotNumber: number
@@ -1070,15 +1073,48 @@ function getAssignedVolunteers(service: WorshipService): AssignedVolunteer[] {
   const roleGroupOrder = getRoleGroupOrder(service)
 
   for (const assignment of service.assignments || []) {
-    if (!assignment.member) continue
+    if (!isAssignmentFilled(assignment)) continue
 
     const roleName = assignment.serviceRole?.name || 'Função'
+    const guestName = assignment.guestName?.trim()
+
+    if (guestName) {
+      const guestKey = `guest:${guestName.toLowerCase()}`
+      const existing = volunteers.get(guestKey)
+
+      if (!existing) {
+        volunteers.set(guestKey, {
+          member: null,
+          guestName,
+          displayName: guestName,
+          roleNames: [roleName],
+          serviceRoleId: assignment.serviceRoleId,
+          slotNumber: assignment.slotNumber,
+        })
+        continue
+      }
+
+      if (!existing.roleNames.includes(roleName)) {
+        existing.roleNames.push(roleName)
+      }
+
+      if (assignment.slotNumber < existing.slotNumber) {
+        existing.slotNumber = assignment.slotNumber
+        existing.serviceRoleId = assignment.serviceRoleId
+      }
+      continue
+    }
+
+    if (!assignment.member) continue
+
     const memberKey = String(assignment.member.id)
     const existing = volunteers.get(memberKey)
 
     if (!existing) {
       volunteers.set(memberKey, {
         member: assignment.member,
+        guestName: null,
+        displayName: assignment.member.name,
         roleNames: [roleName],
         serviceRoleId: assignment.serviceRoleId,
         slotNumber: assignment.slotNumber,
@@ -1102,7 +1138,7 @@ function getAssignedVolunteers(service: WorshipService): AssignedVolunteer[] {
     if (roleOrderA !== roleOrderB) return roleOrderA - roleOrderB
     if (a.serviceRoleId !== b.serviceRoleId) return a.serviceRoleId - b.serviceRoleId
     if (a.slotNumber !== b.slotNumber) return a.slotNumber - b.slotNumber
-    return a.member.name.localeCompare(b.member.name, 'pt-BR')
+    return a.displayName.localeCompare(b.displayName, 'pt-BR')
   })
 }
 
@@ -1125,7 +1161,7 @@ function totalSlots(service: WorshipService) {
 }
 
 function filledSlots(service: WorshipService) {
-  return service.assignments?.filter((a) => a.memberId || a.servingGroupId).length || 0
+  return service.assignments?.filter(isAssignmentFilled).length || 0
 }
 
 function goToDetail(service: WorshipService) {
