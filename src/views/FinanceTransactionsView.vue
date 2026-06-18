@@ -9,6 +9,8 @@ import {
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 import Select from '@/components/Select.vue'
 import Input from '@/components/Input.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
@@ -346,75 +348,70 @@ async function handleExportExcel() {
       </DataTable>
     </div>
 
-    <div
-      v-if="showForm"
-      class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-      @click.self="showForm = false"
+    <BaseModal
+      v-model="showForm"
+      title="Nova transação"
+      form
+      @submit="handleCreateTransaction"
     >
-      <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
-        <h2 class="text-xl font-semibold text-neutral-900 mb-4">Nova transação</h2>
-
-        <div class="finance-dp space-y-4">
+      <div class="finance-dp space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-neutral-700 mb-2">Data</label>
+          <VueDatePicker
+            v-model="form.date"
+            :enable-time-picker="false"
+            placeholder="dd/mm/aaaa"
+            format="dd/MM/yyyy"
+            locale="pt-BR"
+            select-text="Selecionar"
+            cancel-text="Cancelar"
+            class="w-full"
+          />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Data</label>
-            <VueDatePicker
-              v-model="form.date"
-              :enable-time-picker="false"
-              placeholder="dd/mm/aaaa"
-              format="dd/MM/yyyy"
-              locale="pt-BR"
-              select-text="Selecionar"
-              cancel-text="Cancelar"
-              class="w-full"
-            />
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-2">Tipo</label>
-              <Select v-model="form.type" :options="formTypeOptions" placeholder="Tipo" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-2">Valor</label>
-              <Input
-                :model-value="form.amount ?? ''"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0,00"
-                input-class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                @update:model-value="
-                  (v) => {
-                    form.amount =
-                      v === '' || v === null || v === undefined ? null : Number(v)
-                  }
-                "
-              />
-            </div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Tipo</label>
+            <Select v-model="form.type" :options="formTypeOptions" placeholder="Tipo" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Categoria</label>
-            <Input v-model="form.category" placeholder="Ex: Dízimos, Ofertas" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Descrição</label>
-            <textarea
-              v-model="form.description"
-              rows="2"
-              class="w-full px-3 py-2.5 border border-inputBorder rounded-lg text-sm text-gray-800 bg-white transition-colors placeholder:text-txt-light"
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Valor</label>
+            <Input
+              :model-value="form.amount ?? ''"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0,00"
+              input-class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              @update:model-value="
+                (v) => {
+                  form.amount =
+                    v === '' || v === null || v === undefined ? null : Number(v)
+                }
+              "
             />
           </div>
         </div>
-
-        <div class="mt-6 flex justify-end space-x-3">
-          <button class="btn btn-secondary" @click="showForm = false" :disabled="saving">
-            Cancelar
-          </button>
-          <button class="btn btn-primary" @click="handleCreateTransaction" :disabled="saving">
-            {{ saving ? 'Salvando...' : 'Salvar' }}
-          </button>
+        <div>
+          <label class="block text-sm font-medium text-neutral-700 mb-2">Categoria</label>
+          <Input v-model="form.category" placeholder="Ex: Dízimos, Ofertas" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-neutral-700 mb-2">Descrição</label>
+          <textarea
+            v-model="form.description"
+            rows="2"
+            class="w-full px-3 py-2.5 border border-inputBorder rounded-lg text-sm text-gray-800 bg-white transition-colors placeholder:text-txt-light"
+          />
         </div>
       </div>
-    </div>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" :disabled="saving" @click="showForm = false">
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">Salvar</ModalSubmitButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 

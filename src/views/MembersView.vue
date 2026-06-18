@@ -64,25 +64,7 @@
 
       <template #column-name="{ item }">
           <div class="flex items-center min-w-0">
-            <div
-              v-if="item.photoUrl"
-              class="w-10 h-10 rounded-full overflow-hidden shrink-0"
-            >
-              <img
-                :src="item.photoUrl"
-                :alt="`Foto de ${item.name}`"
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div
-              v-else
-              :class="[
-                'w-10 h-10 text-white rounded-full flex items-center justify-center text-sm font-medium shrink-0',
-                getAvatarColor(item.name),
-              ]"
-            >
-              {{ getInitials(item.name) }}
-            </div>
+            <MemberAvatar :name="item.name" :photo-url="item.photoUrl" size="md" />
             <div class="ml-3 min-w-0">
               <p class="font-medium text-neutral-900 truncate text-sm">{{ item.name }}</p>
               <p class="text-xs text-neutral-500 mt-0.5">
@@ -161,65 +143,42 @@
         </template>
     </DataTable>
 
-    <Teleport to="body">
-      <div
-        v-if="filtersModalOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-        @click.self="closeFiltersModal"
-      >
-        <div
-          class="bg-white rounded-2xl border border-neutral-200 shadow-lg w-full max-w-md"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="filters-modal-title"
-          @click.stop
-        >
-          <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
-            <h2 id="filters-modal-title" class="text-lg font-semibold text-neutral-900">Filtros</h2>
-            <button
-              type="button"
-              class="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
-              aria-label="Fechar filtros"
-              @click="closeFiltersModal"
-            >
-              <XMarkIcon class="w-5 h-5" />
-            </button>
-          </div>
-
-          <div class="px-6 py-5">
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-2">Batismo</label>
-              <Select
-                v-model="baptismFilterDraft"
-                :options="[
-                  { value: 'true', label: 'Batizados' },
-                  { value: 'false', label: 'Não batizados' },
-                ]"
-                placeholder="Todos"
-              />
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-neutral-100">
-            <button
-              type="button"
-              class="text-sm font-medium text-neutral-600 hover:text-neutral-900"
-              @click="clearFilters"
-            >
-              Limpar filtros
-            </button>
-            <div class="flex items-center gap-3">
-              <button type="button" class="btn btn-secondary" @click="closeFiltersModal">
-                Cancelar
-              </button>
-              <button type="button" class="btn btn-primary" @click="applyFiltersModal">
-                Aplicar
-              </button>
-            </div>
-          </div>
-        </div>
+    <BaseModal
+      v-model="filtersModalOpen"
+      title="Filtros"
+      max-width="md"
+      @close="closeFiltersModal"
+    >
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-2">Batismo</label>
+        <Select
+          v-model="baptismFilterDraft"
+          :options="[
+            { value: 'true', label: 'Batizados' },
+            { value: 'false', label: 'Não batizados' },
+          ]"
+          placeholder="Todos"
+        />
       </div>
-    </Teleport>
+
+      <template #footer-summary>
+        <button
+          type="button"
+          class="text-sm font-medium text-neutral-600 hover:text-neutral-900"
+          @click="clearFilters"
+        >
+          Limpar filtros
+        </button>
+      </template>
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="closeFiltersModal">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" @click="applyFiltersModal">
+          Aplicar
+        </button>
+      </template>
+    </BaseModal>
 
     <Teleport to="body">
       <div
@@ -257,7 +216,6 @@ import {
   UserGroupIcon,
   EllipsisVerticalIcon,
   EllipsisHorizontalIcon,
-  XMarkIcon,
   EyeIcon,
   PencilIcon,
 } from '@heroicons/vue/24/outline'
@@ -267,6 +225,8 @@ import { formatPhoneNumber } from '@/utils/phoneMask'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import MemberAvatar from '@/components/MemberAvatar.vue'
 
 type StatusTab = 'all' | 'active' | 'inactive'
 
@@ -310,8 +270,6 @@ const tableTabs = computed(() =>
     count: tabCounts.value[tab.key],
   })),
 )
-
-const avatarColors = ['bg-emerald-500', 'bg-blue-500', 'bg-amber-500', 'bg-violet-500']
 
 const ROW_MENU_WIDTH = 160
 const ROW_MENU_HEIGHT = 88
@@ -379,22 +337,6 @@ const paginationInfo = computed(() => ({
 
 function formatBirthdate(member: Member): string {
   return member.birthdate ? formatDate(member.birthdate) : '—'
-}
-
-function getInitials(name?: string): string {
-  if (!name) return ''
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-}
-
-function getAvatarColor(name: string): string {
-  const index =
-    name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % avatarColors.length
-  return avatarColors[index]
 }
 
 function statusTabFromQuery(status: unknown): StatusTab {

@@ -159,100 +159,70 @@
     </div>
 
     <!-- Change Password Modal -->
-    <div
-      v-if="showChangePasswordModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+    <BaseModal
+      v-model="showChangePasswordModal"
+      title="Alterar senha"
+      max-width="md"
+      form
+      :error="changePasswordError"
+      @submit="handleChangePassword"
     >
-      <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-        <h2 class="text-lg font-semibold mb-4">Alterar senha</h2>
-        <form @submit.prevent="handleChangePassword">
-          <div class="mb-4">
-            <label class="block text-sm font-medium mb-1">Senha atual</label>
-            <input
-              v-model="changePasswordForm.currentPassword"
-              type="password"
-              required
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-          </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium mb-1">Nova senha</label>
-            <input
-              v-model="changePasswordForm.newPassword"
-              type="password"
-              required
-              minlength="6"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-          </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium mb-1">Confirmar nova senha</label>
-            <input
-              v-model="changePasswordForm.confirmPassword"
-              type="password"
-              required
-              minlength="6"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-            <p
-              v-if="
-                changePasswordForm.newPassword &&
-                changePasswordForm.confirmPassword &&
-                changePasswordForm.newPassword !== changePasswordForm.confirmPassword
-              "
-              class="text-xs text-red-500 mt-1"
-            >
-              As senhas não coincidem
-            </p>
-          </div>
-          <div v-if="changePasswordError" class="mb-2 text-red-600 text-sm">
-            {{ changePasswordError }}
-          </div>
-          <div v-if="changePasswordSuccess" class="mb-2 text-green-600 text-sm">
-            {{ changePasswordSuccess }}
-          </div>
-          <div class="flex justify-end gap-2 mt-4">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="showChangePasswordModal = false"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="btn btn-primary"
-              :disabled="changingPassword || !isChangePasswordFormValid"
-            >
-              <span
-                v-if="changingPassword"
-                class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
-              ></span>
-              {{ changingPassword ? 'Salvando...' : 'Salvar' }}
-            </button>
-          </div>
-        </form>
-        <button
-          @click="showChangePasswordModal = false"
-          class="absolute top-2 right-2 text-neutral-400 hover:text-neutral-700"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+      <div>
+        <label class="block text-sm font-medium mb-1">Senha atual</label>
+        <input
+          v-model="changePasswordForm.currentPassword"
+          type="password"
+          required
+          class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+        />
       </div>
-    </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Nova senha</label>
+        <input
+          v-model="changePasswordForm.newPassword"
+          type="password"
+          required
+          minlength="6"
+          class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Confirmar nova senha</label>
+        <input
+          v-model="changePasswordForm.confirmPassword"
+          type="password"
+          required
+          minlength="6"
+          class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+        />
+        <p
+          v-if="
+            changePasswordForm.newPassword &&
+            changePasswordForm.confirmPassword &&
+            changePasswordForm.newPassword !== changePasswordForm.confirmPassword
+          "
+          class="text-xs text-red-500 mt-1"
+        >
+          As senhas não coincidem
+        </p>
+      </div>
+      <p v-if="changePasswordSuccess" class="text-green-600 text-sm">
+        {{ changePasswordSuccess }}
+      </p>
+
+      <template #footer-actions>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          @click="showChangePasswordModal = false"
+        >
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="changingPassword" :disabled="!isChangePasswordFormValid">
+          Salvar
+        </ModalSubmitButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -265,6 +235,8 @@ import type { Role } from '@/stores/auth'
 import { authService } from '@/services/auth'
 import { useAuthStore } from '@/stores/auth'
 import CustomSelect from '@/components/CustomSelect.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
 
 const user = ref<User | null>(null)
 const roles = ref<Role[]>([])

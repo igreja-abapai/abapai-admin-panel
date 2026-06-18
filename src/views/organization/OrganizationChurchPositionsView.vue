@@ -89,47 +89,38 @@
       </div>
     </Teleport>
 
-    <div
-      v-if="showPositionModal"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-model="showPositionModal"
+      :title="editingPosition ? 'Editar Cargo' : 'Novo Cargo'"
+      form
+      :error="formError"
+      @submit="savePosition"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">
-          {{ editingPosition ? 'Editar Cargo' : 'Novo Cargo' }}
-        </h2>
-        <form class="space-y-4" @submit.prevent="savePosition">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
-            <Input v-model="positionForm.name" required />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Categoria</label>
-            <Select
-              v-model="positionForm.category"
-              :options="categoryOptions"
-              placeholder="Selecione a categoria"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Descrição</label>
-            <Input v-model="positionForm.description" />
-          </div>
-          <label class="flex items-center gap-2 text-sm text-neutral-700">
-            <input v-model="positionForm.isActive" type="checkbox" class="rounded" />
-            Ativo
-          </label>
-          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
-          <div class="flex justify-end gap-2 pt-2">
-            <button type="button" class="btn btn-secondary" @click="showPositionModal = false">
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'Salvando...' : 'Salvar' }}
-            </button>
-          </div>
-        </form>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
+        <Input v-model="positionForm.name" required />
       </div>
-    </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Categoria</label>
+        <Select
+          v-model="positionForm.category"
+          :options="categoryOptions"
+          placeholder="Selecione a categoria"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Descrição</label>
+        <Input v-model="positionForm.description" />
+      </div>
+      <Checkbox v-model="positionForm.isActive">Ativo</Checkbox>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="showPositionModal = false">
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">Salvar</ModalSubmitButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -139,6 +130,9 @@ import { PlusIcon, PencilIcon, TrashIcon, EllipsisVerticalIcon } from '@heroicon
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import Checkbox from '@/components/Checkbox.vue'
+import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
 import { organizationService, type ChurchPosition } from '@/services/organization'
 import { useAuthStore } from '@/stores/auth'
 import { ChurchPositionCategory, enumToSelectOptions } from '@/constants/organization'

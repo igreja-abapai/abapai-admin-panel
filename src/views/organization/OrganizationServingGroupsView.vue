@@ -60,23 +60,13 @@
           >
             <div class="flex shrink-0 -space-x-2">
               <template v-for="(member, index) in getGroupMembers(group).slice(0, 2)" :key="member.id">
-                <img
-                  v-if="member.photoUrl"
-                  :src="member.photoUrl"
-                  :alt="`Foto de ${member.name}`"
-                  class="h-7 w-7 rounded-full object-cover ring-2 ring-white"
-                  :style="{ zIndex: 2 - index }"
+                <MemberAvatar
+                  :name="member.name"
+                  :photo-url="member.photoUrl"
+                  size="2xs"
+                  wrapper-class="ring-2 ring-white"
+                  :wrapper-style="{ zIndex: 2 - index }"
                 />
-                <div
-                  v-else
-                  :class="[
-                    'h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-semibold ring-2 ring-white',
-                    getAvatarColor(member.name),
-                  ]"
-                  :style="{ zIndex: 2 - index }"
-                >
-                  {{ getInitials(member.name) }}
-                </div>
               </template>
               <div
                 v-for="index in Math.max(0, 2 - getGroupMembers(group).length)"
@@ -124,23 +114,13 @@
                     v-for="(member, index) in getGroupMembers(selectedGroup).slice(0, 2)"
                     :key="member.id"
                   >
-                    <img
-                      v-if="member.photoUrl"
-                      :src="member.photoUrl"
-                      :alt="`Foto de ${member.name}`"
-                      class="h-12 w-12 rounded-full object-cover ring-2 ring-white"
-                      :style="{ zIndex: 2 - index }"
+                    <MemberAvatar
+                      :name="member.name"
+                      :photo-url="member.photoUrl"
+                      size="lg"
+                      wrapper-class="ring-2 ring-white"
+                      :wrapper-style="{ zIndex: 2 - index }"
                     />
-                    <div
-                      v-else
-                      :class="[
-                        'h-12 w-12 rounded-full flex items-center justify-center text-sm font-semibold ring-2 ring-white',
-                        getAvatarColor(member.name),
-                      ]"
-                      :style="{ zIndex: 2 - index }"
-                    >
-                      {{ getInitials(member.name) }}
-                    </div>
                   </template>
                 </div>
 
@@ -217,21 +197,11 @@
                 class="flex items-center justify-between gap-4 rounded-xl border border-neutral-100 bg-neutral-50/40 px-4 py-3.5"
               >
                 <div class="flex items-center gap-3 min-w-0">
-                  <img
-                    v-if="memberLink.member?.photoUrl"
-                    :src="memberLink.member.photoUrl"
-                    :alt="`Foto de ${memberLink.member.name}`"
-                    class="h-10 w-10 rounded-full object-cover shrink-0"
+                  <MemberAvatar
+                    :name="memberLink.member?.name || 'Membro'"
+                    :photo-url="memberLink.member?.photoUrl"
+                    size="md"
                   />
-                  <div
-                    v-else
-                    :class="[
-                      'h-10 w-10 rounded-full flex items-center justify-center text-xs font-semibold shrink-0',
-                      getAvatarColor(memberLink.member?.name || '?'),
-                    ]"
-                  >
-                    {{ getInitials(memberLink.member?.name) }}
-                  </div>
 
                   <div class="min-w-0">
                     <p class="text-sm font-semibold text-neutral-900 truncate">
@@ -276,84 +246,71 @@
     </div>
 
     <!-- Group modal -->
-    <div
-      v-if="showGroupModal"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-model="showGroupModal"
+      :title="editingGroup ? 'Editar Grupo' : 'Novo Grupo'"
+      form
+      :error="formError"
+      @submit="saveGroup"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">
-          {{ editingGroup ? 'Editar Grupo' : 'Novo Grupo' }}
-        </h2>
-        <form class="space-y-4" @submit.prevent="saveGroup">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
-            <Input v-model="groupForm.name" required placeholder="Ex.: Casal João e Maria" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Função de serviço</label>
-            <Select
-              v-model="groupForm.serviceRoleId"
-              :options="serviceRoleOptions"
-              placeholder="Selecione"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Membros</label>
-            <MultiSelect
-              v-model="groupForm.memberIds"
-              :options="memberOptions"
-              placeholder="Selecione os membros do grupo"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Observações</label>
-            <Input v-model="groupForm.notes" />
-          </div>
-          <label class="flex items-center gap-2 text-sm text-neutral-700">
-            <input v-model="groupForm.isActive" type="checkbox" class="rounded" />
-            Ativo
-          </label>
-          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
-          <div class="flex justify-end gap-2 pt-2">
-            <button type="button" class="btn btn-secondary" @click="showGroupModal = false">
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'Salvando...' : 'Salvar' }}
-            </button>
-          </div>
-        </form>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
+        <Input v-model="groupForm.name" required placeholder="Ex.: Casal João e Maria" />
       </div>
-    </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Função de serviço</label>
+        <Select
+          v-model="groupForm.serviceRoleId"
+          :options="serviceRoleOptions"
+          placeholder="Selecione"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Membros</label>
+        <MultiSelect
+          v-model="groupForm.memberIds"
+          :options="memberOptions"
+          placeholder="Selecione os membros do grupo"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Observações</label>
+        <Input v-model="groupForm.notes" />
+      </div>
+      <Checkbox v-model="groupForm.isActive">Ativo</Checkbox>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="showGroupModal = false">
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">Salvar</ModalSubmitButton>
+      </template>
+    </BaseModal>
 
     <!-- Member modal -->
-    <div
-      v-if="showMemberModal"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-model="showMemberModal"
+      title="Adicionar Membro ao Grupo"
+      form
+      :error="formError"
+      @submit="saveMember"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Adicionar Membro ao Grupo</h2>
-        <form class="space-y-4" @submit.prevent="saveMember">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Membro</label>
-            <Select
-              v-model="memberForm.memberId"
-              :options="availableMemberOptions"
-              placeholder="Selecione"
-            />
-          </div>
-          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
-          <div class="flex justify-end gap-2 pt-2">
-            <button type="button" class="btn btn-secondary" @click="showMemberModal = false">
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'Salvando...' : 'Salvar' }}
-            </button>
-          </div>
-        </form>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Membro</label>
+        <Select
+          v-model="memberForm.memberId"
+          :options="availableMemberOptions"
+          placeholder="Selecione"
+        />
       </div>
-    </div>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="showMemberModal = false">
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">Salvar</ModalSubmitButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -370,21 +327,15 @@ import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import MultiSelect from '@/components/MultiSelect.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import Checkbox from '@/components/Checkbox.vue'
+import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
+import MemberAvatar from '@/components/MemberAvatar.vue'
 import { organizationService, type ServingGroup, type ServiceRole } from '@/services/organization'
 import { membersService, type Member } from '@/services/members'
 import { ServiceRoleCategory } from '@/constants/organization'
 import { useAuthStore } from '@/stores/auth'
 import { confirmDelete, confirmRemove } from '@/composables/useConfirm'
-
-const AVATAR_COLORS = [
-  'bg-blue-100 text-blue-700',
-  'bg-violet-100 text-violet-700',
-  'bg-emerald-100 text-emerald-700',
-  'bg-amber-100 text-amber-700',
-  'bg-rose-100 text-rose-700',
-  'bg-teal-100 text-teal-700',
-  'bg-indigo-100 text-indigo-700',
-]
 
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_escalas'))
@@ -436,21 +387,6 @@ function getGroupMembers(group: ServingGroup): Member[] {
 
 function getMemberCount(group: ServingGroup): number {
   return group.members?.length || 0
-}
-
-function getInitials(name?: string): string {
-  if (!name) return '?'
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
-}
-
-function getAvatarColor(name: string): string {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
 }
 
 function getCategoryBadgeStyle(category?: string): string {

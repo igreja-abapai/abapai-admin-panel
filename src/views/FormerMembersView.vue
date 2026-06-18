@@ -47,22 +47,12 @@
       >
         <template #column-name="{ item }">
           <div class="flex items-center">
-            <div
-              v-if="item.photoUrl"
-              class="w-8 h-8 rounded-full overflow-hidden border-2 border-neutral-200 mr-3 flex-shrink-0"
-            >
-              <img
-                :src="item.photoUrl"
-                :alt="`Foto de ${item.name}`"
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div
-              v-else
-              class="w-8 h-8 bg-neutral-400 text-white rounded-full flex items-center justify-center text-xs font-medium mr-3 flex-shrink-0"
-            >
-              {{ getInitials(item.name) }}
-            </div>
+            <MemberAvatar
+              :name="item.name"
+              :photo-url="item.photoUrl"
+              size="xs"
+              wrapper-class="mr-3 border-2 border-neutral-200"
+            />
             <div class="text-sm font-medium text-neutral-900 truncate">{{ item.name }}</div>
           </div>
         </template>
@@ -102,6 +92,7 @@ import { membersService, type Member } from '@/services/members'
 import { formatDate } from '@/utils/dateFormat'
 import Input from '@/components/Input.vue'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
+import MemberAvatar from '@/components/MemberAvatar.vue'
 
 const loading = ref(false)
 const members = ref<Member[]>([])
@@ -161,16 +152,6 @@ const paginationInfo = computed(() => ({
   totalItems: totalMembers.value,
   itemsPerPage,
 }))
-
-function getInitials(name?: string): string {
-  if (!name) return ''
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-}
 
 function handleSort(key: string) {
   if (sortKey.value === key) {

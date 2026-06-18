@@ -839,16 +839,6 @@ const addressForm = reactive({
   state: '',
 })
 
-function getInitials(name?: string): string {
-  if (!name) return ''
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-}
-
 async function handlePhotoChange(event: Event) {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]

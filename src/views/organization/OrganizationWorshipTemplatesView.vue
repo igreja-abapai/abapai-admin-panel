@@ -320,97 +320,79 @@
     </div>
 
     <!-- Template modal -->
-    <div
-      v-if="showTemplateModal"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-model="showTemplateModal"
+      :title="editingTemplate ? 'Editar Modelo' : 'Novo Modelo de Culto'"
+      form
+      :error="formError"
+      @submit="saveTemplate"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">
-          {{ editingTemplate ? 'Editar Modelo' : 'Novo Modelo de Culto' }}
-        </h2>
-        <form class="space-y-4" @submit.prevent="saveTemplate">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
-            <Input v-model="templateForm.name" required />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Dia padrão</label>
-            <Select
-              v-model="templateForm.defaultWeekday"
-              :options="weekdayOptions"
-              placeholder="Selecione"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1"
-              >Horário padrão (HH:mm)</label
-            >
-            <Input v-model="templateForm.defaultTime" placeholder="19:00" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Descrição</label>
-            <Input v-model="templateForm.description" />
-          </div>
-          <label class="flex items-center gap-2 text-sm text-neutral-700">
-            <input v-model="templateForm.isActive" type="checkbox" class="rounded" />
-            Ativo
-          </label>
-          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
-          <div class="flex justify-end gap-2 pt-2">
-            <button type="button" class="btn btn-secondary" @click="showTemplateModal = false">
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'Salvando...' : 'Salvar' }}
-            </button>
-          </div>
-        </form>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
+        <Input v-model="templateForm.name" required />
       </div>
-    </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Dia padrão</label>
+        <Select
+          v-model="templateForm.defaultWeekday"
+          :options="weekdayOptions"
+          placeholder="Selecione"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1"
+          >Horário padrão (HH:mm)</label
+        >
+        <Input v-model="templateForm.defaultTime" placeholder="19:00" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Descrição</label>
+        <Input v-model="templateForm.description" />
+      </div>
+      <Checkbox v-model="templateForm.isActive">Ativo</Checkbox>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="showTemplateModal = false">
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">Salvar</ModalSubmitButton>
+      </template>
+    </BaseModal>
 
     <!-- Type role modal -->
-    <div
-      v-if="showTypeRoleModal"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-model="showTypeRoleModal"
+      :title="editingTypeRole ? 'Editar Função' : 'Adicionar Função'"
+      form
+      :error="formError"
+      @submit="saveTypeRole"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">
-          {{ editingTypeRole ? 'Editar Função' : 'Adicionar Função' }}
-        </h2>
-        <form class="space-y-4" @submit.prevent="saveTypeRole">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Função</label>
-            <Select
-              v-model="typeRoleForm.serviceRoleId"
-              :options="roleOptions"
-              placeholder="Selecione"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Quantidade</label>
-            <Input v-model="typeRoleForm.quantity" type="number" min="1" />
-          </div>
-          <label class="flex items-center gap-2 text-sm text-neutral-700">
-            <input v-model="typeRoleForm.isRequired" type="checkbox" class="rounded" />
-            Obrigatória
-          </label>
-          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
-          <div class="flex justify-end gap-2 pt-2">
-            <button type="button" class="btn btn-secondary" @click="showTypeRoleModal = false">
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'Salvando...' : 'Salvar' }}
-            </button>
-          </div>
-        </form>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Função</label>
+        <Select
+          v-model="typeRoleForm.serviceRoleId"
+          :options="roleOptions"
+          placeholder="Selecione"
+        />
       </div>
-    </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Quantidade</label>
+        <Input v-model="typeRoleForm.quantity" type="number" min="1" />
+      </div>
+      <Checkbox v-model="typeRoleForm.isRequired">Obrigatória</Checkbox>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="showTypeRoleModal = false">
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">Salvar</ModalSubmitButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, type Component } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
   PlusIcon,
   MinusIcon,
@@ -422,14 +404,12 @@ import {
   ClockIcon,
   UsersIcon,
   ShieldCheckIcon,
-  MicrophoneIcon,
-  MusicalNoteIcon,
-  VideoCameraIcon,
-  UserGroupIcon,
-  HeartIcon,
 } from '@heroicons/vue/24/outline'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import Checkbox from '@/components/Checkbox.vue'
+import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
 import {
   organizationService,
   type WorshipServiceType,
@@ -444,6 +424,7 @@ import {
   enumToSelectOptions,
 } from '@/constants/organization'
 import { confirmDelete, confirmRemove } from '@/composables/useConfirm'
+import { getCategoryStyle, getCategoryIcon } from '@/utils/serviceRoleCategory'
 
 const WEEKDAY_ABBREVIATIONS: Record<string, string> = {
   [Weekday.SUNDAY]: 'DOM',
@@ -560,44 +541,6 @@ function getTemplateStats(template: WorshipServiceType) {
     peopleCount: roles.reduce((sum, role) => sum + role.quantity, 0),
     requiredCount: roles.filter((role) => role.isRequired).length,
   }
-}
-
-function getCategoryStyle(category: string) {
-  const styles: Record<string, { icon: string }> = {
-    [ServiceRoleCategory.DIRECTION_AND_WORD]: {
-      icon: 'bg-blue-50 text-blue-600',
-    },
-    [ServiceRoleCategory.WORSHIP]: {
-      icon: 'bg-violet-50 text-violet-600',
-    },
-    [ServiceRoleCategory.MEDIA_AND_SOUND]: {
-      icon: 'bg-teal-50 text-teal-600',
-    },
-    [ServiceRoleCategory.RECEPTION]: {
-      icon: 'bg-amber-50 text-amber-600',
-    },
-    [ServiceRoleCategory.SUPPORT_AND_CARE]: {
-      icon: 'bg-rose-50 text-rose-600',
-    },
-  }
-
-  return (
-    styles[category] || {
-      icon: 'bg-neutral-100 text-neutral-600',
-    }
-  )
-}
-
-function getCategoryIcon(category: string): Component {
-  const icons: Record<string, Component> = {
-    [ServiceRoleCategory.DIRECTION_AND_WORD]: MicrophoneIcon,
-    [ServiceRoleCategory.WORSHIP]: MusicalNoteIcon,
-    [ServiceRoleCategory.MEDIA_AND_SOUND]: VideoCameraIcon,
-    [ServiceRoleCategory.RECEPTION]: UserGroupIcon,
-    [ServiceRoleCategory.SUPPORT_AND_CARE]: HeartIcon,
-  }
-
-  return icons[category] || ClipboardDocumentListIcon
 }
 
 async function loadData() {

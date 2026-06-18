@@ -89,47 +89,38 @@
       </div>
     </Teleport>
 
-    <div
-      v-if="showRoleModal"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-model="showRoleModal"
+      :title="editingRole ? 'Editar Função' : 'Nova Função'"
+      form
+      :error="formError"
+      @submit="saveRole"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">
-          {{ editingRole ? 'Editar Função' : 'Nova Função' }}
-        </h2>
-        <form class="space-y-4" @submit.prevent="saveRole">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
-            <Input v-model="roleForm.name" required />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Categoria</label>
-            <Select
-              v-model="roleForm.category"
-              :options="categoryOptions"
-              placeholder="Selecione a categoria"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Descrição</label>
-            <Input v-model="roleForm.description" />
-          </div>
-          <label class="flex items-center gap-2 text-sm text-neutral-700">
-            <input v-model="roleForm.isActive" type="checkbox" class="rounded" />
-            Ativo
-          </label>
-          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
-          <div class="flex justify-end gap-2 pt-2">
-            <button type="button" class="btn btn-secondary" @click="showRoleModal = false">
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'Salvando...' : 'Salvar' }}
-            </button>
-          </div>
-        </form>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
+        <Input v-model="roleForm.name" required />
       </div>
-    </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Categoria</label>
+        <Select
+          v-model="roleForm.category"
+          :options="categoryOptions"
+          placeholder="Selecione a categoria"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Descrição</label>
+        <Input v-model="roleForm.description" />
+      </div>
+      <Checkbox v-model="roleForm.isActive">Ativo</Checkbox>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="showRoleModal = false">
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">Salvar</ModalSubmitButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -139,6 +130,9 @@ import { PlusIcon, PencilIcon, TrashIcon, EllipsisVerticalIcon } from '@heroicon
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import Checkbox from '@/components/Checkbox.vue'
+import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
 import { organizationService, type ServiceRole } from '@/services/organization'
 import { useAuthStore } from '@/stores/auth'
 import { ServiceRoleCategory, enumToSelectOptions } from '@/constants/organization'

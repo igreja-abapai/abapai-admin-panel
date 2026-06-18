@@ -90,60 +90,37 @@
         </template>
     </DataTable>
 
-    <Teleport to="body">
-      <div
-        v-if="filtersModalOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-        @click.self="closeFiltersModal"
-      >
-        <div
-          class="bg-white rounded-2xl border border-neutral-200 shadow-lg w-full max-w-md"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="filters-modal-title"
-          @click.stop
+    <BaseModal
+      v-model="filtersModalOpen"
+      title="Filtros"
+      max-width="md"
+      @close="closeFiltersModal"
+    >
+      <label class="block text-sm font-medium text-neutral-700 mb-2">Área</label>
+      <Select
+        v-model="areaFilterDraft"
+        :options="areaFilterOptions"
+        placeholder="Todas as áreas"
+      />
+
+      <template #footer-summary>
+        <button
+          type="button"
+          class="text-sm font-medium text-neutral-600 hover:text-neutral-900"
+          @click="clearFilters"
         >
-          <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
-            <h2 id="filters-modal-title" class="text-lg font-semibold text-neutral-900">Filtros</h2>
-            <button
-              type="button"
-              class="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
-              aria-label="Fechar filtros"
-              @click="closeFiltersModal"
-            >
-              <XMarkIcon class="w-5 h-5" />
-            </button>
-          </div>
-
-          <div class="px-6 py-5">
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Área</label>
-            <Select
-              v-model="areaFilterDraft"
-              :options="areaFilterOptions"
-              placeholder="Todas as áreas"
-            />
-          </div>
-
-          <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-neutral-100">
-            <button
-              type="button"
-              class="text-sm font-medium text-neutral-600 hover:text-neutral-900"
-              @click="clearFilters"
-            >
-              Limpar filtros
-            </button>
-            <div class="flex items-center gap-3">
-              <button type="button" class="btn btn-secondary" @click="closeFiltersModal">
-                Cancelar
-              </button>
-              <button type="button" class="btn btn-primary" @click="applyFiltersModal">
-                Aplicar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+          Limpar filtros
+        </button>
+      </template>
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="closeFiltersModal">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" @click="applyFiltersModal">
+          Aplicar
+        </button>
+      </template>
+    </BaseModal>
 
     <Teleport to="body">
       <div
@@ -170,7 +147,6 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import {
   PlusIcon,
   EllipsisVerticalIcon,
-  XMarkIcon,
   TrashIcon,
 } from '@heroicons/vue/24/outline'
 import PrayingIcon from '@/components/icons/PrayingIcon.vue'
@@ -178,6 +154,7 @@ import { prayerRequestsService, type PrayerRequest } from '@/services/prayer-req
 import { formatPhoneNumber } from '@/utils/phoneMask'
 import Select from '@/components/Select.vue'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
+import BaseModal from '@/components/BaseModal.vue'
 import { confirmDelete } from '@/composables/useConfirm'
 
 const AREA_OPTIONS = [

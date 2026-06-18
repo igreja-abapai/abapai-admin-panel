@@ -154,15 +154,12 @@
                 class="flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl border border-neutral-200 bg-white px-4 py-3.5"
               >
                 <div class="flex items-center gap-3 min-w-0 flex-1">
-                  <div
+                  <MemberAvatar
                     v-if="assignment.member"
-                    :class="[
-                      'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold',
-                      getAvatarColor(assignment.member.name),
-                    ]"
-                  >
-                    {{ getInitials(assignment.member.name) }}
-                  </div>
+                    :name="assignment.member.name"
+                    :photo-url="assignment.member.photoUrl"
+                    size="md"
+                  />
                   <div
                     v-else
                     class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-400"
@@ -228,102 +225,71 @@
     <p v-else-if="error" class="text-red-600">{{ error }}</p>
 
     <!-- Assign modal -->
-    <div
-      v-if="showAssignModal && assigningAssignment"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-if="assigningAssignment"
+      v-model="showAssignModal"
+      title="Atribuir Vaga"
+      :subtitle="assignModalSubtitle"
+      form
+      :error="formError"
+      @submit="saveAssignment"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-1">Atribuir Vaga</h2>
-        <p class="text-sm text-neutral-500 mb-4">
-          {{ assigningAssignment.serviceRole?.name }}
-          <span v-if="assigningAssignment.slotNumber > 1">
-            (#{{ assigningAssignment.slotNumber }})
-          </span>
-        </p>
-
-        <form class="space-y-4" @submit.prevent="saveAssignment">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Membro elegível</label>
-            <Select
-              v-model="assignForm.memberId"
-              :options="eligibleMemberOptions"
-              placeholder="Selecione o membro"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Observações</label>
-            <Input v-model="assignForm.notes" />
-          </div>
-          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
-          <div class="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              :disabled="saving"
-              @click="closeAssignModal"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="btn btn-primary relative flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
-              :disabled="saving"
-              :aria-busy="saving"
-            >
-              <span
-                class="inline-flex items-center justify-center"
-                :class="{ invisible: saving }"
-                aria-hidden="true"
-              >
-                Salvar
-              </span>
-              <span v-if="saving" class="absolute inset-0 flex items-center justify-center">
-                <span
-                  class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
-                ></span>
-              </span>
-            </button>
-          </div>
-        </form>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Membro elegível</label>
+        <Select
+          v-model="assignForm.memberId"
+          :options="eligibleMemberOptions"
+          placeholder="Selecione o membro"
+        />
       </div>
-    </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Observações</label>
+        <Input v-model="assignForm.notes" />
+      </div>
+
+      <template #footer-actions>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          :disabled="saving"
+          @click="closeAssignModal"
+        >
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">Salvar</ModalSubmitButton>
+      </template>
+    </BaseModal>
 
     <!-- Copy modal -->
-    <div
-      v-if="showCopyModal"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-model="showCopyModal"
+      title="Copiar Atribuições"
+      subtitle="Copia as atribuições de outra escala para esta (mesmas funções e slots)."
+      form
+      :error="formError"
+      @submit="copyAssignments"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Copiar Atribuições</h2>
-        <p class="text-sm text-neutral-500 mb-4">
-          Copia as atribuições de outra escala para esta (mesmas funções e slots).
-        </p>
-        <form class="space-y-4" @submit.prevent="copyAssignments">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Escala de origem</label>
-            <Select
-              v-model="copyForm.sourceWorshipServiceId"
-              :options="otherServiceOptions"
-              placeholder="Selecione a escala"
-            />
-          </div>
-          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
-          <div class="flex justify-end gap-2 pt-2">
-            <button type="button" class="btn btn-secondary" @click="showCopyModal = false">
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'Copiando...' : 'Copiar' }}
-            </button>
-          </div>
-        </form>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Escala de origem</label>
+        <Select
+          v-model="copyForm.sourceWorshipServiceId"
+          :options="otherServiceOptions"
+          placeholder="Selecione a escala"
+        />
       </div>
-    </div>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="showCopyModal = false">
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">Copiar</ModalSubmitButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, type Component } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   ArrowLeftIcon,
@@ -333,15 +299,13 @@ import {
   PlusIcon,
   UsersIcon,
   UserIcon,
-  MicrophoneIcon,
-  MusicalNoteIcon,
-  VideoCameraIcon,
-  UserGroupIcon,
-  HeartIcon,
-  ClipboardDocumentListIcon,
 } from '@heroicons/vue/24/outline'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
+import MemberAvatar from '@/components/MemberAvatar.vue'
+import { getCategoryIcon, getCategoryStyle } from '@/utils/serviceRoleCategory'
 import {
   organizationService,
   type WorshipService,
@@ -357,16 +321,6 @@ import {
   SERVICE_ROLE_CATEGORY_ORDER,
 } from '@/constants/organization'
 import { confirmAction } from '@/composables/useConfirm'
-
-const AVATAR_COLORS = [
-  'bg-blue-100 text-blue-700',
-  'bg-violet-100 text-violet-700',
-  'bg-emerald-100 text-emerald-700',
-  'bg-amber-100 text-amber-700',
-  'bg-rose-100 text-rose-700',
-  'bg-teal-100 text-teal-700',
-  'bg-indigo-100 text-indigo-700',
-]
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -388,6 +342,18 @@ const typeRoles = ref<WorshipServiceTypeRole[]>([])
 const showAssignModal = ref(false)
 const showCopyModal = ref(false)
 const assigningAssignment = ref<ServiceAssignment | null>(null)
+
+const assignModalSubtitle = computed(() => {
+  const assignment = assigningAssignment.value
+  if (!assignment) return ''
+
+  const roleName = assignment.serviceRole?.name ?? ''
+  if (assignment.slotNumber > 1) {
+    return `${roleName} (#${assignment.slotNumber})`
+  }
+
+  return roleName
+})
 
 const assignForm = ref({
   memberId: '',
@@ -537,44 +503,6 @@ function slotStatusBadgeClass(assignment: ServiceAssignment) {
 function slotStatusLabel(assignment: ServiceAssignment) {
   if (!isAssignmentFilled(assignment)) return AssignmentStatus.EMPTY
   return assignment.status
-}
-
-function getInitials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
-  }
-  return name.slice(0, 2).toUpperCase()
-}
-
-function getAvatarColor(name: string) {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
-}
-
-function getCategoryStyle(category: string) {
-  const styles: Record<string, { icon: string }> = {
-    [ServiceRoleCategory.DIRECTION_AND_WORD]: { icon: 'bg-blue-50 text-blue-600' },
-    [ServiceRoleCategory.WORSHIP]: { icon: 'bg-violet-50 text-violet-600' },
-    [ServiceRoleCategory.MEDIA_AND_SOUND]: { icon: 'bg-teal-50 text-teal-600' },
-    [ServiceRoleCategory.RECEPTION]: { icon: 'bg-amber-50 text-amber-600' },
-    [ServiceRoleCategory.SUPPORT_AND_CARE]: { icon: 'bg-rose-50 text-rose-600' },
-  }
-  return styles[category] || { icon: 'bg-neutral-100 text-neutral-600' }
-}
-
-function getCategoryIcon(category: string): Component {
-  const icons: Record<string, Component> = {
-    [ServiceRoleCategory.DIRECTION_AND_WORD]: MicrophoneIcon,
-    [ServiceRoleCategory.WORSHIP]: MusicalNoteIcon,
-    [ServiceRoleCategory.MEDIA_AND_SOUND]: VideoCameraIcon,
-    [ServiceRoleCategory.RECEPTION]: UserGroupIcon,
-    [ServiceRoleCategory.SUPPORT_AND_CARE]: HeartIcon,
-  }
-  return icons[category] || ClipboardDocumentListIcon
 }
 
 function assignmentLabel(assignment: ServiceAssignment) {

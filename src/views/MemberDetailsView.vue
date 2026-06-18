@@ -78,22 +78,13 @@
       <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-start gap-6">
           <div class="flex items-center space-x-4 flex-1 min-w-0">
-            <div
-              v-if="member.photoUrl"
-              class="w-24 h-28 rounded-lg overflow-hidden border-2 border-neutral-200 shadow-sm shrink-0"
-            >
-              <img
-                :src="member.photoUrl"
-                :alt="`Foto de ${member.name}`"
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div
-              v-else
-              class="w-20 h-[100px] bg-primary-600 text-white rounded-lg flex items-center justify-center text-xl font-medium shrink-0"
-            >
-              {{ getInitials(member.name) }}
-            </div>
+            <MemberAvatar
+              :name="member.name"
+              :photo-url="member.photoUrl"
+              rounded="lg"
+              size="profile"
+              wrapper-class="border-2 border-neutral-200 shadow-sm shrink-0"
+            />
             <div class="min-w-0">
               <h2 class="text-2xl font-semibold text-neutral-900">{{ member.name }}</h2>
               <p class="text-neutral-500">{{ member.occupation }}</p>
@@ -524,76 +515,94 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div
-      v-if="showDeleteConfirmation"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 no-print"
-      @click="showDeleteConfirmation = false"
+    <BaseModal
+      v-model="showDeleteConfirmation"
+      title="Confirmar Exclusão"
+      max-width="md"
+      body-class="flex-1 overflow-y-auto thin-scrollbar px-6 pb-4 min-h-0 no-print"
     >
-      <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" @click.stop>
-        <div class="flex items-center mb-4">
-          <ExclamationTriangleIcon class="w-8 h-8 text-red-500 mr-3" />
-          <h3 class="text-lg font-medium text-neutral-900">Confirmar Exclusão</h3>
-        </div>
-        <p class="text-neutral-600 mb-6">
-          Tem certeza que deseja excluir o membro <strong>{{ member?.name }}</strong>? Os dados
-          serão mantidos no histórico e o membro poderá ser restaurado depois.
-        </p>
-        <div class="flex justify-end space-x-3">
-          <button @click="showDeleteConfirmation = false" class="btn btn-secondary">
-            Cancelar
-          </button>
-          <button
-            @click="handleDeleteMember"
-            :disabled="deleting"
-            class="btn bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700"
-          >
+      <template #icon>
+        <ExclamationTriangleIcon class="w-5 h-5 text-red-500" />
+      </template>
+
+      <p class="text-neutral-600">
+        Tem certeza que deseja excluir o membro <strong>{{ member?.name }}</strong>? Os dados
+        serão mantidos no histórico e o membro poderá ser restaurado depois.
+      </p>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="showDeleteConfirmation = false">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700 relative inline-flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+          :disabled="deleting"
+          :aria-busy="deleting"
+          @click="handleDeleteMember"
+        >
+          <span class="inline-flex items-center" :class="{ invisible: deleting }" aria-hidden="true">
+            Sim, Excluir
+          </span>
+          <span v-if="deleting" class="absolute inset-0 flex items-center justify-center">
             <span
-              v-if="deleting"
-              class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
+              class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
             ></span>
-            {{ deleting ? 'Excluindo...' : 'Sim, Excluir' }}
-          </button>
-        </div>
-      </div>
-    </div>
+          </span>
+        </button>
+      </template>
+    </BaseModal>
+
     <!-- Ausente Confirmation Modal -->
-    <div
-      v-if="showAusenteConfirmation"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 no-print"
-      @click="closeAusenteModal"
+    <BaseModal
+      v-model="showAusenteConfirmation"
+      title="Marcar como ausente"
+      max-width="md"
+      :error="absenceReasonError"
+      body-class="flex-1 overflow-y-auto thin-scrollbar px-6 pb-4 min-h-0 no-print"
+      @close="closeAusenteModal"
     >
-      <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" @click.stop>
-        <div class="flex items-center mb-4">
-          <ExclamationTriangleIcon class="w-8 h-8 text-yellow-500 mr-3" />
-          <h3 class="text-lg font-medium text-neutral-900">Marcar como ausente</h3>
-        </div>
-        <p class="text-neutral-600 mb-4">
-          Tem certeza que deseja marcar <strong>{{ member?.name }}</strong> como
-          <strong>Ausente</strong>?
-        </p>
-        <label class="block text-sm font-medium text-neutral-700 mb-2" for="absence-reason">
-          Motivo da ausência <span class="text-neutral-400 font-normal">(opcional)</span>
-        </label>
-        <textarea
-          id="absence-reason"
-          v-model="absenceReason"
-          rows="3"
-          class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          placeholder="Ex.: Mudou de cidade, está enfermo, etc..."
-        />
-        <p v-if="absenceReasonError" class="mt-2 text-sm text-red-600">{{ absenceReasonError }}</p>
-        <div class="flex justify-end space-x-3 mt-6">
-          <button @click="closeAusenteModal" class="btn btn-secondary">Cancelar</button>
-          <button @click="handleMarkAsAusente" :disabled="togglingStatus" class="btn btn-primary">
+      <template #icon>
+        <ExclamationTriangleIcon class="w-5 h-5 text-yellow-500" />
+      </template>
+
+      <p class="text-neutral-600">
+        Tem certeza que deseja marcar <strong>{{ member?.name }}</strong> como
+        <strong>Ausente</strong>?
+      </p>
+      <label class="block text-sm font-medium text-neutral-700 mb-2" for="absence-reason">
+        Motivo da ausência <span class="text-neutral-400 font-normal">(opcional)</span>
+      </label>
+      <textarea
+        id="absence-reason"
+        v-model="absenceReason"
+        rows="3"
+        class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+        placeholder="Ex.: Mudou de cidade, está enfermo, etc..."
+      />
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="closeAusenteModal">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary relative inline-flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+          :disabled="togglingStatus"
+          :aria-busy="togglingStatus"
+          @click="handleMarkAsAusente"
+        >
+          <span class="inline-flex items-center" :class="{ invisible: togglingStatus }" aria-hidden="true">
+            Confirmar
+          </span>
+          <span v-if="togglingStatus" class="absolute inset-0 flex items-center justify-center">
             <span
-              v-if="togglingStatus"
-              class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
+              class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
             ></span>
-            {{ togglingStatus ? 'Processando...' : 'Confirmar' }}
-          </button>
-        </div>
-      </div>
-    </div>
+          </span>
+        </button>
+      </template>
+    </BaseModal>
 
   </div>
 </template>
@@ -620,6 +629,8 @@ import { formatDate, formatDateTimeWithRelative } from '@/utils/dateFormat'
 import html2pdf from 'html2pdf.js'
 import MemberCard from '@/components/MemberCard.vue'
 import SplitButton from '@/components/SplitButton.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import MemberAvatar from '@/components/MemberAvatar.vue'
 import { environment } from '@/config/environment'
 import { getImageUrl } from '@/utils/imageUrl'
 
@@ -663,16 +674,6 @@ function closeAusenteModal() {
   showAusenteConfirmation.value = false
   absenceReason.value = ''
   absenceReasonError.value = ''
-}
-
-function getInitials(name?: string): string {
-  if (!name) return ''
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
 }
 
 function handleEdit() {

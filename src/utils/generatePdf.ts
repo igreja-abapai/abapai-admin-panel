@@ -1,8 +1,14 @@
 import html2pdf from 'html2pdf.js'
+import html2canvas from 'html2canvas'
 
 export interface GeneratePdfOptions {
   filename: string
   orientation?: 'portrait' | 'landscape'
+  pagebreakMode?: ('avoid-all' | 'css' | 'legacy')[]
+}
+
+export interface GenerateImageOptions {
+  filename: string
 }
 
 function convertImageToBase64(img: HTMLImageElement, usePng = false): Promise<void> {
@@ -97,13 +103,24 @@ async function prepareElementImages(element: HTMLElement): Promise<void> {
   )
 }
 
+async function prepareElementForExport(element: HTMLElement): Promise<void> {
+  await prepareElementImages(element)
+  await document.fonts.ready
+  await new Promise((resolve) => setTimeout(resolve, 300))
+}
+
+function downloadDataUrl(dataUrl: string, filename: string) {
+  const link = document.createElement('a')
+  link.download = filename
+  link.href = dataUrl
+  link.click()
+}
+
 export async function generatePdfFromElement(
   element: HTMLElement,
   options: GeneratePdfOptions,
 ): Promise<void> {
-  await prepareElementImages(element)
-  await document.fonts.ready
-  await new Promise((resolve) => setTimeout(resolve, 300))
+  await prepareElementForExport(element)
 
   const pdfOptions = {
     margin: [0, 0, 0, 0] as [number, number, number, number],
@@ -121,8 +138,33 @@ export async function generatePdfFromElement(
       format: 'a4' as const,
       orientation: options.orientation ?? 'portrait',
     },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    pagebreak: { mode: options.pagebreakMode ?? ['avoid-all', 'css', 'legacy'] },
   }
 
   await html2pdf().set(pdfOptions).from(element).save()
+}
+
+export async function generateImageFromElement(
+  element: HTMLElement,
+  options: GenerateImageOptions,
+): Promise<void> {
+  await prepareElementForExport(element)
+
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    logging: false,
+    backgroundColor: '#ffffff',
+    width: element.scrollWidth,
+    height: element.scrollHeight,
+    windowWidth: element.scrollWidth,
+    windowHeight: element.scrollHeight,
+  })
+
+  const filename = options.filename.endsWith('.png')
+    ? options.filename
+    : `${options.filename}.png`
+
+  downloadDataUrl(canvas.toDataURL('image/png'), filename)
 }

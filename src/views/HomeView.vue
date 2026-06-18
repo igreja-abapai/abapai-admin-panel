@@ -20,6 +20,7 @@ import {
 import { getMemberSinceLabel } from '@/utils/dateFormat'
 import StatCard from '@/components/StatCard.vue'
 import RecentMembersSkeleton from '@/components/RecentMembersSkeleton.vue'
+import MemberAvatar from '@/components/MemberAvatar.vue'
 
 const authStore = useAuthStore()
 
@@ -41,8 +42,6 @@ const recentMembers = ref<Member[]>([])
 const recentPrayerRequests = ref<PrayerRequest[]>([])
 const upcomingBirthdays = ref<UpcomingBirthday[]>([])
 const loading = ref(true)
-
-const avatarColors = ['bg-emerald-500', 'bg-blue-500', 'bg-amber-500', 'bg-violet-500']
 
 const dateHeader = computed(() => {
   const now = new Date()
@@ -70,22 +69,6 @@ const greeting = computed(() => {
   if (hour < 18) return 'Boa tarde'
   return 'Boa noite'
 })
-
-function getInitials(name?: string): string {
-  if (!name) return ''
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-}
-
-function getAvatarColor(name: string): string {
-  const index =
-    name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % avatarColors.length
-  return avatarColors[index]
-}
 
 function getNewMembersThisMonth(members: Member[]): number {
   const now = new Date()
@@ -284,22 +267,7 @@ onMounted(async () => {
               class="flex items-center justify-between py-4"
             >
               <div class="flex items-center min-w-0">
-                <div v-if="member.photoUrl" class="w-10 h-10 rounded-full overflow-hidden shrink-0">
-                  <img
-                    :src="member.photoUrl"
-                    :alt="`Foto de ${member.name}`"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-                <div
-                  v-else
-                  :class="[
-                    'w-10 h-10 text-white rounded-full flex items-center justify-center text-sm font-medium shrink-0',
-                    getAvatarColor(member.name),
-                  ]"
-                >
-                  {{ getInitials(member.name) }}
-                </div>
+                <MemberAvatar :name="member.name" :photo-url="member.photoUrl" size="md" />
                 <div class="ml-3 min-w-0">
                   <p class="font-medium text-neutral-900 truncate text-sm">{{ member.name }}</p>
                   <div class="flex flex-wrap items-center gap-1.5 mt-1">
@@ -359,25 +327,11 @@ onMounted(async () => {
               class="flex items-center justify-between py-4"
             >
               <div class="flex items-center min-w-0">
-                <div
-                  v-if="entry.member.photoUrl"
-                  class="w-10 h-10 rounded-full overflow-hidden shrink-0"
-                >
-                  <img
-                    :src="entry.member.photoUrl"
-                    :alt="`Foto de ${entry.member.name}`"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-                <div
-                  v-else
-                  :class="[
-                    'w-10 h-10 text-white rounded-full flex items-center justify-center text-sm font-medium shrink-0',
-                    getAvatarColor(entry.member.name),
-                  ]"
-                >
-                  {{ getInitials(entry.member.name) }}
-                </div>
+                <MemberAvatar
+                  :name="entry.member.name"
+                  :photo-url="entry.member.photoUrl"
+                  size="md"
+                />
                 <div class="ml-3 min-w-0">
                   <p class="font-medium text-neutral-900 truncate text-sm">
                     {{ entry.member.name }}
@@ -413,11 +367,7 @@ onMounted(async () => {
           <div v-else class="divide-y divide-neutral-100">
             <div v-for="request in recentPrayerRequests" :key="request.id" class="py-4">
               <div class="flex items-start gap-3">
-                <div
-                  class="w-10 h-10 bg-violet-100 text-violet-700 rounded-full flex items-center justify-center text-sm font-medium shrink-0"
-                >
-                  {{ request.name ? getInitials(request.name) : '?' }}
-                </div>
+                <MemberAvatar :name="request.name || ''" size="md" />
                 <div class="min-w-0 flex-1">
                   <p class="font-medium text-neutral-900 text-sm">
                     {{ request.name || 'Anônimo' }}

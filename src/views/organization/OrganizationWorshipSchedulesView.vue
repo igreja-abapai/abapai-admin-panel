@@ -26,6 +26,15 @@
               <SparklesIcon class="w-5 h-5 mr-3 text-neutral-400 shrink-0" />
               Gerar Escalas
             </button>
+            <button
+              type="button"
+              class="flex items-center w-full px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              :disabled="exportingSchedule || monthStats.total === 0"
+              @click="openExportModal()"
+            >
+              <ArrowDownTrayIcon class="w-5 h-5 mr-3 text-neutral-400 shrink-0" />
+              {{ exportingSchedule ? 'Gerando...' : 'Exportar escala' }}
+            </button>
           </template>
         </SplitButton>
         <button
@@ -186,25 +195,12 @@
                         position="center"
                         width="auto"
                       >
-                        <div
-                          class="h-9 w-9 rounded-full border-2 border-white shrink-0 overflow-hidden"
-                        >
-                          <img
-                            v-if="volunteer.member.photoUrl"
-                            :src="volunteer.member.photoUrl"
-                            :alt="`Foto de ${volunteer.member.name}`"
-                            class="h-full w-full object-cover"
-                          />
-                          <div
-                            v-else
-                            :class="[
-                              'flex h-full w-full items-center justify-center text-xs font-bold',
-                              getAvatarColor(volunteer.member.name),
-                            ]"
-                          >
-                            {{ getInitials(volunteer.member.name) }}
-                          </div>
-                        </div>
+                        <MemberAvatar
+                          :name="volunteer.member.name"
+                          :photo-url="volunteer.member.photoUrl"
+                          size="sm"
+                          wrapper-class="border-2 border-white"
+                        />
                         <template #content>
                           <span class="whitespace-nowrap">
                             {{
@@ -300,51 +296,43 @@
     </Teleport>
 
     <!-- Edit service -->
-    <div
-      v-if="showEditModal"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-model="showEditModal"
+      title="Editar Culto"
+      form
+      :error="formError"
+      @submit="saveService"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Editar Culto</h2>
-        <form class="space-y-4" @submit.prevent="saveService">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
-            <Input v-model="editForm.name" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Data e hora</label>
-            <Input v-model="editForm.scheduledAt" type="datetime-local" required />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Observações</label>
-            <Input v-model="editForm.notes" />
-          </div>
-          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
-          <div class="flex justify-end gap-2 pt-2">
-            <button type="button" class="btn btn-secondary" @click="showEditModal = false">
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'Salvando...' : 'Salvar' }}
-            </button>
-          </div>
-        </form>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
+        <Input v-model="editForm.name" />
       </div>
-    </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Data e hora</label>
+        <Input v-model="editForm.scheduledAt" type="datetime-local" required />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Observações</label>
+        <Input v-model="editForm.notes" />
+      </div>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="showEditModal = false">
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">Salvar</ModalSubmitButton>
+      </template>
+    </BaseModal>
 
     <!-- Create from template -->
-    <div
-      v-if="showCreateModal"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-model="showCreateModal"
+      title="Novo Culto"
+      subtitle="Crie um culto a partir de um modelo existente."
+      form
+      :error="formError"
+      @submit="createService"
     >
-      <div
-        class="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
-      >
-        <div class="px-6 pt-6 pb-4 shrink-0">
-          <h2 class="text-lg font-semibold text-neutral-900">Novo Culto</h2>
-        </div>
-        <form class="flex flex-col min-h-0 flex-1" @submit.prevent="createService">
-          <div class="overflow-y-auto px-6 space-y-4 flex-1 min-h-0">
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-1">Modelo</label>
               <Select
@@ -437,46 +425,33 @@
               <Input v-model="createForm.name" />
             </div>
 
-            <label class="flex items-start gap-3 cursor-pointer">
-              <input
-                v-model="createForm.createAsDraft"
-                type="checkbox"
-                class="mt-0.5 w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
-              />
-              <span>
-                <span class="block text-sm font-medium text-neutral-700 mb-5"
-                  >Criar como rascunho</span
-                >
-              </span>
-            </label>
-          </div>
-          <div class="shrink-0 px-6 py-4 border-t border-neutral-100">
-            <p v-if="formError" class="text-sm text-red-600 mb-3">{{ formError }}</p>
-            <div class="flex justify-end gap-2">
-              <button type="button" class="btn btn-secondary" @click="showCreateModal = false">
-                Cancelar
-              </button>
-              <button type="submit" class="btn btn-primary" :disabled="saving">
-                {{ createSubmitLabel }}
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
+            <Checkbox v-model="createForm.createAsDraft">
+              <span class="font-medium text-neutral-700">Criar como rascunho</span>
+            </Checkbox>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="showCreateModal = false">
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">{{ createSubmitLabel }}</ModalSubmitButton>
+      </template>
+    </BaseModal>
 
     <!-- Generate services -->
-    <div
-      v-if="showGenerateServicesModal"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-model="showGenerateServicesModal"
+      title="Gerar cultos"
+      subtitle="Cria cultos para todos os modelos ativos com dia padrão configurado, a partir de hoje no mês corrente."
+      max-width="xl"
+      form
+      :error="formError"
+      @submit="generateServices"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Gerar Cultos</h2>
-        <p class="text-sm text-neutral-500 mb-4">
-          Cria cultos para todos os modelos ativos com dia padrão configurado.
-        </p>
-        <form class="space-y-4" @submit.prevent="generateServices">
-          <div class="grid grid-cols-2 gap-4">
+      <template #icon>
+        <CalendarDaysIcon class="h-5 w-5" />
+      </template>
+
+      <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-1">Mês</label>
               <Select v-model="generateServicesForm.month" :options="monthOptions" />
@@ -485,95 +460,62 @@
               <label class="block text-sm font-medium text-neutral-700 mb-1">Ano</label>
               <Select v-model="generateServicesForm.year" :options="yearOptions" />
             </div>
-          </div>
-
-          <label class="flex items-start gap-3 cursor-pointer">
-            <input
-              v-model="generateServicesForm.alsoGenerateAssignments"
-              type="checkbox"
-              class="mt-0.5 w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
-            />
-            <span>
-              <span class="block text-sm font-medium text-neutral-700"
-                >Gerar escalas automaticamente</span
-              >
-              <span class="block text-xs text-neutral-500 mt-0.5">
-                Atribui membros às vagas dos cultos gerados.
-              </span>
-            </span>
-          </label>
-
-          <div v-if="generateServicesForm.alsoGenerateAssignments">
-            <label class="block text-sm font-medium text-neutral-700 mb-2"
-              >Funções para escalar</label
-            >
-            <div
-              class="max-h-44 overflow-y-auto rounded-lg border border-neutral-200 p-3 space-y-2"
-            >
-              <label
-                v-for="role in generateRoleOptions"
-                :key="role.value"
-                class="flex items-center gap-2 text-sm text-neutral-700"
-              >
-                <input
-                  v-model="generateServicesForm.autoAssignRoleIds"
-                  type="checkbox"
-                  :value="role.value"
-                  class="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
-                />
-                <span>{{ role.label }}</span>
-              </label>
-              <p v-if="generateRoleOptions.length === 0" class="text-sm text-neutral-500">
-                Nenhuma função ativa encontrada.
-              </p>
-            </div>
-          </div>
-
-          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
-          <div class="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="showGenerateServicesModal = false"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="btn btn-primary relative flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
-              :disabled="saving"
-              :aria-busy="saving"
-            >
-              <span
-                class="inline-flex items-center justify-center"
-                :class="{ invisible: saving }"
-                aria-hidden="true"
-              >
-                Gerar cultos
-              </span>
-              <span v-if="saving" class="absolute inset-0 flex items-center justify-center">
-                <span
-                  class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
-                ></span>
-              </span>
-            </button>
-          </div>
-        </form>
       </div>
-    </div>
+
+      <Checkbox v-model="generateServicesForm.alsoGenerateAssignments">
+        <span class="font-medium text-neutral-800">Gerar escalas automaticamente</span>
+        <span class="block text-xs text-neutral-500 mt-0.5 font-normal">
+          Atribui membros às vagas dos cultos gerados.
+        </span>
+      </Checkbox>
+
+      <WorshipScheduleRolesMembersForm
+        v-if="generateServicesForm.alsoGenerateAssignments"
+        v-model:selected-role-ids="generateServicesForm.autoAssignRoleIds"
+        v-model:included-member-ids="servicesIncludedMemberIds"
+        v-model:members-section-open="servicesMembersSectionOpen"
+        v-model:roles-section-open="servicesRolesSectionOpen"
+        :role-options="generateRoleOptions"
+        :members="servicesEligibleMembers"
+        :members-loading="servicesEligibleMembersLoading"
+      />
+
+      <template v-if="generateServicesForm.alsoGenerateAssignments" #footer-summary>
+        {{ servicesSelectionSummary }}
+      </template>
+
+      <template #footer-actions>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          @click="showGenerateServicesModal = false"
+        >
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">
+          <template #icon>
+            <CalendarDaysIcon class="h-4 w-4" />
+          </template>
+          Gerar cultos
+        </ModalSubmitButton>
+      </template>
+    </BaseModal>
 
     <!-- Generate assignments -->
-    <div
-      v-if="showGenerateAssignmentsModal"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-model="showGenerateAssignmentsModal"
+      title="Gerar escalas"
+      subtitle="Atribui membros automaticamente às vagas em aberto dos cultos já criados no mês."
+      max-width="xl"
+      form
+      :error="formError"
+      @submit="generateAssignments"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Gerar Escalas</h2>
-        <p class="text-sm text-neutral-500 mb-4">
-          Atribui membros automaticamente às vagas em aberto dos cultos já criados no mês.
-        </p>
-        <form class="space-y-4" @submit.prevent="generateAssignments">
-          <div class="grid grid-cols-2 gap-4">
+      <template #icon>
+        <SparklesIcon class="h-5 w-5" />
+      </template>
+
+      <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-1">Mês</label>
               <Select v-model="generateAssignmentsForm.month" :options="monthOptions" />
@@ -582,86 +524,131 @@
               <label class="block text-sm font-medium text-neutral-700 mb-1">Ano</label>
               <Select v-model="generateAssignmentsForm.year" :options="yearOptions" />
             </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2"
-              >Funções para escalar</label
-            >
-            <div
-              class="max-h-44 overflow-y-auto rounded-lg border border-neutral-200 p-3 space-y-2"
-            >
-              <label
-                v-for="role in generateRoleOptions"
-                :key="role.value"
-                class="flex items-center gap-2 text-sm text-neutral-700"
-              >
-                <input
-                  v-model="generateAssignmentsForm.autoAssignRoleIds"
-                  type="checkbox"
-                  :value="role.value"
-                  class="w-4 h-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
-                />
-                <span>{{ role.label }}</span>
-              </label>
-              <p v-if="generateRoleOptions.length === 0" class="text-sm text-neutral-500">
-                Nenhuma função ativa encontrada.
-              </p>
-            </div>
-          </div>
-
-          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
-          <div class="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="showGenerateAssignmentsModal = false"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="btn btn-primary relative flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
-              :disabled="saving"
-              :aria-busy="saving"
-            >
-              <span
-                class="inline-flex items-center justify-center"
-                :class="{ invisible: saving }"
-                aria-hidden="true"
-              >
-                Gerar escalas
-              </span>
-              <span v-if="saving" class="absolute inset-0 flex items-center justify-center">
-                <span
-                  class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
-                ></span>
-              </span>
-            </button>
-          </div>
-        </form>
       </div>
+
+      <WorshipScheduleRolesMembersForm
+        v-model:selected-role-ids="generateAssignmentsForm.autoAssignRoleIds"
+        v-model:included-member-ids="assignmentsIncludedMemberIds"
+        v-model:members-section-open="assignmentsMembersSectionOpen"
+        v-model:roles-section-open="assignmentsRolesSectionOpen"
+        :role-options="generateRoleOptions"
+        :members="assignmentsEligibleMembers"
+        :members-loading="assignmentsEligibleMembersLoading"
+      />
+
+      <template #footer-summary>
+        {{ assignmentsSelectionSummary }}
+      </template>
+
+      <template #footer-actions>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          @click="showGenerateAssignmentsModal = false"
+        >
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">
+          <template #icon>
+            <SparklesIcon class="h-4 w-4" />
+          </template>
+          Gerar escalas
+        </ModalSubmitButton>
+      </template>
+    </BaseModal>
+
+    <!-- Export schedule -->
+    <BaseModal
+      v-model="showExportModal"
+      title="Exportar escala"
+      subtitle="Selecione as funções e o formato para compartilhar a escala do mês."
+      max-width="lg"
+      form
+      :error="exportFormError"
+      @submit="exportSchedule"
+    >
+      <template #icon>
+        <ArrowDownTrayIcon class="h-5 w-5" />
+      </template>
+
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Formato</label>
+        <Select v-model="exportFormat" :options="exportFormatOptions" />
+      </div>
+
+      <div v-if="exportRoleOptions.length === 0" class="text-sm text-neutral-500">
+        Nenhuma função com membros escalados neste mês.
+      </div>
+      <div v-else class="max-h-64 overflow-y-auto thin-scrollbar space-y-0.5">
+        <label
+          v-for="role in exportRoleOptions"
+          :key="role.value"
+          class="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-neutral-50 transition-colors cursor-pointer"
+        >
+          <Checkbox v-model="exportRoleIds" :value="role.value" />
+          <div
+            :class="[
+              'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
+              getCategoryStyle(role.category).icon,
+            ]"
+          >
+            <component :is="getCategoryIcon(role.category)" class="h-4 w-4" />
+          </div>
+          <span class="text-sm font-medium text-neutral-800">{{ role.label }}</span>
+        </label>
+      </div>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="showExportModal = false">
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="exportingSchedule" :disabled="exportRoleOptions.length === 0">
+          <template #icon>
+            <ArrowDownTrayIcon class="h-4 w-4" />
+          </template>
+          {{ exportSubmitLabel }}
+        </ModalSubmitButton>
+      </template>
+    </BaseModal>
+
+    <div style="position: absolute; left: -9999px; top: 0; width: 210mm" ref="pdfContainerRef">
+      <WorshipScheduleMonthPdf
+        v-if="pdfServices.length > 0"
+        :month-label="pdfMonthLabel"
+        :selected-roles-label="pdfSelectedRolesLabel"
+        :services="pdfServices"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   PlusIcon,
   SparklesIcon,
+  CalendarDaysIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   EllipsisVerticalIcon,
   EyeIcon,
   PencilIcon,
   TrashIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/vue/24/outline'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import SplitButton from '@/components/SplitButton.vue'
 import Tooltip from '@/components/Tooltip.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import Checkbox from '@/components/Checkbox.vue'
+import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
+import WorshipScheduleRolesMembersForm, {
+  type WorshipScheduleEligibleMember,
+} from '@/components/WorshipScheduleRolesMembersForm.vue'
+import MemberAvatar from '@/components/MemberAvatar.vue'
+import WorshipScheduleMonthPdf from '@/components/WorshipScheduleMonthPdf.vue'
 import {
   organizationService,
   type AutoAssignIncompleteService,
@@ -679,6 +666,12 @@ import {
   enumToSelectOptions,
 } from '@/constants/organization'
 import { formatVolunteerTooltipLabel } from '@/utils/nameFormat'
+import { getCategoryIcon, getCategoryStyle } from '@/utils/serviceRoleCategory'
+import {
+  buildWorshipSchedulePdfServices,
+  type WorshipSchedulePdfService,
+} from '@/utils/worshipSchedulePdf'
+import { generateImageFromElement, generatePdfFromElement } from '@/utils/generatePdf'
 import { confirmAction, confirmDelete, showAlert } from '@/composables/useConfirm'
 
 const ROW_MENU_WIDTH = 176
@@ -705,16 +698,6 @@ const SERVICE_ACCENTS = [
   { bar: 'bg-teal-500', dot: 'bg-teal-500' },
 ]
 
-const AVATAR_COLORS = [
-  'bg-blue-100 text-blue-700',
-  'bg-violet-100 text-violet-700',
-  'bg-emerald-100 text-emerald-700',
-  'bg-amber-100 text-amber-700',
-  'bg-rose-100 text-rose-700',
-  'bg-teal-100 text-teal-700',
-  'bg-indigo-100 text-indigo-700',
-]
-
 const router = useRouter()
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_escalas'))
@@ -736,6 +719,7 @@ const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showGenerateServicesModal = ref(false)
 const showGenerateAssignmentsModal = ref(false)
+const showExportModal = ref(false)
 const editingService = ref<WorshipService | null>(null)
 const openServiceRowMenuId = ref<number | null>(null)
 const serviceRowMenuStyle = ref<{ top: string; left: string } | null>(null)
@@ -782,6 +766,47 @@ const generateAssignmentsForm = ref({
   autoAssignRoleIds: [] as number[],
 })
 
+const servicesEligibleMembers = ref<WorshipScheduleEligibleMember[]>([])
+const servicesIncludedMemberIds = ref<number[]>([])
+const servicesEligibleMembersLoading = ref(false)
+const servicesMembersSectionOpen = ref(false)
+const servicesRolesSectionOpen = ref(true)
+
+const assignmentsEligibleMembers = ref<WorshipScheduleEligibleMember[]>([])
+const assignmentsIncludedMemberIds = ref<number[]>([])
+const assignmentsEligibleMembersLoading = ref(false)
+const assignmentsMembersSectionOpen = ref(false)
+const assignmentsRolesSectionOpen = ref(true)
+
+const exportingSchedule = ref(false)
+const exportFormError = ref('')
+const exportFormat = ref<'pdf' | 'png'>('png')
+const exportRoleIds = ref<number[]>([])
+const pdfContainerRef = ref<HTMLElement>()
+const pdfMonthLabel = ref('')
+const pdfSelectedRolesLabel = ref('')
+const pdfServices = ref<WorshipSchedulePdfService[]>([])
+
+function formatSelectionSummary(roleCount: number, memberCount: number) {
+  const roleLabel = roleCount === 1 ? 'função' : 'funções'
+  const memberLabel = memberCount === 1 ? 'membro' : 'membros'
+  return `${roleCount} ${roleLabel} · ${memberCount} ${memberLabel}`
+}
+
+const servicesSelectionSummary = computed(() =>
+  formatSelectionSummary(
+    generateServicesForm.value.autoAssignRoleIds.length,
+    servicesIncludedMemberIds.value.length,
+  ),
+)
+
+const assignmentsSelectionSummary = computed(() =>
+  formatSelectionSummary(
+    generateAssignmentsForm.value.autoAssignRoleIds.length,
+    assignmentsIncludedMemberIds.value.length,
+  ),
+)
+
 const monthOptions = [
   { value: '1', label: 'Janeiro' },
   { value: '2', label: 'Fevereiro' },
@@ -812,8 +837,35 @@ const generateRoleOptions = computed(() =>
     .map((role) => ({
       value: role.id,
       label: role.name,
+      category: role.category,
     })),
 )
+
+const exportRoleOptions = computed(() => {
+  const assignedRoleIds = new Set<number>()
+
+  for (const service of services.value) {
+    for (const assignment of service.assignments || []) {
+      if ((assignment.memberId || assignment.servingGroupId) && assignment.serviceRoleId) {
+        assignedRoleIds.add(assignment.serviceRoleId)
+      }
+    }
+  }
+
+  return generateRoleOptions.value.filter((role) => assignedRoleIds.has(role.value))
+})
+
+const exportFormatOptions = [
+  { value: 'png', label: 'PNG (imagem)' },
+  { value: 'pdf', label: 'PDF' },
+]
+
+const exportSubmitLabel = computed(() => {
+  if (exportingSchedule.value) return 'Gerando...'
+
+  if (exportFormat.value === 'png') return 'Exportar PNG'
+  return 'Exportar PDF'
+})
 
 const viewMonthLabel = computed(() => {
   const month = monthOptions.find((option) => option.value === viewMonth.value)?.label
@@ -1054,22 +1106,6 @@ function getAssignedVolunteers(service: WorshipService): AssignedVolunteer[] {
   })
 }
 
-function getInitials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
-  }
-  return name.slice(0, 2).toUpperCase()
-}
-
-function getAvatarColor(name: string) {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
-}
-
 function progressPercent(service: WorshipService) {
   const total = totalSlots(service)
   if (total === 0) return 0
@@ -1244,9 +1280,9 @@ async function handleDeleteService(service: WorshipService) {
 async function handleClearMonth() {
   const count = monthStats.value.total
   await confirmDelete({
-    title: 'Limpar mês',
+    title: 'Deletar cultos',
     message: `Tem certeza que deseja excluir todos os ${count} cultos de ${viewMonthLabel.value}?`,
-    confirmLabel: 'Limpar',
+    confirmLabel: 'Deletar',
     onConfirm: async () => {
       await organizationService.deleteWorshipServicesForMonth(
         Number(viewMonth.value),
@@ -1285,6 +1321,79 @@ function handleClickOutside(event: MouseEvent) {
 function handleScroll() {
   if (openServiceRowMenuId.value) {
     closeServiceRowMenu()
+  }
+}
+
+function openExportModal() {
+  exportFormError.value = ''
+  exportFormat.value = 'png'
+  exportRoleIds.value = exportRoleOptions.value.map((role) => role.value)
+  showExportModal.value = true
+}
+
+async function exportSchedule() {
+  if (exportingSchedule.value) return
+
+  exportFormError.value = ''
+
+  if (exportRoleIds.value.length === 0) {
+    exportFormError.value = 'Selecione ao menos uma função para exportar'
+    return
+  }
+
+  const servicesForPdf = buildWorshipSchedulePdfServices(services.value, exportRoleIds.value)
+  if (servicesForPdf.length === 0) {
+    exportFormError.value =
+      'Nenhuma escala preenchida encontrada para as funções selecionadas'
+    return
+  }
+
+  const selectedRolesLabel = exportRoleOptions.value
+    .filter((role) => exportRoleIds.value.includes(role.value))
+    .map((role) => role.label)
+    .join(' / ')
+
+  exportingSchedule.value = true
+  pdfMonthLabel.value = viewMonthLabel.value
+  pdfSelectedRolesLabel.value = selectedRolesLabel
+  pdfServices.value = servicesForPdf
+  showExportModal.value = false
+
+  try {
+    await nextTick()
+    await new Promise((resolve) => setTimeout(resolve, 200))
+
+    const element = pdfContainerRef.value?.querySelector(
+      '.worship-schedule-month-pdf',
+    ) as HTMLElement
+    if (!element) {
+      await showAlert('Erro ao preparar exportação. Tente recarregar a página.')
+      return
+    }
+
+    const monthName =
+      monthOptions.find((option) => option.value === viewMonth.value)?.label || viewMonth.value
+    const baseFilename = `Escala_${monthName}_${viewYear.value}`
+
+    if (exportFormat.value === 'pdf') {
+      await generatePdfFromElement(element, {
+        filename: `${baseFilename}.pdf`,
+        orientation: 'portrait',
+        pagebreakMode: ['css', 'legacy'],
+      })
+    } else {
+      await generateImageFromElement(element, {
+        filename: baseFilename,
+      })
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Erro desconhecido ao exportar escala'
+    await showAlert(`Erro ao exportar escala: ${message}`)
+  } finally {
+    exportingSchedule.value = false
+    pdfServices.value = []
+    pdfMonthLabel.value = ''
+    pdfSelectedRolesLabel.value = ''
   }
 }
 
@@ -1353,6 +1462,10 @@ function openGenerateServicesModal() {
     alsoGenerateAssignments: false,
     autoAssignRoleIds: [],
   }
+  servicesEligibleMembers.value = []
+  servicesIncludedMemberIds.value = []
+  servicesMembersSectionOpen.value = false
+  servicesRolesSectionOpen.value = true
   formError.value = ''
   showGenerateServicesModal.value = true
 }
@@ -1363,9 +1476,123 @@ function openGenerateAssignmentsModal() {
     year: viewYear.value,
     autoAssignRoleIds: [],
   }
+  assignmentsEligibleMembers.value = []
+  assignmentsIncludedMemberIds.value = []
+  assignmentsMembersSectionOpen.value = false
+  assignmentsRolesSectionOpen.value = true
   formError.value = ''
   showGenerateAssignmentsModal.value = true
 }
+
+async function loadEligibleMembersForRoles(
+  roleIds: number[],
+): Promise<WorshipScheduleEligibleMember[]> {
+  const byMember = new Map<number, WorshipScheduleEligibleMember>()
+
+  for (const roleId of roleIds) {
+    const members = await organizationService.getEligibleMembersForRole(roleId)
+    const roleName = serviceRoles.value.find((role) => role.id === roleId)?.name || 'Função'
+
+    for (const member of members) {
+      const memberId = Number(member.id)
+      const existing = byMember.get(memberId)
+      if (existing) {
+        if (!existing.roleNames.includes(roleName)) {
+          existing.roleNames.push(roleName)
+        }
+        if (!existing.photoUrl && member.photoUrl) {
+          existing.photoUrl = member.photoUrl
+        }
+        continue
+      }
+
+      byMember.set(memberId, {
+        id: memberId,
+        name: member.name,
+        photoUrl: member.photoUrl,
+        roleNames: [roleName],
+      })
+    }
+  }
+
+  return Array.from(byMember.values()).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+}
+
+async function refreshServicesEligibleMembers() {
+  if (
+    !generateServicesForm.value.alsoGenerateAssignments ||
+    generateServicesForm.value.autoAssignRoleIds.length === 0
+  ) {
+    servicesEligibleMembers.value = []
+    servicesIncludedMemberIds.value = []
+    return
+  }
+
+  servicesEligibleMembersLoading.value = true
+  try {
+    const members = await loadEligibleMembersForRoles(generateServicesForm.value.autoAssignRoleIds)
+    servicesEligibleMembers.value = members
+    servicesIncludedMemberIds.value = members.map((member) => member.id)
+  } catch {
+    servicesEligibleMembers.value = []
+    servicesIncludedMemberIds.value = []
+  } finally {
+    servicesEligibleMembersLoading.value = false
+  }
+}
+
+async function refreshAssignmentsEligibleMembers() {
+  if (generateAssignmentsForm.value.autoAssignRoleIds.length === 0) {
+    assignmentsEligibleMembers.value = []
+    assignmentsIncludedMemberIds.value = []
+    return
+  }
+
+  assignmentsEligibleMembersLoading.value = true
+  try {
+    const members = await loadEligibleMembersForRoles(
+      generateAssignmentsForm.value.autoAssignRoleIds,
+    )
+    assignmentsEligibleMembers.value = members
+    assignmentsIncludedMemberIds.value = members.map((member) => member.id)
+  } catch {
+    assignmentsEligibleMembers.value = []
+    assignmentsIncludedMemberIds.value = []
+  } finally {
+    assignmentsEligibleMembersLoading.value = false
+  }
+}
+
+function buildExcludedMemberIds(
+  eligibleMembers: WorshipScheduleEligibleMember[],
+  includedMemberIds: number[],
+): number[] | undefined {
+  const includedSet = new Set(includedMemberIds)
+  const excluded = eligibleMembers
+    .filter((member) => !includedSet.has(member.id))
+    .map((member) => member.id)
+
+  return excluded.length > 0 ? excluded : undefined
+}
+
+watch(
+  () => [
+    generateServicesForm.value.alsoGenerateAssignments,
+    [...generateServicesForm.value.autoAssignRoleIds].sort((a, b) => a - b).join(','),
+  ],
+  () => {
+    if (!showGenerateServicesModal.value) return
+    void refreshServicesEligibleMembers()
+  },
+)
+
+watch(
+  () => [...generateAssignmentsForm.value.autoAssignRoleIds].sort((a, b) => a - b).join(','),
+  () => {
+    if (!showGenerateAssignmentsModal.value) return
+    void refreshAssignmentsEligibleMembers()
+  },
+)
 
 async function runGenerationWithConfirmation<T extends { proceedWithWarnings?: boolean }>(
   buildPayload: (proceedWithWarnings?: boolean) => T,
@@ -1466,6 +1693,12 @@ async function generateServices() {
         autoAssignRoleIds: generateServicesForm.value.alsoGenerateAssignments
           ? generateServicesForm.value.autoAssignRoleIds
           : undefined,
+        excludedMemberIds: generateServicesForm.value.alsoGenerateAssignments
+          ? buildExcludedMemberIds(
+              servicesEligibleMembers.value,
+              servicesIncludedMemberIds.value,
+            )
+          : undefined,
         proceedWithWarnings,
       }),
       (payload) => organizationService.generateWorshipServicesForMonth(payload),
@@ -1500,6 +1733,10 @@ async function generateAssignments() {
         month: Number(generateAssignmentsForm.value.month),
         year: Number(generateAssignmentsForm.value.year),
         autoAssignRoleIds: generateAssignmentsForm.value.autoAssignRoleIds,
+        excludedMemberIds: buildExcludedMemberIds(
+          assignmentsEligibleMembers.value,
+          assignmentsIncludedMemberIds.value,
+        ),
         proceedWithWarnings,
       }),
       (payload) => organizationService.generateWorshipAssignmentsForMonth(payload),

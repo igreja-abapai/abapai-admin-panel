@@ -28,32 +28,12 @@
           :key="member.id"
           class="flex flex-col items-center min-w-[90px]"
         >
-          <div
-            class="w-16 h-16 rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden mb-2 border-2 border-primary-400"
-          >
-            <img
-              v-if="member.photoUrl"
-              :src="member.photoUrl"
-              alt="Foto do membro"
-              class="object-cover w-full h-full"
-            />
-            <span v-else class="text-2xl text-neutral-400">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-8 h-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            </span>
-          </div>
+          <MemberAvatar
+            :name="member.name"
+            :photo-url="member.photoUrl"
+            size="xl"
+            wrapper-class="mb-2 border-2 border-primary-400"
+          />
           <span class="text-sm font-medium text-neutral-900 text-center truncate w-20">{{
             member.name
           }}</span>
@@ -88,32 +68,12 @@
           :key="entry.member.id"
           class="flex flex-col items-center min-w-[90px]"
         >
-          <div
-            class="w-16 h-16 rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden mb-2 border-2 border-primary-400"
-          >
-            <img
-              v-if="entry.member.photoUrl"
-              :src="entry.member.photoUrl"
-              alt="Foto do membro"
-              class="object-cover w-full h-full"
-            />
-            <span v-else class="text-2xl text-neutral-400">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-8 h-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            </span>
-          </div>
+          <MemberAvatar
+            :name="entry.member.name"
+            :photo-url="entry.member.photoUrl"
+            size="xl"
+            wrapper-class="mb-2 border-2 border-primary-400"
+          />
           <span class="text-sm font-medium text-neutral-900 text-center truncate w-20">{{
             entry.member.name
           }}</span>
@@ -192,6 +152,7 @@ import { ref, onMounted, computed, nextTick } from 'vue'
 import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import BirthdayListPdf, { type BirthdayPdfEntry } from '@/components/BirthdayListPdf.vue'
+import MemberAvatar from '@/components/MemberAvatar.vue'
 import { generatePdfFromElement } from '@/utils/generatePdf'
 
 const members = ref<Member[]>([])

@@ -219,144 +219,134 @@
     </Teleport>
 
     <!-- Edit department modal -->
-    <div
-      v-if="showEditModal"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-model="showEditModal"
+      title="Editar Departamento"
+      max-width="xl"
+      form
+      :error="formError"
+      @submit="saveDepartment"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 max-h-[90vh] overflow-y-auto">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Editar Departamento</h2>
-        <form class="space-y-4" @submit.prevent="saveDepartment">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
-            <Input v-model="departmentForm.name" required />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Tipo</label>
-            <Select
-              v-model="departmentForm.type"
-              :options="departmentTypeOptions"
-              placeholder="Selecione o tipo"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Departamento pai</label>
-            <Select
-              v-model="departmentForm.parentId"
-              :options="parentDepartmentOptions"
-              placeholder="Nenhum"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Descrição</label>
-            <Input v-model="departmentForm.description" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Funções de Serviço</label>
-            <MultiSelect
-              v-model="linkedRoleIdsModel"
-              :options="serviceRoleOptions"
-              :disabled="!canManageRoles"
-              placeholder="Selecione funções para adicionar"
-              empty-options-text="Nenhuma função disponível"
-            />
-            <div v-if="linkedRoles.length" class="mt-3 space-y-2">
-              <div
-                v-for="linked in linkedRoles"
-                :key="linked.serviceRoleId"
-                class="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-surface-page px-3 py-2.5"
-              >
-                <span class="text-sm font-medium text-neutral-900">
-                  {{ getServiceRoleName(linked.serviceRoleId) }}
-                </span>
-                <label class="flex items-center gap-2 text-sm text-neutral-600 shrink-0">
-                  <input
-                    v-model="linked.isDefault"
-                    type="checkbox"
-                    class="rounded"
-                    :disabled="!canManageRoles"
-                  />
-                  Atribuir automaticamente
-                </label>
-              </div>
-              <p class="text-xs text-neutral-500 leading-relaxed">
-                Funções obrigatórias são atribuídas automaticamente aos membros do departamento.
-                Funções opcionais apenas os tornam elegíveis para escalas.
-              </p>
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Cargos Elegíveis</label>
-            <MultiSelect
-              v-model="linkedPositionIdsModel"
-              :options="churchPositionOptions"
-              :disabled="!canManagePositions"
-              placeholder="Selecione cargos para sugerir ao vincular membros"
-              empty-options-text="Nenhum cargo disponível"
-            />
-            <p class="mt-2 text-xs text-neutral-500 leading-relaxed">
-              Cargos vinculados ao departamento são sugeridos ao vincular novos membros.
-            </p>
-          </div>
-          <label class="flex items-center gap-2 text-sm text-neutral-700">
-            <input v-model="departmentForm.isActive" type="checkbox" class="rounded" />
-            Ativo
-          </label>
-          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
-          <div class="flex justify-end gap-2 pt-2">
-            <button type="button" class="btn btn-secondary" @click="showEditModal = false">
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'Salvando...' : 'Salvar' }}
-            </button>
-          </div>
-        </form>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
+        <Input v-model="departmentForm.name" required />
       </div>
-    </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Tipo</label>
+        <Select
+          v-model="departmentForm.type"
+          :options="departmentTypeOptions"
+          placeholder="Selecione o tipo"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Departamento pai</label>
+        <Select
+          v-model="departmentForm.parentId"
+          :options="parentDepartmentOptions"
+          placeholder="Nenhum"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Descrição</label>
+        <Input v-model="departmentForm.description" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-2">Funções de Serviço</label>
+        <MultiSelect
+          v-model="linkedRoleIdsModel"
+          :options="serviceRoleOptions"
+          :disabled="!canManageRoles"
+          placeholder="Selecione funções para adicionar"
+          empty-options-text="Nenhuma função disponível"
+        />
+        <div v-if="linkedRoles.length" class="mt-3 space-y-2">
+          <div
+            v-for="linked in linkedRoles"
+            :key="linked.serviceRoleId"
+            class="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-surface-page px-3 py-2.5"
+          >
+            <span class="text-sm font-medium text-neutral-900">
+              {{ getServiceRoleName(linked.serviceRoleId) }}
+            </span>
+            <label class="flex items-center gap-2 text-sm text-neutral-600 shrink-0">
+              <input
+                v-model="linked.isDefault"
+                type="checkbox"
+                class="rounded"
+                :disabled="!canManageRoles"
+              />
+              Atribuir automaticamente
+            </label>
+          </div>
+          <p class="text-xs text-neutral-500 leading-relaxed">
+            Funções obrigatórias são atribuídas automaticamente aos membros do departamento.
+            Funções opcionais apenas os tornam elegíveis para escalas.
+          </p>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-2">Cargos Elegíveis</label>
+        <MultiSelect
+          v-model="linkedPositionIdsModel"
+          :options="churchPositionOptions"
+          :disabled="!canManagePositions"
+          placeholder="Selecione cargos para sugerir ao vincular membros"
+          empty-options-text="Nenhum cargo disponível"
+        />
+        <p class="mt-2 text-xs text-neutral-500 leading-relaxed">
+          Cargos vinculados ao departamento são sugeridos ao vincular novos membros.
+        </p>
+      </div>
+      <Checkbox v-model="departmentForm.isActive">Ativo</Checkbox>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="showEditModal = false">
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">Salvar</ModalSubmitButton>
+      </template>
+    </BaseModal>
 
     <!-- Add member modal -->
-    <div
-      v-if="showMemberModal"
-      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
+    <BaseModal
+      v-model="showMemberModal"
+      title="Vincular Membro"
+      form
+      :error="formError"
+      @submit="saveMemberDepartment"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Vincular Membro</h2>
-        <form class="space-y-4" @submit.prevent="saveMemberDepartment">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Membro</label>
-            <Select
-              v-model="memberForm.memberId"
-              :options="memberOptions"
-              placeholder="Selecione o membro"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-1">Função no departamento</label>
-            <Select
-              v-model="memberForm.role"
-              :options="memberDepartmentRoleOptions"
-              placeholder="Selecione a função"
-            />
-          </div>
-          <div
-            v-if="suggestedPositionNames.length"
-            class="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2.5"
-          >
-            <p class="text-xs font-medium text-blue-900 mb-1">Cargos sugeridos para este departamento</p>
-            <p class="text-sm text-blue-800">{{ suggestedPositionNames.join(', ') }}</p>
-          </div>
-          <p v-if="formError" class="text-sm text-red-600">{{ formError }}</p>
-          <div class="flex justify-end gap-2 pt-2">
-            <button type="button" class="btn btn-secondary" @click="showMemberModal = false">
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'Salvando...' : 'Salvar' }}
-            </button>
-          </div>
-        </form>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Membro</label>
+        <Select
+          v-model="memberForm.memberId"
+          :options="memberOptions"
+          placeholder="Selecione o membro"
+        />
       </div>
-    </div>
+      <div>
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Função no departamento</label>
+        <Select
+          v-model="memberForm.role"
+          :options="memberDepartmentRoleOptions"
+          placeholder="Selecione a função"
+        />
+      </div>
+      <div
+        v-if="suggestedPositionNames.length"
+        class="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2.5"
+      >
+        <p class="text-xs font-medium text-blue-900 mb-1">Cargos sugeridos para este departamento</p>
+        <p class="text-sm text-blue-800">{{ suggestedPositionNames.join(', ') }}</p>
+      </div>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="showMemberModal = false">
+          Cancelar
+        </button>
+        <ModalSubmitButton :loading="saving">Salvar</ModalSubmitButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -374,6 +364,9 @@ import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import MultiSelect from '@/components/MultiSelect.vue'
+import BaseModal from '@/components/BaseModal.vue'
+import Checkbox from '@/components/Checkbox.vue'
+import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
 import {
   organizationService,
   type Department,

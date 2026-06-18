@@ -544,6 +544,7 @@ class OrganizationService {
     month: number
     year: number
     autoAssignRoleIds?: number[]
+    excludedMemberIds?: number[]
     proceedWithWarnings?: boolean
   }) {
     return httpService.post<GenerateWorshipServicesMonthResult>(
@@ -556,6 +557,7 @@ class OrganizationService {
     month: number
     year: number
     autoAssignRoleIds: number[]
+    excludedMemberIds?: number[]
     proceedWithWarnings?: boolean
   }) {
     return httpService.post<GenerateWorshipServicesMonthResult>(
