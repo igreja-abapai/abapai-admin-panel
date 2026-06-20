@@ -8,9 +8,7 @@
     <!-- Loading State -->
     <div v-if="loading" class="bg-white rounded-lg shadow p-6">
       <div class="text-center py-8">
-        <div
-          class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"
-        ></div>
+        <Spinner size="xl" class="text-primary-600 mx-auto mb-4" />
         <p class="text-neutral-500">Carregando dados da conta...</p>
       </div>
     </div>
@@ -133,10 +131,7 @@
       <!-- Submit Button -->
       <div class="flex justify-end space-x-4">
         <button type="submit" :disabled="submitting" class="btn btn-primary">
-          <span
-            v-if="submitting"
-            class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
-          ></span>
+          <Spinner v-if="submitting" size="sm" class="text-white mr-2" />
           {{ submitting ? 'Salvando...' : 'Salvar Alterações' }}
         </button>
       </div>
@@ -229,6 +224,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ExclamationTriangleIcon, KeyIcon } from '@heroicons/vue/24/outline'
+import Spinner from '@/components/Spinner.vue'
 import { usersService, type User } from '@/services/users'
 import { rolesService } from '@/services/roles'
 import type { Role } from '@/stores/auth'

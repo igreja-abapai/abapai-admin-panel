@@ -14,7 +14,7 @@
           class="absolute left-3 top-1/2 z-10 transform -translate-y-1/2 w-5 h-5 text-neutral-400 pointer-events-none"
         />
         <Input
-          v-model="searchTerm"
+          v-model="searchInput"
           type="text"
           placeholder="Pesquisar..."
           input-class="pl-10"
@@ -93,10 +93,11 @@ import { formatDate } from '@/utils/dateFormat'
 import Input from '@/components/Input.vue'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 import MemberAvatar from '@/components/MemberAvatar.vue'
+import { useDebouncedRef } from '@/composables/useDebouncedRef'
 
 const loading = ref(false)
 const members = ref<Member[]>([])
-const searchTerm = ref('')
+const { value: searchInput, debounced: searchTerm } = useDebouncedRef('')
 const error = ref('')
 const restoringId = ref<string | null>(null)
 

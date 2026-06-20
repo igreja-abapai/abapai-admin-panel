@@ -19,9 +19,7 @@
     </div>
 
     <div v-if="loading" class="rounded-2xl border border-neutral-200 bg-white p-12 text-center">
-      <div
-        class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mx-auto mb-4"
-      ></div>
+      <Spinner :size="40" class="text-primary-600 mx-auto mb-4" />
       <p class="text-sm text-neutral-500">Carregando modelos...</p>
     </div>
 
@@ -408,6 +406,7 @@ import {
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import BaseModal from '@/components/BaseModal.vue'
+import Spinner from '@/components/Spinner.vue'
 import Checkbox from '@/components/Checkbox.vue'
 import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
 import {

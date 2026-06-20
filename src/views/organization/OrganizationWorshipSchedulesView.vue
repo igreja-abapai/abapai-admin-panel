@@ -103,9 +103,7 @@
       </div>
 
       <div v-if="loading" class="p-12 text-center">
-        <div
-          class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mx-auto mb-4"
-        ></div>
+        <Spinner :size="40" class="text-primary-600 mx-auto mb-4" />
         <p class="text-sm text-neutral-500">Carregando escalas...</p>
       </div>
 
@@ -638,6 +636,7 @@ import {
   ArrowDownTrayIcon,
 } from '@heroicons/vue/24/outline'
 import Input from '@/components/Input.vue'
+import Spinner from '@/components/Spinner.vue'
 import Select from '@/components/Select.vue'
 import SplitButton from '@/components/SplitButton.vue'
 import Tooltip from '@/components/Tooltip.vue'

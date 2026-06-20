@@ -10,7 +10,7 @@
     </div>
 
     <div v-if="loading" class="text-center py-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+      <Spinner size="lg" class="text-primary-600 mx-auto" />
       <p class="mt-2 text-neutral-500">Carregando usuário...</p>
     </div>
 
@@ -120,10 +120,7 @@
       <div class="flex justify-end space-x-4">
         <router-link to="/usuarios" class="btn btn-secondary"> Cancelar </router-link>
         <button type="submit" :disabled="submitting || !isFormValid" class="btn btn-primary">
-          <span
-            v-if="submitting"
-            class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
-          ></span>
+          <Spinner v-if="submitting" size="sm" class="text-white mr-2" />
           {{ submitting ? 'Salvando...' : 'Salvar Alterações' }}
         </button>
       </div>
@@ -154,6 +151,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ArrowLeftIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
+import Spinner from '@/components/Spinner.vue'
 import { usersService, type User } from '@/services/users'
 import { rolesService } from '@/services/roles'
 import type { Role } from '@/stores/auth'

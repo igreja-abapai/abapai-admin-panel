@@ -65,3 +65,11 @@ export function enumToSelectOptions(values: Record<string, string>) {
 export function formatDepartmentBadgeName(name: string): string {
   return name.replace(/\bDepartamento\b/gi, 'Dep.').replace(/\s+/g, ' ').trim()
 }
+
+export function getDepartmentTypeBadgeClass(type: string): string {
+  if (type === DepartmentType.MINISTRY) {
+    return 'bg-blue-100 text-blue-800'
+  }
+
+  return 'bg-violet-100 text-violet-800'
+}

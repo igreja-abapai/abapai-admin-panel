@@ -49,7 +49,7 @@
               v-if="uploadingPhoto"
               class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center"
             >
-              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+              <Spinner :size="24" class="text-white" />
             </div>
           </div>
 
@@ -530,10 +530,7 @@
       <div class="flex justify-end space-x-4">
         <router-link to="/membros" class="btn btn-secondary"> Cancelar </router-link>
         <button type="submit" :disabled="loading" class="btn btn-primary">
-          <span
-            v-if="loading"
-            class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
-          ></span>
+          <Spinner v-if="loading" size="sm" class="text-white mr-2" />
           {{ loading ? 'Salvando...' : 'Cadastrar Membro' }}
         </button>
       </div>
@@ -565,6 +562,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import Spinner from '@/components/Spinner.vue'
 import { membersService } from '@/services/members'
 import { organizationService, type ChurchPosition } from '@/services/organization'
 import { addressService, type CreateAddressRequest } from '@/services/address'
@@ -624,7 +622,6 @@ const form = reactive({
   lastPositionHeld: '',
   isBaptized: false,
   isBaptizedInTheHolySpirit: null as boolean | null,
-  currentPosition: '',
   primaryPositionId: '',
   secondaryPositionId: '',
   wantsToBeAVolunteer: null as boolean | null,

@@ -10,14 +10,14 @@
       <slot />
     </span>
     <span v-if="loading" class="absolute inset-0 flex items-center justify-center">
-      <span
-        class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
-      ></span>
+      <Spinner size="sm" class="text-current" />
     </span>
   </button>
 </template>
 
 <script setup lang="ts">
+import Spinner from '@/components/Spinner.vue'
+
 withDefaults(
   defineProps<{
     loading?: boolean

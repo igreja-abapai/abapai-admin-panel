@@ -50,7 +50,7 @@
           />
           <input
             type="text"
-            :value="searchValue"
+            :value="searchInput"
             :placeholder="searchPlaceholder || 'Buscar...'"
             class="block w-full pl-10 pr-4 rounded-lg bg-surface-page border border-neutral-200 h-10 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/10"
             @input="handleSearchInput"
@@ -285,9 +285,10 @@
 </template>
 
 <script setup lang="ts" generic="T = any">
-import { ref, computed, watch, useSlots } from 'vue'
+import { ref, computed, watch, useSlots, onUnmounted } from 'vue'
 import { TrashIcon, MagnifyingGlassIcon, FunnelIcon } from '@heroicons/vue/24/outline'
 import LoadingSpinner from './LoadingSpinner.vue'
+import { DEFAULT_SEARCH_DEBOUNCE_MS } from '@/composables/useDebouncedRef'
 
 // Types
 export interface TableTab {
@@ -398,7 +399,18 @@ const hasToolbarLeft = computed(() => {
 
 const showSearchField = computed(() => props.showSearch !== false)
 
-const searchValue = computed(() => props.search ?? '')
+const searchInput = ref(props.search ?? '')
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+
+watch(
+  () => props.search,
+  (value) => {
+    const next = value ?? ''
+    if (next !== searchInput.value) {
+      searchInput.value = next
+    }
+  },
+)
 
 const showToolbar = computed(() => {
   if (!props.card) return false
@@ -652,8 +664,18 @@ function handleTabChange(tabKey: string) {
 }
 
 function handleSearchInput(event: Event) {
-  emit('update:search', (event.target as HTMLInputElement).value)
+  const value = (event.target as HTMLInputElement).value
+  searchInput.value = value
+
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+  searchDebounceTimer = setTimeout(() => {
+    emit('update:search', value)
+  }, DEFAULT_SEARCH_DEBOUNCE_MS)
 }
+
+onUnmounted(() => {
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+})
 
 // Batch selection methods
 const getSelectableItems = (): (string | number)[] => {

@@ -1,19 +1,18 @@
 <template>
   <div class="flex justify-center items-center">
-    <div
-      :style="{ width: `${size}px`, height: `${size}px` }"
-      class="animate-spin rounded-full border-b-2 border-primary-600"
-    ></div>
+    <Spinner :size="size" />
   </div>
 </template>
 
 <script setup lang="ts">
-interface Props {
-  size?: number
-}
+import Spinner from '@/components/Spinner.vue'
 
-withDefaults(defineProps<Props>(), {
-  size: 24,
-})
+withDefaults(
+  defineProps<{
+    size?: number
+  }>(),
+  {
+    size: 24,
+  },
+)
 </script>
-

@@ -24,7 +24,6 @@ export interface Member {
   lastPositionHeld?: string
   isBaptized: boolean
   isBaptizedInTheHolySpirit?: boolean | null
-  currentPosition?: string
   primaryPositionId?: number | null
   secondaryPositionId?: number | null
   primaryPosition?: ChurchPosition
@@ -71,7 +70,6 @@ export interface CreateMemberRequest {
   lastPositionHeld?: string
   isBaptized: boolean
   isBaptizedInTheHolySpirit?: boolean | null
-  currentPosition?: string
   primaryPositionId?: number | null
   secondaryPositionId?: number | null
   wantsToBeAVolunteer?: boolean | null
@@ -109,7 +107,6 @@ export interface UpdateMemberRequest {
   lastPositionHeld?: string
   isBaptized?: boolean
   isBaptizedInTheHolySpirit?: boolean | null
-  currentPosition?: string
   primaryPositionId?: number | null
   secondaryPositionId?: number | null
   wantsToBeAVolunteer?: boolean | null

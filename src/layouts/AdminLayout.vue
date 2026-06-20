@@ -28,16 +28,7 @@
         </button>
 
         <div class="flex-1 max-w-sm hidden sm:block">
-          <div class="relative">
-            <MagnifyingGlassIcon
-              class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none"
-            />
-            <input
-              type="text"
-              placeholder="Pesquisar"
-              class="w-full pl-10 pr-3 py-2 bg-surface-page border border-neutral-200 rounded-lg text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-colors"
-            />
-          </div>
+          <GlobalSearch />
         </div>
 
         <div class="flex items-center gap-2 ml-auto shrink-0">
@@ -483,6 +474,7 @@
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
+import GlobalSearch from '@/components/GlobalSearch.vue'
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
@@ -496,7 +488,6 @@ import {
   UserIcon,
   GlobeAltIcon,
   ChartBarIcon,
-  MagnifyingGlassIcon,
   ShieldCheckIcon,
   CalendarDaysIcon,
 } from '@heroicons/vue/24/outline'

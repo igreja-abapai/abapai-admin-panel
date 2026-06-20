@@ -185,7 +185,7 @@
         <div class="info-item">
           <span class="info-label">Cargo Atual:</span>
           <span class="info-value">{{
-            member.primaryPosition?.name || member.currentPosition || 'Não informado'
+            member.primaryPosition?.name || 'Não informado'
           }}</span>
         </div>
         <div class="info-item">

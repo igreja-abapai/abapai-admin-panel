@@ -21,9 +21,7 @@
 
     <div v-if="loading" class="bg-white rounded-lg shadow p-6">
       <div class="text-center py-8">
-        <div
-          class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"
-        ></div>
+        <Spinner size="xl" class="text-primary-600 mx-auto mb-4" />
         <p class="text-neutral-500">Carregando detalhes do departamento...</p>
       </div>
     </div>
@@ -361,6 +359,7 @@ import {
   ArrowLeftIcon,
 } from '@heroicons/vue/24/outline'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
+import Spinner from '@/components/Spinner.vue'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import MultiSelect from '@/components/MultiSelect.vue'

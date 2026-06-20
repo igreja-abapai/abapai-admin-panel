@@ -67,9 +67,6 @@
             <MemberAvatar :name="item.name" :photo-url="item.photoUrl" size="md" />
             <div class="ml-3 min-w-0">
               <p class="font-medium text-neutral-900 truncate text-sm">{{ item.name }}</p>
-              <p class="text-xs text-neutral-500 mt-0.5">
-                {{ getMemberSinceLabel(item.admissionDate) || 'Membro' }}
-              </p>
             </div>
           </div>
         </template>
@@ -220,7 +217,7 @@ import {
   PencilIcon,
 } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
-import { formatDate, getMemberSinceLabel } from '@/utils/dateFormat'
+import { formatDate } from '@/utils/dateFormat'
 import { formatPhoneNumber } from '@/utils/phoneMask'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'

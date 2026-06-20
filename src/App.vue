@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
+import Spinner from '@/components/Spinner.vue'
 
 const authStore = useAuthStore()
 </script>
@@ -8,9 +9,7 @@ const authStore = useAuthStore()
   <div id="app">
     <div v-if="authStore.authLoading" class="min-h-screen flex items-center justify-center">
       <div class="text-center">
-        <div
-          class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"
-        ></div>
+        <Spinner size="xl" class="text-primary-600 mx-auto mb-4" />
         <p class="text-neutral-600">Carregando...</p>
       </div>
     </div>

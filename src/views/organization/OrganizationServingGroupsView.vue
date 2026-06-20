@@ -207,12 +207,6 @@
                     <p class="text-sm font-semibold text-neutral-900 truncate">
                       {{ memberLink.member?.name || 'Membro' }}
                     </p>
-                    <p
-                      v-if="memberLink.member?.currentPosition"
-                      class="text-xs text-neutral-500 mt-0.5 truncate"
-                    >
-                      {{ memberLink.member.currentPosition }}
-                    </p>
                     <div class="flex items-center gap-1.5 mt-1">
                       <span
                         :class="[

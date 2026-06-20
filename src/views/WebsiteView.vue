@@ -4,9 +4,7 @@
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-8">
-      <div
-        class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"
-      ></div>
+      <Spinner size="xl" class="text-primary-600 mx-auto mb-4" />
       <p class="text-neutral-500">Carregando configurações...</p>
     </div>
 
@@ -343,10 +341,7 @@
         :disabled="saving"
         class="px-4 py-2 bg-primary-600 text-white hover:bg-primary-600 rounded-lg transition-colors disabled:opacity-50"
       >
-        <span
-          v-if="saving"
-          class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
-        ></span>
+        <Spinner v-if="saving" size="sm" class="text-white mr-2" />
         {{ saving ? 'Salvando...' : 'Salvar Configurações' }}
       </button>
     </div>
@@ -360,6 +355,7 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import { websiteService, type WebsiteSettings } from '@/services/website'
 import ScheduleEventsEditor from '@/components/website/ScheduleEventsEditor.vue'
 import CarouselImagesEditor from '@/components/website/CarouselImagesEditor.vue'
+import Spinner from '@/components/Spinner.vue'
 
 const saving = ref(false)
 const loading = ref(false)

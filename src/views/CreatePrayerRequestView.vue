@@ -73,10 +73,7 @@
       <div class="flex justify-end space-x-4">
         <router-link to="/pedidos-de-oracao" class="btn btn-secondary"> Cancelar </router-link>
         <button type="submit" :disabled="submitting" class="btn btn-primary">
-          <span
-            v-if="submitting"
-            class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
-          ></span>
+          <Spinner v-if="submitting" size="sm" class="text-white mr-2" />
           {{ submitting ? 'Enviando...' : 'Enviar Pedido' }}
         </button>
       </div>
@@ -107,6 +104,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
+import Spinner from '@/components/Spinner.vue'
 import { prayerRequestsService } from '@/services/prayer-requests'
 import CustomSelect from '@/components/CustomSelect.vue'
 

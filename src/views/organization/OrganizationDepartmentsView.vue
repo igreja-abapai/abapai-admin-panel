@@ -37,7 +37,14 @@
         <span class="text-sm font-medium text-neutral-900">{{ (item as Department).name }}</span>
       </template>
       <template #column-type="{ item }">
-        <span class="text-sm text-neutral-700">{{ (item as Department).type }}</span>
+        <span
+          :class="[
+            'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
+            getDepartmentTypeBadgeClass((item as Department).type),
+          ]"
+        >
+          {{ (item as Department).type }}
+        </span>
       </template>
       <template #column-memberCount="{ item }">
         <span class="text-sm text-neutral-700 tabular-nums">
@@ -230,7 +237,7 @@ import {
   type ChurchPosition,
 } from '@/services/organization'
 import { useAuthStore } from '@/stores/auth'
-import { DepartmentType, MemberDepartmentRole, enumToSelectOptions } from '@/constants/organization'
+import { DepartmentType, MemberDepartmentRole, enumToSelectOptions, getDepartmentTypeBadgeClass } from '@/constants/organization'
 import { confirmDelete } from '@/composables/useConfirm'
 
 const router = useRouter()

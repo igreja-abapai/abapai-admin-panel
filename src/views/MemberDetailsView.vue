@@ -21,10 +21,7 @@
               class="flex items-center w-full px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100 disabled:opacity-50 transition-colors"
             >
               <ArrowDownTrayIcon v-if="!generatingPdf" class="w-5 h-5 mr-3 text-neutral-400" />
-              <span
-                v-else
-                class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600 mr-3"
-              ></span>
+              <Spinner v-else size="sm" class="text-primary-600 mr-3" />
               {{ generatingPdf ? 'Gerando PDF...' : 'Baixar PDF' }}
             </button>
 
@@ -55,9 +52,7 @@
     <!-- Loading State -->
     <div v-if="loading" class="bg-white rounded-lg shadow p-6">
       <div class="text-center py-8">
-        <div
-          class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"
-        ></div>
+        <Spinner size="xl" class="text-primary-600 mx-auto mb-4" />
         <p class="text-neutral-500">Carregando detalhes do membro...</p>
       </div>
     </div>
@@ -96,21 +91,10 @@
                   Ausente
                 </span>
                 <span
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                >
-                  {{ member.isBaptized ? 'Batizado' : 'Não Batizado' }}
-                </span>
-                <span
                   v-if="member.primaryPosition?.name"
                   class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                 >
                   {{ member.primaryPosition.name }}
-                </span>
-                <span
-                  v-else-if="member.currentPosition"
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                >
-                  {{ member.currentPosition }}
                 </span>
                 <span
                   v-if="member.secondaryPosition?.name"
@@ -118,21 +102,11 @@
                 >
                   {{ member.secondaryPosition.name }}
                 </span>
-                <span
-                  v-for="link in activeMemberDepartments"
-                  :key="link.id"
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800"
-                >
-                  {{ formatDepartmentBadgeName(link.department?.name || '') }}
-                </span>
               </div>
             </div>
           </div>
 
-          <div
-            v-if="!member.isActive && member.absenceReason"
-            class="w-full max-w-xs shrink-0"
-          >
+          <div v-if="!member.isActive && member.absenceReason" class="w-full max-w-xs shrink-0">
             <label class="block text-xs font-medium text-neutral-500 mb-1.5">
               Motivo da ausência
             </label>
@@ -329,7 +303,7 @@
           <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Cargo Principal</label>
             <p class="text-neutral-900">
-              {{ member.primaryPosition?.name || member.currentPosition || 'Não informado' }}
+              {{ member.primaryPosition?.name || 'Não informado' }}
             </p>
           </div>
 
@@ -339,7 +313,9 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-500 mb-1">Funções de Serviço</label>
+            <label class="block text-sm font-medium text-neutral-500 mb-1"
+              >Funções de Serviço</label
+            >
             <div v-if="loadingCapabilities" class="text-sm text-neutral-500">Carregando...</div>
             <div v-else-if="activeMemberCapabilities.length" class="flex flex-wrap gap-2">
               <span
@@ -361,6 +337,19 @@
               </span>
             </div>
             <p v-else class="text-neutral-900">Não informado</p>
+          </div>
+
+          <div v-if="activeMemberDepartments.length">
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Departamentos</label>
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="link in activeMemberDepartments"
+                :key="link.id"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800"
+              >
+                {{ formatDepartmentBadgeName(link.department?.name || '') }}
+              </span>
+            </div>
           </div>
 
           <div>
@@ -526,8 +515,8 @@
       </template>
 
       <p class="text-neutral-600">
-        Tem certeza que deseja excluir o membro <strong>{{ member?.name }}</strong>? Os dados
-        serão mantidos no histórico e o membro poderá ser restaurado depois.
+        Tem certeza que deseja excluir o membro <strong>{{ member?.name }}</strong
+        >? Os dados serão mantidos no histórico e o membro poderá ser restaurado depois.
       </p>
 
       <template #footer-actions>
@@ -541,13 +530,15 @@
           :aria-busy="deleting"
           @click="handleDeleteMember"
         >
-          <span class="inline-flex items-center" :class="{ invisible: deleting }" aria-hidden="true">
+          <span
+            class="inline-flex items-center"
+            :class="{ invisible: deleting }"
+            aria-hidden="true"
+          >
             Sim, Excluir
           </span>
           <span v-if="deleting" class="absolute inset-0 flex items-center justify-center">
-            <span
-              class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
-            ></span>
+            <Spinner size="sm" class="text-current" />
           </span>
         </button>
       </template>
@@ -582,9 +573,7 @@
       />
 
       <template #footer-actions>
-        <button type="button" class="btn btn-secondary" @click="closeAusenteModal">
-          Cancelar
-        </button>
+        <button type="button" class="btn btn-secondary" @click="closeAusenteModal">Cancelar</button>
         <button
           type="button"
           class="btn btn-primary relative inline-flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
@@ -592,18 +581,19 @@
           :aria-busy="togglingStatus"
           @click="handleMarkAsAusente"
         >
-          <span class="inline-flex items-center" :class="{ invisible: togglingStatus }" aria-hidden="true">
+          <span
+            class="inline-flex items-center"
+            :class="{ invisible: togglingStatus }"
+            aria-hidden="true"
+          >
             Confirmar
           </span>
           <span v-if="togglingStatus" class="absolute inset-0 flex items-center justify-center">
-            <span
-              class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
-            ></span>
+            <Spinner size="sm" class="text-current" />
           </span>
         </button>
       </template>
     </BaseModal>
-
   </div>
 </template>
 
@@ -623,7 +613,11 @@ import {
 } from '@heroicons/vue/24/outline'
 import { membersService, type Member } from '@/services/members'
 import { usersService, type User } from '@/services/users'
-import { organizationService, type MemberServiceCapability, type MemberDepartment } from '@/services/organization'
+import {
+  organizationService,
+  type MemberServiceCapability,
+  type MemberDepartment,
+} from '@/services/organization'
 import { CapabilitySource, formatDepartmentBadgeName } from '@/constants/organization'
 import { formatDate, formatDateTimeWithRelative } from '@/utils/dateFormat'
 import html2pdf from 'html2pdf.js'
@@ -631,6 +625,7 @@ import MemberCard from '@/components/MemberCard.vue'
 import SplitButton from '@/components/SplitButton.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import MemberAvatar from '@/components/MemberAvatar.vue'
+import Spinner from '@/components/Spinner.vue'
 import { environment } from '@/config/environment'
 import { getImageUrl } from '@/utils/imageUrl'
 
@@ -1140,8 +1135,7 @@ async function handleMarkAsAusente() {
     closeAusenteModal()
   } catch (err: any) {
     console.error('Error marking member as absent:', err)
-    absenceReasonError.value =
-      err.response?.data?.message || 'Erro ao marcar membro como ausente'
+    absenceReasonError.value = err.response?.data?.message || 'Erro ao marcar membro como ausente'
   } finally {
     togglingStatus.value = false
   }

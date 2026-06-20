@@ -34,9 +34,7 @@
           {{ state.confirmLabel }}
         </span>
         <span v-if="state.loading" class="absolute inset-0 flex items-center justify-center">
-          <span
-            class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
-          ></span>
+          <Spinner size="sm" class="text-current" />
         </span>
       </button>
     </template>
@@ -46,6 +44,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import BaseModal from '@/components/BaseModal.vue'
+import Spinner from '@/components/Spinner.vue'
 import { useConfirmModal } from '@/composables/useConfirm'
 
 const { state, onConfirm, onCancel } = useConfirmModal()

@@ -1,6 +1,6 @@
 <template>
   <div v-if="loading" class="flex flex-col items-center justify-center py-20 bg-white rounded-xl shadow-sm">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
+    <Spinner size="xl" class="text-primary-600 mb-4" />
     <p class="text-neutral-500">Carregando análises de membros...</p>
   </div>
 
@@ -93,6 +93,7 @@ import {
 } from '@/composables/useAnalysisCharts'
 import StatCard from '@/components/analysis/StatCard.vue'
 import ChartCard from '@/components/analysis/ChartCard.vue'
+import Spinner from '@/components/Spinner.vue'
 
 const loading = ref(true)
 const error = ref('')
