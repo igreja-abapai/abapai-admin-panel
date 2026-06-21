@@ -50,44 +50,13 @@
         </span>
       </template>
       <template #actions="{ item }">
-        <div v-if="canManage" class="flex justify-end" @click.stop>
-          <button
-            type="button"
-            class="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
-            aria-label="Opções do cargo"
-            @click="togglePositionRowMenu((item as ChurchPosition).id, $event)"
-          >
-            <EllipsisVerticalIcon class="w-5 h-5" />
-          </button>
-        </div>
+        <RowActionMenu
+          v-if="canManage"
+          :actions="getPositionActions(item as ChurchPosition)"
+          aria-label="Opções do cargo"
+        />
       </template>
     </DataTable>
-
-    <Teleport to="body">
-      <div
-        v-if="openPositionRowMenuId && positionRowMenuStyle"
-        class="position-row-menu fixed z-[10000] w-40 bg-white rounded-lg shadow-lg border border-neutral-200 py-1"
-        :style="positionRowMenuStyle"
-        @click.stop
-      >
-        <button
-          type="button"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
-          @click="handleEditPositionFromMenu"
-        >
-          <PencilIcon class="w-4 h-4 text-neutral-500 shrink-0" />
-          Editar
-        </button>
-        <button
-          type="button"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-          @click="handleDeletePositionFromMenu"
-        >
-          <TrashIcon class="w-4 h-4 shrink-0" />
-          Excluir
-        </button>
-      </div>
-    </Teleport>
 
     <BaseModal
       v-model="showPositionModal"
@@ -125,9 +94,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { PlusIcon, PencilIcon, TrashIcon, EllipsisVerticalIcon } from '@heroicons/vue/24/outline'
+import { ref, computed, onMounted } from 'vue'
+import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
+import RowActionMenu, { type RowActionMenuItem } from '@/components/RowActionMenu.vue'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import BaseModal from '@/components/BaseModal.vue'
@@ -137,9 +107,6 @@ import { organizationService, type ChurchPosition } from '@/services/organizatio
 import { useAuthStore } from '@/stores/auth'
 import { ChurchPositionCategory, enumToSelectOptions } from '@/constants/organization'
 import { confirmDelete } from '@/composables/useConfirm'
-
-const ROW_MENU_WIDTH = 160
-const ROW_MENU_HEIGHT = 88
 
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_cargos_igreja'))
@@ -153,8 +120,6 @@ const searchTerm = ref('')
 const positions = ref<ChurchPosition[]>([])
 const showPositionModal = ref(false)
 const editingPosition = ref<ChurchPosition | null>(null)
-const openPositionRowMenuId = ref<number | null>(null)
-const positionRowMenuStyle = ref<{ top: string; left: string } | null>(null)
 
 const positionForm = ref<{
   name: string
@@ -237,66 +202,19 @@ async function handleDeletePosition(position: ChurchPosition) {
   })
 }
 
-function closePositionRowMenu() {
-  openPositionRowMenuId.value = null
-  positionRowMenuStyle.value = null
-}
-
-function togglePositionRowMenu(positionId: number, event: MouseEvent) {
-  if (openPositionRowMenuId.value === positionId) {
-    closePositionRowMenu()
-    return
-  }
-
-  const button = event.currentTarget as HTMLElement
-  const rect = button.getBoundingClientRect()
-  let top = rect.bottom + 4
-  let left = rect.right - ROW_MENU_WIDTH
-
-  if (top + ROW_MENU_HEIGHT > window.innerHeight - 8) {
-    top = rect.top - ROW_MENU_HEIGHT - 4
-  }
-
-  if (left < 8) {
-    left = 8
-  }
-
-  openPositionRowMenuId.value = positionId
-  positionRowMenuStyle.value = {
-    top: `${top}px`,
-    left: `${left}px`,
-  }
-}
-
-function handleEditPositionFromMenu() {
-  const position = positions.value.find((p) => p.id === openPositionRowMenuId.value)
-  closePositionRowMenu()
-  if (position) {
-    openPositionModal(position)
-  }
-}
-
-function handleDeletePositionFromMenu() {
-  const position = positions.value.find((p) => p.id === openPositionRowMenuId.value)
-  closePositionRowMenu()
-  if (position) {
-    handleDeletePosition(position)
-  }
-}
-
-function handleDocumentClick(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  if (!target.closest('.position-row-menu')) {
-    closePositionRowMenu()
-  }
+function getPositionActions(position: ChurchPosition): RowActionMenuItem[] {
+  return [
+    { label: 'Editar', icon: PencilIcon, onClick: () => openPositionModal(position) },
+    {
+      label: 'Excluir',
+      icon: TrashIcon,
+      variant: 'danger',
+      onClick: () => handleDeletePosition(position),
+    },
+  ]
 }
 
 onMounted(() => {
   loadData()
-  document.addEventListener('click', handleDocumentClick)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleDocumentClick)
 })
 </script>

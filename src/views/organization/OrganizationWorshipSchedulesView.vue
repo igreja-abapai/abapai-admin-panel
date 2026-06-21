@@ -242,56 +242,16 @@
                 class="w-4 h-4 text-neutral-300 shrink-0 group-hover:text-neutral-400"
               />
 
-              <button
-                v-if="canManage"
-                type="button"
-                class="p-1 text-neutral-300 hover:text-neutral-600 hover:bg-neutral-50 rounded-lg transition-colors shrink-0"
+              <RowActionMenu
+                :actions="getServiceActions(service)"
                 aria-label="Opções da escala"
-                @click.stop="toggleServiceRowMenu(service.id, $event)"
-              >
-                <EllipsisVerticalIcon class="w-5 h-5" />
-              </button>
+                :menu-width="176"
+              />
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <Teleport to="body">
-      <div
-        v-if="openServiceRowMenuId && serviceRowMenuStyle"
-        class="service-row-menu fixed z-[10000] w-44 bg-white rounded-lg shadow-lg border border-neutral-200 py-1"
-        :style="serviceRowMenuStyle"
-        @click.stop
-      >
-        <button
-          type="button"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
-          @click="handleViewServiceFromMenu"
-        >
-          <EyeIcon class="w-4 h-4 text-neutral-500 shrink-0" />
-          Ver detalhes
-        </button>
-        <button
-          v-if="canManage"
-          type="button"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
-          @click="handleEditServiceFromMenu"
-        >
-          <PencilIcon class="w-4 h-4 text-neutral-500 shrink-0" />
-          Editar
-        </button>
-        <button
-          v-if="canManage"
-          type="button"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-          @click="handleDeleteServiceFromMenu"
-        >
-          <TrashIcon class="w-4 h-4 shrink-0" />
-          Excluir
-        </button>
-      </div>
-    </Teleport>
 
     <!-- Edit service -->
     <BaseModal
@@ -621,7 +581,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   PlusIcon,
@@ -629,7 +589,6 @@ import {
   CalendarDaysIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  EllipsisVerticalIcon,
   EyeIcon,
   PencilIcon,
   TrashIcon,
@@ -643,6 +602,7 @@ import Tooltip from '@/components/Tooltip.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import Checkbox from '@/components/Checkbox.vue'
 import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
+import RowActionMenu, { type RowActionMenuItem } from '@/components/RowActionMenu.vue'
 import WorshipScheduleRolesMembersForm, {
   type WorshipScheduleEligibleMember,
 } from '@/components/WorshipScheduleRolesMembersForm.vue'
@@ -673,9 +633,6 @@ import {
 } from '@/utils/worshipSchedulePdf'
 import { generateImageFromElement, generatePdfFromElement } from '@/utils/generatePdf'
 import { confirmAction, confirmDelete, showAlert } from '@/composables/useConfirm'
-
-const ROW_MENU_WIDTH = 176
-const ROW_MENU_HEIGHT = 132
 
 const WEEKDAY_ABBREVIATIONS: Record<string, string> = {
   [Weekday.SUNDAY]: 'DOM',
@@ -721,8 +678,6 @@ const showGenerateServicesModal = ref(false)
 const showGenerateAssignmentsModal = ref(false)
 const showExportModal = ref(false)
 const editingService = ref<WorshipService | null>(null)
-const openServiceRowMenuId = ref<number | null>(null)
-const serviceRowMenuStyle = ref<{ top: string; left: string } | null>(null)
 
 const createForm = ref({
   worshipServiceTypeId: '',
@@ -1214,60 +1169,23 @@ function onCreateTemplateChange() {
   }
 }
 
-function closeServiceRowMenu() {
-  openServiceRowMenuId.value = null
-  serviceRowMenuStyle.value = null
-}
-
-function toggleServiceRowMenu(serviceId: number, event: MouseEvent) {
-  if (openServiceRowMenuId.value === serviceId) {
-    closeServiceRowMenu()
-    return
-  }
-
-  const button = event.currentTarget as HTMLElement
-  const rect = button.getBoundingClientRect()
-  let top = rect.bottom + 4
-  let left = rect.right - ROW_MENU_WIDTH
-  const menuHeight = canManage.value ? ROW_MENU_HEIGHT : 44
-
-  if (top + menuHeight > window.innerHeight - 8) {
-    top = rect.top - menuHeight - 4
-  }
-
-  if (left < 8) {
-    left = 8
-  }
-
-  openServiceRowMenuId.value = serviceId
-  serviceRowMenuStyle.value = {
-    top: `${top}px`,
-    left: `${left}px`,
-  }
-}
-
-function handleViewServiceFromMenu() {
-  const service = services.value.find((item) => item.id === openServiceRowMenuId.value)
-  closeServiceRowMenu()
-  if (service) {
-    goToDetail(service)
-  }
-}
-
-function handleEditServiceFromMenu() {
-  const service = services.value.find((item) => item.id === openServiceRowMenuId.value)
-  closeServiceRowMenu()
-  if (service) {
-    openEditModal(service)
-  }
-}
-
-async function handleDeleteServiceFromMenu() {
-  const service = services.value.find((item) => item.id === openServiceRowMenuId.value)
-  closeServiceRowMenu()
-  if (service) {
-    await handleDeleteService(service)
-  }
+function getServiceActions(service: WorshipService): RowActionMenuItem[] {
+  return [
+    { label: 'Ver detalhes', icon: EyeIcon, onClick: () => goToDetail(service) },
+    {
+      label: 'Editar',
+      icon: PencilIcon,
+      hidden: !canManage.value,
+      onClick: () => openEditModal(service),
+    },
+    {
+      label: 'Excluir',
+      icon: TrashIcon,
+      variant: 'danger',
+      hidden: !canManage.value,
+      onClick: () => handleDeleteService(service),
+    },
+  ]
 }
 
 function openEditModal(service: WorshipService) {
@@ -1344,19 +1262,6 @@ async function handleClearAssignments() {
       await loadServices()
     },
   })
-}
-
-function handleClickOutside(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  if (!target.closest('[aria-label="Opções da escala"]') && !target.closest('.service-row-menu')) {
-    closeServiceRowMenu()
-  }
-}
-
-function handleScroll() {
-  if (openServiceRowMenuId.value) {
-    closeServiceRowMenu()
-  }
 }
 
 function openExportModal() {
@@ -1860,12 +1765,5 @@ async function loadServiceRoles() {
 
 onMounted(async () => {
   await Promise.all([loadServices(), loadTemplates(), loadServiceRoles()])
-  document.addEventListener('click', handleClickOutside)
-  window.addEventListener('scroll', handleScroll, true)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-  window.removeEventListener('scroll', handleScroll, true)
 })
 </script>

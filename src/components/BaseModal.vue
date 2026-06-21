@@ -81,7 +81,7 @@ const props = withDefaults(
     title: string
     subtitle?: string
     error?: string
-    maxWidth?: 'sm' | 'md' | 'lg' | 'xl'
+    maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
     zIndex?: 'default' | 'confirm'
     showClose?: boolean
     closeOnBackdrop?: boolean
@@ -118,6 +118,7 @@ const maxWidthClass = computed(() => {
     md: 'max-w-md',
     lg: 'max-w-lg',
     xl: 'max-w-xl',
+    '2xl': 'max-w-2xl',
   }
 
   return widths[props.maxWidth]

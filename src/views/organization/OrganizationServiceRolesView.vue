@@ -50,44 +50,13 @@
         </span>
       </template>
       <template #actions="{ item }">
-        <div v-if="canManage" class="flex justify-end" @click.stop>
-          <button
-            type="button"
-            class="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
-            aria-label="Opções da função"
-            @click="toggleRoleRowMenu((item as ServiceRole).id, $event)"
-          >
-            <EllipsisVerticalIcon class="w-5 h-5" />
-          </button>
-        </div>
+        <RowActionMenu
+          v-if="canManage"
+          :actions="getRoleActions(item as ServiceRole)"
+          aria-label="Opções da função"
+        />
       </template>
     </DataTable>
-
-    <Teleport to="body">
-      <div
-        v-if="openRoleRowMenuId && roleRowMenuStyle"
-        class="role-row-menu fixed z-[10000] w-40 bg-white rounded-lg shadow-lg border border-neutral-200 py-1"
-        :style="roleRowMenuStyle"
-        @click.stop
-      >
-        <button
-          type="button"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
-          @click="handleEditRoleFromMenu"
-        >
-          <PencilIcon class="w-4 h-4 text-neutral-500 shrink-0" />
-          Editar
-        </button>
-        <button
-          type="button"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-          @click="handleDeleteRoleFromMenu"
-        >
-          <TrashIcon class="w-4 h-4 shrink-0" />
-          Excluir
-        </button>
-      </div>
-    </Teleport>
 
     <BaseModal
       v-model="showRoleModal"
@@ -128,9 +97,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { PlusIcon, PencilIcon, TrashIcon, EllipsisVerticalIcon } from '@heroicons/vue/24/outline'
+import { ref, computed, onMounted } from 'vue'
+import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
+import RowActionMenu, { type RowActionMenuItem } from '@/components/RowActionMenu.vue'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import BaseModal from '@/components/BaseModal.vue'
@@ -140,9 +110,6 @@ import { organizationService, type ServiceRole } from '@/services/organization'
 import { useAuthStore } from '@/stores/auth'
 import { ServiceRoleCategory, enumToSelectOptions } from '@/constants/organization'
 import { confirmDelete } from '@/composables/useConfirm'
-
-const ROW_MENU_WIDTH = 160
-const ROW_MENU_HEIGHT = 88
 
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_funcoes_servico'))
@@ -156,8 +123,6 @@ const searchTerm = ref('')
 const roles = ref<ServiceRole[]>([])
 const showRoleModal = ref(false)
 const editingRole = ref<ServiceRole | null>(null)
-const openRoleRowMenuId = ref<number | null>(null)
-const roleRowMenuStyle = ref<{ top: string; left: string } | null>(null)
 
 const roleForm = ref<{
   name: string
@@ -243,77 +208,19 @@ async function handleDeleteRole(role: ServiceRole) {
   })
 }
 
-function closeRoleRowMenu() {
-  openRoleRowMenuId.value = null
-  roleRowMenuStyle.value = null
-}
-
-function toggleRoleRowMenu(roleId: number, event: MouseEvent) {
-  if (openRoleRowMenuId.value === roleId) {
-    closeRoleRowMenu()
-    return
-  }
-
-  const button = event.currentTarget as HTMLElement
-  const rect = button.getBoundingClientRect()
-  let top = rect.bottom + 4
-  let left = rect.right - ROW_MENU_WIDTH
-
-  if (top + ROW_MENU_HEIGHT > window.innerHeight - 8) {
-    top = rect.top - ROW_MENU_HEIGHT - 4
-  }
-
-  if (left < 8) {
-    left = 8
-  }
-
-  openRoleRowMenuId.value = roleId
-  roleRowMenuStyle.value = {
-    top: `${top}px`,
-    left: `${left}px`,
-  }
-}
-
-function handleEditRoleFromMenu() {
-  const role = roles.value.find((item) => item.id === openRoleRowMenuId.value)
-  closeRoleRowMenu()
-  if (role) {
-    openRoleModal(role)
-  }
-}
-
-async function handleDeleteRoleFromMenu() {
-  const role = roles.value.find((item) => item.id === openRoleRowMenuId.value)
-  closeRoleRowMenu()
-  if (role) {
-    await handleDeleteRole(role)
-  }
-}
-
-function handleClickOutside(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  if (
-    !target.closest('[aria-label="Opções da função"]') &&
-    !target.closest('.role-row-menu')
-  ) {
-    closeRoleRowMenu()
-  }
-}
-
-function handleScroll() {
-  if (openRoleRowMenuId.value) {
-    closeRoleRowMenu()
-  }
+function getRoleActions(role: ServiceRole): RowActionMenuItem[] {
+  return [
+    { label: 'Editar', icon: PencilIcon, onClick: () => openRoleModal(role) },
+    {
+      label: 'Excluir',
+      icon: TrashIcon,
+      variant: 'danger',
+      onClick: () => handleDeleteRole(role),
+    },
+  ]
 }
 
 onMounted(() => {
   loadData()
-  document.addEventListener('click', handleClickOutside)
-  window.addEventListener('scroll', handleScroll, true)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-  window.removeEventListener('scroll', handleScroll, true)
 })
 </script>

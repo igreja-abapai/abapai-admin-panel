@@ -338,6 +338,55 @@
             </ul>
           </li>
 
+          <li v-if="authStore.hasPermission('visualizar_patrimonio')">
+            <button
+              type="button"
+              @click="patrimonioDropdownOpen = !patrimonioDropdownOpen"
+              :class="[
+                navItemClass(isPatrimonioSectionActive()),
+                'w-full',
+                sidebarCollapsed ? 'justify-center' : '',
+              ]"
+            >
+              <ArchiveBoxIcon class="w-5 h-5 shrink-0" />
+              <span v-show="!sidebarCollapsed" class="flex-1 text-left">Patrimônio</span>
+              <ChevronDownIcon
+                v-show="!sidebarCollapsed"
+                :class="[
+                  'w-4 h-4 shrink-0 transition-transform',
+                  isPatrimonioSectionActive() ? 'text-primary-600' : 'text-neutral-400',
+                  patrimonioDropdownOpen ? 'rotate-180' : '',
+                ]"
+              />
+            </button>
+            <ul v-show="patrimonioDropdownOpen && !sidebarCollapsed" class="mt-1.5 space-y-1">
+              <li>
+                <router-link
+                  to="/patrimonio/inventario"
+                  :class="subNavItemClass($route.path.startsWith('/patrimonio/inventario'))"
+                >
+                  Inventário
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/patrimonio/locais"
+                  :class="subNavItemClass($route.path === '/patrimonio/locais')"
+                >
+                  Locais
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/patrimonio/categorias"
+                  :class="subNavItemClass($route.path === '/patrimonio/categorias')"
+                >
+                  Categorias
+                </router-link>
+              </li>
+            </ul>
+          </li>
+
           <li v-if="authStore.hasPermission('visualizar_analises')">
             <router-link to="/analises" class="block">
               <span :class="navItemClass($route.path === '/analises')">
@@ -490,6 +539,7 @@ import {
   ChartBarIcon,
   ShieldCheckIcon,
   CalendarDaysIcon,
+  ArchiveBoxIcon,
 } from '@heroicons/vue/24/outline'
 import PrayingIcon from '@/components/icons/PrayingIcon.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -506,6 +556,7 @@ const sidebarCollapsed = ref(false)
 const userMenuOpen = ref(false)
 const membrosDropdownOpen = ref(false)
 const organizacaoDropdownOpen = ref(false)
+const patrimonioDropdownOpen = ref(false)
 const notificationsDropdownOpen = ref(false)
 
 const isDesktop = ref(window.innerWidth >= 1024)
@@ -538,9 +589,14 @@ function isOrganizacaoSectionActive(): boolean {
   return route.path.startsWith('/organizacao')
 }
 
+function isPatrimonioSectionActive(): boolean {
+  return route.path.startsWith('/patrimonio')
+}
+
 function syncSidebarDropdowns() {
   membrosDropdownOpen.value = route.path.startsWith('/membros')
   organizacaoDropdownOpen.value = route.path.startsWith('/organizacao')
+  patrimonioDropdownOpen.value = route.path.startsWith('/patrimonio')
 }
 
 watch(() => route.path, syncSidebarDropdowns)

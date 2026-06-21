@@ -69,16 +69,10 @@
       </template>
 
       <template #actions="{ item }">
-        <div class="flex justify-end" @click.stop>
-          <button
-            type="button"
-            class="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
-            aria-label="Opções do usuário"
-            @click="toggleRowMenu(item.id, $event)"
-          >
-            <EllipsisVerticalIcon class="w-5 h-5" />
-          </button>
-        </div>
+        <RowActionMenu
+          :actions="getUserActions(item as User)"
+          aria-label="Opções do usuário"
+        />
       </template>
 
       <template #empty>
@@ -94,57 +88,26 @@
         </div>
       </template>
     </DataTable>
-
-    <Teleport to="body">
-      <div
-        v-if="openRowMenuId && rowMenuStyle"
-        class="user-row-menu fixed z-[10000] w-40 bg-white rounded-lg shadow-lg border border-neutral-200 py-1"
-        :style="rowMenuStyle"
-        @click.stop
-      >
-        <router-link
-          :to="`/usuarios/editar/${openRowMenuId}`"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
-          @click="closeRowMenu"
-        >
-          <PencilIcon class="w-4 h-4 text-neutral-500 shrink-0" />
-          Editar
-        </router-link>
-        <button
-          type="button"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-          @click="handleDeleteFromMenu"
-        >
-          <TrashIcon class="w-4 h-4 shrink-0" />
-          Excluir
-        </button>
-      </div>
-    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
   PlusIcon,
   UserGroupIcon,
-  EllipsisVerticalIcon,
   PencilIcon,
   TrashIcon,
 } from '@heroicons/vue/24/outline'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
+import RowActionMenu, { type RowActionMenuItem } from '@/components/RowActionMenu.vue'
 import { usersService, type User } from '@/services/users'
 import { confirmDelete } from '@/composables/useConfirm'
-
-const ROW_MENU_WIDTH = 160
-const ROW_MENU_HEIGHT = 88
 
 const loading = ref(false)
 const users = ref<User[]>([])
 const searchTerm = ref('')
 const error = ref('')
-const openRowMenuId = ref<number | null>(null)
-const rowMenuStyle = ref<{ top: string; left: string } | null>(null)
 
 const tableHeaders = computed<TableHeader<User>[]>(() => [
   { key: 'name', label: 'Nome', width: 0.24, align: 'left' },
@@ -178,43 +141,16 @@ function getUserInitials(user: User): string {
   return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
 }
 
-function closeRowMenu() {
-  openRowMenuId.value = null
-  rowMenuStyle.value = null
-}
-
-function toggleRowMenu(userId: number, event: MouseEvent) {
-  if (openRowMenuId.value === userId) {
-    closeRowMenu()
-    return
-  }
-
-  const button = event.currentTarget as HTMLElement
-  const rect = button.getBoundingClientRect()
-  let top = rect.bottom + 4
-  let left = rect.right - ROW_MENU_WIDTH
-
-  if (top + ROW_MENU_HEIGHT > window.innerHeight - 8) {
-    top = rect.top - ROW_MENU_HEIGHT - 4
-  }
-
-  if (left < 8) {
-    left = 8
-  }
-
-  openRowMenuId.value = userId
-  rowMenuStyle.value = {
-    top: `${top}px`,
-    left: `${left}px`,
-  }
-}
-
-async function handleDeleteFromMenu() {
-  const user = users.value.find((item) => item.id === openRowMenuId.value)
-  closeRowMenu()
-  if (user) {
-    await deleteUser(user)
-  }
+function getUserActions(user: User): RowActionMenuItem[] {
+  return [
+    { label: 'Editar', icon: PencilIcon, to: `/usuarios/editar/${user.id}` },
+    {
+      label: 'Excluir',
+      icon: TrashIcon,
+      variant: 'danger',
+      onClick: () => deleteUser(user),
+    },
+  ]
 }
 
 async function deleteUser(user: User) {
@@ -244,27 +180,7 @@ async function loadUsers() {
   }
 }
 
-function handleClickOutside(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  if (!target.closest('[aria-label="Opções do usuário"]') && !target.closest('.user-row-menu')) {
-    closeRowMenu()
-  }
-}
-
-function handleScroll() {
-  if (openRowMenuId.value) {
-    closeRowMenu()
-  }
-}
-
 onMounted(() => {
   loadUsers()
-  document.addEventListener('click', handleClickOutside)
-  window.addEventListener('scroll', handleScroll, true)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-  window.removeEventListener('scroll', handleScroll, true)
 })
 </script>

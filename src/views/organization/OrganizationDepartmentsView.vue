@@ -76,54 +76,12 @@
         </span>
       </template>
       <template #actions="{ item }">
-        <div class="flex justify-end" @click.stop>
-          <button
-            type="button"
-            class="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
-            aria-label="Opções do departamento"
-            @click="toggleDepartmentRowMenu((item as Department).id, $event)"
-          >
-            <EllipsisVerticalIcon class="w-5 h-5" />
-          </button>
-        </div>
+        <RowActionMenu
+          :actions="getDepartmentActions(item as Department)"
+          aria-label="Opções do departamento"
+        />
       </template>
     </DataTable>
-
-    <Teleport to="body">
-      <div
-        v-if="openDepartmentRowMenuId && departmentRowMenuStyle"
-        class="department-row-menu fixed z-[10000] w-40 bg-white rounded-lg shadow-lg border border-neutral-200 py-1"
-        :style="departmentRowMenuStyle"
-        @click.stop
-      >
-        <button
-          type="button"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
-          @click="handleViewDepartmentFromMenu"
-        >
-          <EyeIcon class="w-4 h-4 text-neutral-500 shrink-0" />
-          Ver detalhes
-        </button>
-        <button
-          v-if="canManage"
-          type="button"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
-          @click="handleEditDepartmentFromMenu"
-        >
-          <PencilIcon class="w-4 h-4 text-neutral-500 shrink-0" />
-          Editar
-        </button>
-        <button
-          v-if="canManage"
-          type="button"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-          @click="handleDeleteDepartmentFromMenu"
-        >
-          <TrashIcon class="w-4 h-4 shrink-0" />
-          Excluir
-        </button>
-      </div>
-    </Teleport>
 
     <!-- Department modal -->
     <BaseModal
@@ -218,10 +176,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { PlusIcon, PencilIcon, TrashIcon, EllipsisVerticalIcon, EyeIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, PencilIcon, TrashIcon, EyeIcon } from '@heroicons/vue/24/outline'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
+import RowActionMenu, { type RowActionMenuItem } from '@/components/RowActionMenu.vue'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import MultiSelect from '@/components/MultiSelect.vue'
@@ -245,12 +204,6 @@ const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_departamentos'))
 const canManageRoles = computed(() => authStore.hasPermission('gerenciar_funcoes_servico'))
 const canManagePositions = computed(() => authStore.hasPermission('gerenciar_cargos_igreja'))
-
-const ROW_MENU_WIDTH = 160
-const ROW_MENU_HEIGHT = 132
-
-const openDepartmentRowMenuId = ref<number | null>(null)
-const departmentRowMenuStyle = ref<{ top: string; left: string } | null>(null)
 
 const loading = ref(false)
 const saving = ref(false)
@@ -524,85 +477,28 @@ async function handleDeleteDepartment(department: Department) {
   })
 }
 
-function closeDepartmentRowMenu() {
-  openDepartmentRowMenuId.value = null
-  departmentRowMenuStyle.value = null
-}
-
-function toggleDepartmentRowMenu(departmentId: number, event: MouseEvent) {
-  if (openDepartmentRowMenuId.value === departmentId) {
-    closeDepartmentRowMenu()
-    return
-  }
-
-  const button = event.currentTarget as HTMLElement
-  const rect = button.getBoundingClientRect()
-  let top = rect.bottom + 4
-  let left = rect.right - ROW_MENU_WIDTH
-
-  if (top + ROW_MENU_HEIGHT > window.innerHeight - 8) {
-    top = rect.top - ROW_MENU_HEIGHT - 4
-  }
-
-  if (left < 8) {
-    left = 8
-  }
-
-  openDepartmentRowMenuId.value = departmentId
-  departmentRowMenuStyle.value = {
-    top: `${top}px`,
-    left: `${left}px`,
-  }
-}
-
-function handleViewDepartmentFromMenu() {
-  const department = departments.value.find((d) => d.id === openDepartmentRowMenuId.value)
-  closeDepartmentRowMenu()
-  if (department) {
-    goToDepartment(department)
-  }
-}
-
-async function handleEditDepartmentFromMenu() {
-  const department = departments.value.find((d) => d.id === openDepartmentRowMenuId.value)
-  closeDepartmentRowMenu()
-  if (department) {
-    await openDepartmentModal(department)
-  }
-}
-
-async function handleDeleteDepartmentFromMenu() {
-  const department = departments.value.find((d) => d.id === openDepartmentRowMenuId.value)
-  closeDepartmentRowMenu()
-  if (department) {
-    await handleDeleteDepartment(department)
-  }
-}
-
-function handleClickOutside(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  if (
-    !target.closest('[aria-label="Opções do departamento"]') &&
-    !target.closest('.department-row-menu')
-  ) {
-    closeDepartmentRowMenu()
-  }
-}
-
-function handleScroll() {
-  if (openDepartmentRowMenuId.value) {
-    closeDepartmentRowMenu()
-  }
+function getDepartmentActions(department: Department): RowActionMenuItem[] {
+  return [
+    { label: 'Ver detalhes', icon: EyeIcon, onClick: () => goToDepartment(department) },
+    {
+      label: 'Editar',
+      icon: PencilIcon,
+      hidden: !canManage.value,
+      onClick: () => {
+        void openDepartmentModal(department)
+      },
+    },
+    {
+      label: 'Excluir',
+      icon: TrashIcon,
+      variant: 'danger',
+      hidden: !canManage.value,
+      onClick: () => handleDeleteDepartment(department),
+    },
+  ]
 }
 
 onMounted(() => {
   loadData()
-  document.addEventListener('click', handleClickOutside)
-  window.addEventListener('scroll', handleScroll, true)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-  window.removeEventListener('scroll', handleScroll, true)
 })
 </script>

@@ -172,16 +172,11 @@
           </span>
         </template>
         <template #actions="{ item }">
-          <div v-if="canManage" class="flex justify-end" @click.stop>
-            <button
-              type="button"
-              class="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
-              aria-label="Opções do vínculo"
-              @click="toggleMemberRowMenu((item as MemberDepartment).id, $event)"
-            >
-              <EllipsisVerticalIcon class="w-5 h-5" />
-            </button>
-          </div>
+          <RowActionMenu
+            v-if="canManage"
+            :actions="getMemberLinkActions(item as MemberDepartment)"
+            aria-label="Opções do vínculo"
+          />
         </template>
         <template #empty>
           <div class="py-10 text-center">
@@ -197,24 +192,6 @@
       </DataTable>
       </div>
     </template>
-
-    <Teleport to="body">
-      <div
-        v-if="openMemberRowMenuId && memberRowMenuStyle"
-        class="member-row-menu fixed z-[10000] w-40 bg-white rounded-lg shadow-lg border border-neutral-200 py-1"
-        :style="memberRowMenuStyle"
-        @click.stop
-      >
-        <button
-          type="button"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-          @click="handleRemoveMemberFromMenu"
-        >
-          <TrashIcon class="w-4 h-4 shrink-0" />
-          Remover
-        </button>
-      </div>
-    </Teleport>
 
     <!-- Edit department modal -->
     <BaseModal
@@ -349,16 +326,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   PlusIcon,
   PencilIcon,
   TrashIcon,
-  EllipsisVerticalIcon,
   ArrowLeftIcon,
 } from '@heroicons/vue/24/outline'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
+import RowActionMenu, { type RowActionMenuItem } from '@/components/RowActionMenu.vue'
 import Spinner from '@/components/Spinner.vue'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
@@ -384,9 +361,6 @@ import {
   enumToSelectOptions,
 } from '@/constants/organization'
 
-const ROW_MENU_WIDTH = 160
-const ROW_MENU_HEIGHT = 44
-
 const route = useRoute()
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_departamentos'))
@@ -407,8 +381,6 @@ const members = ref<Member[]>([])
 
 const showEditModal = ref(false)
 const showMemberModal = ref(false)
-const openMemberRowMenuId = ref<number | null>(null)
-const memberRowMenuStyle = ref<{ top: string; left: string } | null>(null)
 
 const linkedRoles = ref<{ serviceRoleId: number; isDefault: boolean }[]>([])
 const initialRoleEligibilities = ref<DepartmentRoleEligibility[]>([])
@@ -692,69 +664,18 @@ async function handleRemoveMember(link: MemberDepartment) {
   })
 }
 
-function closeMemberRowMenu() {
-  openMemberRowMenuId.value = null
-  memberRowMenuStyle.value = null
-}
-
-function toggleMemberRowMenu(linkId: number, event: MouseEvent) {
-  if (openMemberRowMenuId.value === linkId) {
-    closeMemberRowMenu()
-    return
-  }
-
-  const button = event.currentTarget as HTMLElement
-  const rect = button.getBoundingClientRect()
-  let top = rect.bottom + 4
-  let left = rect.right - ROW_MENU_WIDTH
-
-  if (top + ROW_MENU_HEIGHT > window.innerHeight - 8) {
-    top = rect.top - ROW_MENU_HEIGHT - 4
-  }
-
-  if (left < 8) {
-    left = 8
-  }
-
-  openMemberRowMenuId.value = linkId
-  memberRowMenuStyle.value = {
-    top: `${top}px`,
-    left: `${left}px`,
-  }
-}
-
-async function handleRemoveMemberFromMenu() {
-  const link = departmentMembers.value.find((item) => item.id === openMemberRowMenuId.value)
-  closeMemberRowMenu()
-  if (link) {
-    await handleRemoveMember(link)
-  }
-}
-
-function handleClickOutside(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  if (
-    !target.closest('[aria-label="Opções do vínculo"]') &&
-    !target.closest('.member-row-menu')
-  ) {
-    closeMemberRowMenu()
-  }
-}
-
-function handleScroll() {
-  if (openMemberRowMenuId.value) {
-    closeMemberRowMenu()
-  }
+function getMemberLinkActions(link: MemberDepartment): RowActionMenuItem[] {
+  return [
+    {
+      label: 'Remover',
+      icon: TrashIcon,
+      variant: 'danger',
+      onClick: () => handleRemoveMember(link),
+    },
+  ]
 }
 
 onMounted(() => {
   loadDepartment()
-  document.addEventListener('click', handleClickOutside)
-  window.addEventListener('scroll', handleScroll, true)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-  window.removeEventListener('scroll', handleScroll, true)
 })
 </script>

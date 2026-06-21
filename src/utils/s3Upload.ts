@@ -91,6 +91,22 @@ export const isValidImageFile = (file: File): boolean => {
 }
 
 /**
+ * Validates if file is a valid document type for asset attachments
+ */
+export const isValidDocumentFile = (file: File): boolean => {
+  const validTypes = [
+    'application/pdf',
+    'application/xml',
+    'text/xml',
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+  ]
+  return validTypes.includes(file.type)
+}
+
+/**
  * Validates file size (default max: 5MB)
  * @param file - File to validate
  * @param maxSizeInMB - Maximum size in MB (default: 5)

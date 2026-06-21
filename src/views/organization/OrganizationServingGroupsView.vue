@@ -29,12 +29,7 @@
       <UserGroupIcon class="w-10 h-10 text-neutral-300 mx-auto mb-3" />
       <p class="text-neutral-600 font-medium">Nenhum grupo cadastrado</p>
       <p class="text-sm text-neutral-500 mt-1">Crie um grupo para escalar membros sempre juntos.</p>
-      <button
-        v-if="canManage"
-        type="button"
-        class="btn btn-primary mt-6"
-        @click="openGroupModal()"
-      >
+      <button v-if="canManage" type="button" class="btn btn-primary mt-6" @click="openGroupModal()">
         <PlusIcon class="w-4 h-4 mr-2" />
         Novo grupo
       </button>
@@ -59,7 +54,10 @@
             @click="selectGroup(group)"
           >
             <div class="flex shrink-0 -space-x-2">
-              <template v-for="(member, index) in getGroupMembers(group).slice(0, 2)" :key="member.id">
+              <template
+                v-for="(member, index) in getGroupMembers(group).slice(0, 2)"
+                :key="member.id"
+              >
                 <MemberAvatar
                   :name="member.name"
                   :photo-url="member.photoUrl"
@@ -78,7 +76,9 @@
             </div>
 
             <div class="min-w-0 flex-1">
-              <p class="text-sm font-semibold text-neutral-900 truncate leading-snug">{{ group.name }}</p>
+              <p class="text-sm font-semibold text-neutral-900 truncate leading-snug">
+                {{ group.name }}
+              </p>
               <div class="flex items-center gap-2 mt-1 flex-wrap">
                 <span
                   v-if="group.serviceRole"
@@ -105,7 +105,10 @@
       </div>
 
       <div>
-        <div v-if="selectedGroup" class="rounded-2xl border border-neutral-200 bg-white overflow-hidden">
+        <div
+          v-if="selectedGroup"
+          class="rounded-2xl border border-neutral-200 bg-white overflow-hidden"
+        >
           <div class="px-6 py-5 border-b border-neutral-100">
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div class="flex items-start gap-4 min-w-0">

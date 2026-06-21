@@ -25,4 +25,28 @@ export function getImageUrl(url: string | undefined): string {
   }
 }
 
+/**
+ * Converts an S3 URL to a proxy URL for documents (PDF, XML, etc.)
+ */
+export function getFileUrl(url: string | undefined): string {
+  if (!url) return ''
+
+  try {
+    const urlObj = new URL(url)
+    const isS3Url =
+      urlObj.hostname.includes('s3.') || urlObj.hostname.includes('amazonaws.com')
+
+    if (isS3Url) {
+      const key = urlObj.pathname.startsWith('/')
+        ? urlObj.pathname.slice(1)
+        : urlObj.pathname
+      return `${environment.clientApiBaseUrl}/aws/file/${key}`
+    }
+
+    return url
+  } catch {
+    return url
+  }
+}
+
 

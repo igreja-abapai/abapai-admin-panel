@@ -114,16 +114,10 @@
         </template>
 
         <template #actions="{ item }">
-          <div class="flex justify-end" @click.stop>
-            <button
-              type="button"
-              class="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
-              aria-label="Opções do membro"
-              @click="toggleRowMenu(item.id, $event)"
-            >
-              <EllipsisVerticalIcon class="w-5 h-5" />
-            </button>
-          </div>
+          <RowActionMenu
+            :actions="getMemberActions(item as Member)"
+            aria-label="Opções do membro"
+          />
         </template>
 
         <template #empty>
@@ -176,32 +170,6 @@
         </button>
       </template>
     </BaseModal>
-
-    <Teleport to="body">
-      <div
-        v-if="openRowMenuId && rowMenuStyle"
-        class="member-row-menu fixed z-[10000] w-40 bg-white rounded-lg shadow-lg border border-neutral-200 py-1"
-        :style="rowMenuStyle"
-        @click.stop
-      >
-        <router-link
-          :to="`/membros/detalhes/${openRowMenuId}`"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
-          @click="closeRowMenu"
-        >
-          <EyeIcon class="w-4 h-4 text-neutral-500 shrink-0" />
-          Ver detalhes
-        </router-link>
-        <router-link
-          :to="`/membros/editar/${openRowMenuId}`"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
-          @click="closeRowMenu"
-        >
-          <PencilIcon class="w-4 h-4 text-neutral-500 shrink-0" />
-          Editar membro
-        </router-link>
-      </div>
-    </Teleport>
   </div>
 </template>
 
@@ -211,7 +179,6 @@ import { useRouter, useRoute } from 'vue-router'
 import {
   PlusIcon,
   UserGroupIcon,
-  EllipsisVerticalIcon,
   EllipsisHorizontalIcon,
   EyeIcon,
   PencilIcon,
@@ -219,9 +186,9 @@ import {
 import { membersService, type Member } from '@/services/members'
 import { formatDate } from '@/utils/dateFormat'
 import { formatPhoneNumber } from '@/utils/phoneMask'
-import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
+import RowActionMenu, { type RowActionMenuItem } from '@/components/RowActionMenu.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import MemberAvatar from '@/components/MemberAvatar.vue'
 
@@ -237,8 +204,6 @@ const appliedBaptismFilter = ref('')
 const statusTab = ref<StatusTab>('all')
 const filtersModalOpen = ref(false)
 const error = ref('')
-const openRowMenuId = ref<string | null>(null)
-const rowMenuStyle = ref<{ top: string; left: string } | null>(null)
 const membersMenuOpen = ref(false)
 const membersMenuRef = ref<HTMLElement | null>(null)
 
@@ -267,9 +232,6 @@ const tableTabs = computed(() =>
     count: tabCounts.value[tab.key],
   })),
 )
-
-const ROW_MENU_WIDTH = 160
-const ROW_MENU_HEIGHT = 88
 
 const sortKey = ref<string>('name')
 const sortDirection = ref<'asc' | 'desc' | 'none'>('asc')
@@ -364,35 +326,11 @@ function setStatusTab(tab: StatusTab | string) {
   router.replace({ query })
 }
 
-function closeRowMenu() {
-  openRowMenuId.value = null
-  rowMenuStyle.value = null
-}
-
-function toggleRowMenu(memberId: string, event: MouseEvent) {
-  if (openRowMenuId.value === memberId) {
-    closeRowMenu()
-    return
-  }
-
-  const button = event.currentTarget as HTMLElement
-  const rect = button.getBoundingClientRect()
-  let top = rect.bottom + 4
-  let left = rect.right - ROW_MENU_WIDTH
-
-  if (top + ROW_MENU_HEIGHT > window.innerHeight - 8) {
-    top = rect.top - ROW_MENU_HEIGHT - 4
-  }
-
-  if (left < 8) {
-    left = 8
-  }
-
-  openRowMenuId.value = memberId
-  rowMenuStyle.value = {
-    top: `${top}px`,
-    left: `${left}px`,
-  }
+function getMemberActions(member: Member): RowActionMenuItem[] {
+  return [
+    { label: 'Ver detalhes', icon: EyeIcon, to: `/membros/detalhes/${member.id}` },
+    { label: 'Editar membro', icon: PencilIcon, to: `/membros/editar/${member.id}` },
+  ]
 }
 
 function toggleMembersMenu() {
@@ -536,26 +474,15 @@ function handleClickOutside(event: MouseEvent) {
   if (membersMenuRef.value && !membersMenuRef.value.contains(target)) {
     membersMenuOpen.value = false
   }
-  if (!target.closest('[aria-label="Opções do membro"]') && !target.closest('.member-row-menu')) {
-    closeRowMenu()
-  }
-}
-
-function handleScroll() {
-  if (openRowMenuId.value) {
-    closeRowMenu()
-  }
 }
 
 onMounted(() => {
   loadMembers()
   loadTabCounts()
   document.addEventListener('click', handleClickOutside)
-  window.addEventListener('scroll', handleScroll, true)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
-  window.removeEventListener('scroll', handleScroll, true)
 })
 </script>

@@ -16,8 +16,13 @@
         isOpen && 'border-blue-500 ring-2 ring-blue-500/10',
       ]"
     >
-      <span class="truncate block text-left pr-6">
-        {{ selectedLabel || placeholder }}
+      <span
+        :class="[
+          'truncate block text-left pr-6',
+          showAsPlaceholder ? 'text-gray-400' : 'text-gray-800',
+        ]"
+      >
+        {{ displayText }}
       </span>
       <div
         class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500"
@@ -60,8 +65,8 @@
         >
           <div class="px-1.5 py-1 flex flex-col gap-1">
             <button
-              v-for="option in options"
-              :key="option.value"
+              v-for="option in displayOptions"
+              :key="option.value || '__empty__'"
               type="button"
               @click="selectOption(option.value)"
               :class="[
@@ -91,13 +96,21 @@
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { ChevronDownIcon, CheckIcon } from '@heroicons/vue/24/outline';
 
-const props = defineProps<{
-  options: { value: string; label: string }[];
-  modelValue: string;
-  disabled?: boolean;
-  placeholder?: string;
-  dropdownMaxHeight?: string; // Tailwind class like 'max-h-40' or custom value like '200px'
-}>();
+const props = withDefaults(
+  defineProps<{
+    options: { value: string; label: string }[];
+    modelValue: string;
+    disabled?: boolean;
+    placeholder?: string;
+    allowEmpty?: boolean;
+    emptyLabel?: string;
+    dropdownMaxHeight?: string; // Tailwind class like 'max-h-40' or custom value like '200px'
+  }>(),
+  {
+    allowEmpty: false,
+    emptyLabel: 'Selecione uma opção',
+  },
+);
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
@@ -117,10 +130,26 @@ const dropdownStyle = ref<{ top: string; left: string; width: string }>({
 });
 const isOpeningUpwards = ref(false);
 
-const selectedLabel = computed(() => {
-  const selectedOption = props.options.find((opt) => opt.value === props.modelValue);
-  return selectedOption?.label || '';
+const displayOptions = computed(() => {
+  if (!props.allowEmpty || props.options.some((opt) => opt.value === '')) {
+    return props.options;
+  }
+  return [{ value: '', label: props.emptyLabel }, ...props.options];
 });
+
+const displayText = computed(() => {
+  if (props.modelValue === '') {
+    if (props.allowEmpty) {
+      const emptyOption = displayOptions.value.find((opt) => opt.value === '');
+      return emptyOption?.label ?? props.emptyLabel;
+    }
+    return props.placeholder ?? '';
+  }
+  const selectedOption = displayOptions.value.find((opt) => opt.value === props.modelValue);
+  return selectedOption?.label ?? props.placeholder ?? '';
+});
+
+const showAsPlaceholder = computed(() => props.modelValue === '' && !props.allowEmpty);
 
 const isSelected = (value: string) => {
   return props.modelValue === value;
@@ -173,14 +202,13 @@ const selectOption = (value: string) => {
 };
 
 const handleClickOutside = (event: MouseEvent) => {
-  if (
-    selectContainer.value &&
-    !selectContainer.value.contains(event.target as Node) &&
-    dropdownMenu.value &&
-    !dropdownMenu.value.contains(event.target as Node)
-  ) {
-    isOpen.value = false;
-  }
+  if (!isOpen.value) return;
+
+  const target = event.target as Node;
+  if (selectContainer.value?.contains(target)) return;
+  if (dropdownMenu.value?.contains(target)) return;
+
+  isOpen.value = false;
 };
 
 const handleEscape = (event: KeyboardEvent) => {
@@ -206,20 +234,22 @@ watch(isOpen, async (newValue) => {
     await updateDropdownPosition();
     window.addEventListener('scroll', handleScroll, true);
     window.addEventListener('resize', handleResize);
+    // Capture phase so clicks inside modals (@click.stop) still close the dropdown.
+    document.addEventListener('mousedown', handleClickOutside, true);
   } else {
     window.removeEventListener('scroll', handleScroll, true);
     window.removeEventListener('resize', handleResize);
+    document.removeEventListener('mousedown', handleClickOutside, true);
   }
 });
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
   document.addEventListener('keydown', handleEscape);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside);
   document.removeEventListener('keydown', handleEscape);
+  document.removeEventListener('mousedown', handleClickOutside, true);
   window.removeEventListener('scroll', handleScroll, true);
   window.removeEventListener('resize', handleResize);
 });

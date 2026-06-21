@@ -64,16 +64,11 @@
         </template>
 
         <template #actions="{ item }">
-          <div class="flex justify-end" @click.stop>
-            <button
-              type="button"
-              class="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
-              aria-label="Opções do pedido"
-              @click="toggleRowMenu(item.id, $event)"
-            >
-              <EllipsisVerticalIcon class="w-5 h-5" />
-            </button>
-          </div>
+          <RowActionMenu
+            v-if="canDelete"
+            :actions="getRequestActions(item as PrayerRequest)"
+            aria-label="Opções do pedido"
+          />
         </template>
 
         <template #empty>
@@ -121,32 +116,13 @@
         </button>
       </template>
     </BaseModal>
-
-    <Teleport to="body">
-      <div
-        v-if="openRowMenuId && rowMenuStyle"
-        class="prayer-row-menu fixed z-[10000] w-40 bg-white rounded-lg shadow-lg border border-neutral-200 py-1"
-        :style="rowMenuStyle"
-        @click.stop
-      >
-        <button
-          type="button"
-          class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-          @click="handleDeleteFromMenu"
-        >
-          <TrashIcon class="w-4 h-4 shrink-0" />
-          Excluir
-        </button>
-      </div>
-    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import {
   PlusIcon,
-  EllipsisVerticalIcon,
   TrashIcon,
 } from '@heroicons/vue/24/outline'
 import PrayingIcon from '@/components/icons/PrayingIcon.vue'
@@ -154,8 +130,13 @@ import { prayerRequestsService, type PrayerRequest } from '@/services/prayer-req
 import { formatPhoneNumber } from '@/utils/phoneMask'
 import Select from '@/components/Select.vue'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
+import RowActionMenu, { type RowActionMenuItem } from '@/components/RowActionMenu.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import { confirmDelete } from '@/composables/useConfirm'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+const canDelete = computed(() => authStore.hasPermission('excluir_pedidos_oracao'))
 
 const AREA_OPTIONS = [
   'Família',
@@ -174,17 +155,12 @@ const areaFilterDraft = ref('')
 const appliedAreaFilter = ref('')
 const filtersModalOpen = ref(false)
 const error = ref('')
-const openRowMenuId = ref<string | null>(null)
-const rowMenuStyle = ref<{ top: string; left: string } | null>(null)
 
 const sortKey = ref<string>('createdAt')
 const sortDirection = ref<'asc' | 'desc' | 'none'>('desc')
 
 const currentPage = ref(1)
 const itemsPerPage = 10
-
-const ROW_MENU_WIDTH = 160
-const ROW_MENU_HEIGHT = 44
 
 const areaFilterOptions = [
   { value: '', label: 'Todas as áreas' },
@@ -316,43 +292,15 @@ function clearFilters() {
   areaFilterDraft.value = ''
 }
 
-function closeRowMenu() {
-  openRowMenuId.value = null
-  rowMenuStyle.value = null
-}
-
-function toggleRowMenu(requestId: string, event: MouseEvent) {
-  if (openRowMenuId.value === requestId) {
-    closeRowMenu()
-    return
-  }
-
-  const button = event.currentTarget as HTMLElement
-  const rect = button.getBoundingClientRect()
-  let top = rect.bottom + 4
-  let left = rect.right - ROW_MENU_WIDTH
-
-  if (top + ROW_MENU_HEIGHT > window.innerHeight - 8) {
-    top = rect.top - ROW_MENU_HEIGHT - 4
-  }
-
-  if (left < 8) {
-    left = 8
-  }
-
-  openRowMenuId.value = requestId
-  rowMenuStyle.value = {
-    top: `${top}px`,
-    left: `${left}px`,
-  }
-}
-
-async function handleDeleteFromMenu() {
-  const request = requests.value.find((item) => item.id === openRowMenuId.value)
-  closeRowMenu()
-  if (request) {
-    await deleteRequest(request)
-  }
+function getRequestActions(request: PrayerRequest): RowActionMenuItem[] {
+  return [
+    {
+      label: 'Excluir',
+      icon: TrashIcon,
+      variant: 'danger',
+      onClick: () => deleteRequest(request),
+    },
+  ]
 }
 
 function handleSort(key: string) {
@@ -408,27 +356,7 @@ watch([searchTerm, appliedAreaFilter], () => {
   currentPage.value = 1
 })
 
-function handleClickOutside(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  if (!target.closest('[aria-label="Opções do pedido"]') && !target.closest('.prayer-row-menu')) {
-    closeRowMenu()
-  }
-}
-
-function handleScroll() {
-  if (openRowMenuId.value) {
-    closeRowMenu()
-  }
-}
-
 onMounted(() => {
   loadPrayerRequests()
-  document.addEventListener('click', handleClickOutside)
-  window.addEventListener('scroll', handleScroll, true)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-  window.removeEventListener('scroll', handleScroll, true)
 })
 </script>

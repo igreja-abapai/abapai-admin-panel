@@ -116,6 +116,30 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, permission: 'visualizar_financas' },
       },
       {
+        path: 'patrimonio/inventario',
+        name: 'patrimony-inventory',
+        component: () => import('@/views/patrimony/AssetsInventoryView.vue'),
+        meta: { requiresAuth: true, permission: 'visualizar_patrimonio' },
+      },
+      {
+        path: 'patrimonio/inventario/:id',
+        name: 'patrimony-asset-details',
+        component: () => import('@/views/patrimony/AssetDetailsView.vue'),
+        meta: { requiresAuth: true, permission: 'visualizar_patrimonio' },
+      },
+      {
+        path: 'patrimonio/locais',
+        name: 'patrimony-locations',
+        component: () => import('@/views/patrimony/AssetLocationsView.vue'),
+        meta: { requiresAuth: true, permission: 'visualizar_patrimonio' },
+      },
+      {
+        path: 'patrimonio/categorias',
+        name: 'patrimony-categories',
+        component: () => import('@/views/patrimony/AssetCategoriesView.vue'),
+        meta: { requiresAuth: true, permission: 'visualizar_patrimonio' },
+      },
+      {
         path: 'website',
         name: 'website',
         component: () => import('@/views/WebsiteView.vue'),
