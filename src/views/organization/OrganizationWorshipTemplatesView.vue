@@ -18,10 +18,7 @@
       </button>
     </div>
 
-    <div v-if="loading" class="rounded-2xl border border-neutral-200 bg-white p-12 text-center">
-      <Spinner :size="40" class="text-primary-600 mx-auto mb-4" />
-      <p class="text-sm text-neutral-500">Carregando modelos...</p>
-    </div>
+    <WorshipTemplatesSkeleton v-if="loading" />
 
     <div v-else class="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-6">
       <!-- Sidebar -->
@@ -406,7 +403,7 @@ import {
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import BaseModal from '@/components/BaseModal.vue'
-import Spinner from '@/components/Spinner.vue'
+import WorshipTemplatesSkeleton from '@/components/WorshipTemplatesSkeleton.vue'
 import Checkbox from '@/components/Checkbox.vue'
 import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
 import {

@@ -52,7 +52,7 @@
         <template #column-area="{ item }">
           <span
             v-if="item.area"
-            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700"
+            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700 whitespace-nowrap"
           >
             {{ item.area }}
           </span>
@@ -246,7 +246,7 @@ const tableHeaders = computed<TableHeader<PrayerRequest>[]>(() => [
     key: 'request',
     label: 'Pedido',
     sortable: false,
-    width: 0.36,
+    width: 0.33,
     align: 'left',
   },
   {
@@ -255,7 +255,7 @@ const tableHeaders = computed<TableHeader<PrayerRequest>[]>(() => [
     sortable: true,
     sortKey: 'area',
     sortDirection: sortKey.value === 'area' ? sortDirection.value : 'none',
-    width: 0.14,
+    width: 0.17,
     align: 'left',
   },
   {

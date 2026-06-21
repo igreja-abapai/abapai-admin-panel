@@ -49,7 +49,9 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <WorshipSchedulesSkeleton v-if="loading" :show-list="false" />
+
+    <div v-else class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
       <div class="rounded-2xl border border-neutral-200 bg-white px-5 py-4 shadow-sm">
         <p class="text-2xl font-semibold text-neutral-900 tabular-nums">{{ monthStats.total }}</p>
         <p class="text-sm text-neutral-500 mt-1">Escalas no mês</p>
@@ -102,9 +104,8 @@
         </div>
       </div>
 
-      <div v-if="loading" class="p-12 text-center">
-        <Spinner :size="40" class="text-primary-600 mx-auto mb-4" />
-        <p class="text-sm text-neutral-500">Carregando escalas...</p>
+      <div v-if="loading">
+        <WorshipSchedulesSkeleton :show-stats="false" />
       </div>
 
       <div v-else-if="error" class="p-8 text-center">
@@ -595,8 +596,8 @@ import {
   ArrowDownTrayIcon,
 } from '@heroicons/vue/24/outline'
 import Input from '@/components/Input.vue'
-import Spinner from '@/components/Spinner.vue'
 import Select from '@/components/Select.vue'
+import WorshipSchedulesSkeleton from '@/components/WorshipSchedulesSkeleton.vue'
 import SplitButton from '@/components/SplitButton.vue'
 import Tooltip from '@/components/Tooltip.vue'
 import BaseModal from '@/components/BaseModal.vue'

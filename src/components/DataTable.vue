@@ -160,13 +160,18 @@
         </thead>
         <tbody>
           <!-- Loading State -->
-          <tr v-if="isLoading">
-            <td :colspan="colspan" class="px-3 md:px-4 py-6 md:py-8 text-center">
-              <div class="flex justify-center items-center">
-                <LoadingSpinner :size="28" />
-              </div>
-            </td>
-          </tr>
+          <template v-if="isLoading">
+            <slot name="loading">
+              <DataTableSkeleton
+                :headers="headers"
+                :rows="skeletonRows"
+                :show-batch-actions="showBatchActions"
+                :has-actions="hasActions"
+                :column-widths="columnWidths"
+                :actions-column-width="actionsColumnWidth"
+              />
+            </slot>
+          </template>
           <!-- Empty State -->
           <tr v-else-if="!data || data.length === 0">
             <td :colspan="colspan" class="px-3 md:px-4 py-6 md:py-8 text-center text-neutral-500">
@@ -287,7 +292,7 @@
 <script setup lang="ts" generic="T = any">
 import { ref, computed, watch, useSlots, onUnmounted } from 'vue'
 import { TrashIcon, MagnifyingGlassIcon, FunnelIcon } from '@heroicons/vue/24/outline'
-import LoadingSpinner from './LoadingSpinner.vue'
+import DataTableSkeleton from './DataTableSkeleton.vue'
 import { DEFAULT_SEARCH_DEBOUNCE_MS } from '@/composables/useDebouncedRef'
 
 // Types
@@ -340,6 +345,7 @@ export interface DataTableProps<T = any> {
   showFilters?: boolean
   activeFiltersCount?: number
   error?: string
+  skeletonRows?: number
 }
 
 // Props
@@ -357,6 +363,7 @@ const props = withDefaults(defineProps<DataTableProps<T>>(), {
   searchPlaceholder: '',
   showFilters: false,
   activeFiltersCount: 0,
+  skeletonRows: 8,
 })
 
 // Emits
@@ -380,6 +387,7 @@ defineSlots<{
   'toolbar-left': () => void
   'toolbar-actions': () => void
   error: () => void
+  loading: () => void
 }>()
 
 const slots = useSlots()

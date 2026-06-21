@@ -18,9 +18,7 @@
       </button>
     </div>
 
-    <div v-if="loading" class="flex justify-center py-24">
-      <LoadingSpinner :size="32" />
-    </div>
+    <ServingGroupsSkeleton v-if="loading" />
 
     <div
       v-else-if="groups.length === 0"
@@ -323,7 +321,7 @@ import {
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import MultiSelect from '@/components/MultiSelect.vue'
-import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import ServingGroupsSkeleton from '@/components/ServingGroupsSkeleton.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import Checkbox from '@/components/Checkbox.vue'
 import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
