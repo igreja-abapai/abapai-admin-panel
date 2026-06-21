@@ -110,6 +110,7 @@ import { organizationService, type ServiceRole } from '@/services/organization'
 import { useAuthStore } from '@/stores/auth'
 import { ServiceRoleCategory, enumToSelectOptions } from '@/constants/organization'
 import { confirmDelete } from '@/composables/useConfirm'
+import { includesSearchAny } from '@/utils/searchText'
 
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_funcoes_servico'))
@@ -147,10 +148,9 @@ const roleHeaders = computed<TableHeader<ServiceRole>[]>(() => [
 ])
 
 const filteredRoles = computed(() => {
-  const term = searchTerm.value.trim().toLowerCase()
-  if (!term) return roles.value
-  return roles.value.filter(
-    (r) => r.name.toLowerCase().includes(term) || r.category.toLowerCase().includes(term),
+  if (!searchTerm.value.trim()) return roles.value
+  return roles.value.filter((r) =>
+    includesSearchAny(searchTerm.value, r.name, r.category),
   )
 })
 

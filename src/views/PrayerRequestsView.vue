@@ -26,11 +26,12 @@
       :headers="tableHeaders"
       :is-loading="loading"
       :pagination="paginationInfo"
-      :clickable="false"
+      :clickable="true"
       min-width="900px"
       row-key="id"
       @update:search="searchTerm = $event"
       @filters-click="openFiltersModal"
+      @row-click="openDetailModal"
       @sort="handleSort"
       @page-change="handlePageChange"
     >
@@ -44,7 +45,7 @@
         </template>
 
         <template #column-request="{ item }">
-          <p class="text-sm text-neutral-700 line-clamp-2" :title="item.request">
+          <p class="text-sm text-neutral-700 line-clamp-2">
             {{ item.request }}
           </p>
         </template>
@@ -65,7 +66,6 @@
 
         <template #actions="{ item }">
           <RowActionMenu
-            v-if="canDelete"
             :actions="getRequestActions(item as PrayerRequest)"
             aria-label="Opções do pedido"
           />
@@ -116,6 +116,72 @@
         </button>
       </template>
     </BaseModal>
+
+    <BaseModal
+      v-model="detailModalOpen"
+      :title="selectedRequest?.name || 'Pedido de oração'"
+      :subtitle="selectedRequest ? formatDateTime(selectedRequest.createdAt) : undefined"
+      max-width="xl"
+      @close="closeDetailModal"
+    >
+      <template #icon>
+        <PrayingIcon class="h-5 w-5" />
+      </template>
+
+      <div v-if="selectedRequest" class="space-y-6">
+        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+          <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              Solicitante
+            </dt>
+            <dd class="text-sm text-neutral-900 mt-1">{{ selectedRequest.name }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Telefone</dt>
+            <dd class="text-sm text-neutral-900 mt-1">
+              {{
+                selectedRequest.phone
+                  ? formatPhoneNumber(selectedRequest.phone)
+                  : 'Não informado'
+              }}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Área</dt>
+            <dd class="mt-1">
+              <span
+                v-if="selectedRequest.area"
+                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700 whitespace-nowrap"
+              >
+                {{ selectedRequest.area }}
+              </span>
+              <span v-else class="text-sm text-neutral-400">—</span>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Data</dt>
+            <dd class="text-sm text-neutral-900 mt-1">
+              {{ formatDateTime(selectedRequest.createdAt) }}
+            </dd>
+          </div>
+        </dl>
+
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Pedido</dt>
+          <dd
+            class="mt-2 rounded-xl border border-neutral-200 bg-surface-page px-4 py-3 text-sm text-neutral-800 whitespace-pre-wrap leading-relaxed max-h-[50vh] overflow-y-auto thin-scrollbar"
+          >
+            {{ selectedRequest.request }}
+          </dd>
+        </div>
+      </div>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="closeDetailModal">
+          Fechar
+        </button>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -124,6 +190,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import {
   PlusIcon,
   TrashIcon,
+  EyeIcon,
 } from '@heroicons/vue/24/outline'
 import PrayingIcon from '@/components/icons/PrayingIcon.vue'
 import { prayerRequestsService, type PrayerRequest } from '@/services/prayer-requests'
@@ -133,6 +200,7 @@ import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 import RowActionMenu, { type RowActionMenuItem } from '@/components/RowActionMenu.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import { confirmDelete } from '@/composables/useConfirm'
+import { includesSearchAny } from '@/utils/searchText'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
@@ -154,6 +222,8 @@ const searchTerm = ref('')
 const areaFilterDraft = ref('')
 const appliedAreaFilter = ref('')
 const filtersModalOpen = ref(false)
+const detailModalOpen = ref(false)
+const selectedRequest = ref<PrayerRequest | null>(null)
 const error = ref('')
 
 const sortKey = ref<string>('createdAt')
@@ -181,13 +251,14 @@ const filteredRequests = computed(() => {
   }
 
   if (searchTerm.value) {
-    const search = searchTerm.value.toLowerCase()
-    filtered = filtered.filter(
-      (request) =>
-        request.name.toLowerCase().includes(search) ||
-        request.request.toLowerCase().includes(search) ||
-        (request.area && request.area.toLowerCase().includes(search)) ||
-        (request.phone && request.phone.includes(search)),
+    filtered = filtered.filter((request) =>
+      includesSearchAny(
+        searchTerm.value,
+        request.name,
+        request.request,
+        request.area,
+        request.phone,
+      ),
     )
   }
 
@@ -273,6 +344,26 @@ function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('pt-BR')
 }
 
+function formatDateTime(dateString: string): string {
+  return new Date(dateString).toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function openDetailModal(request: PrayerRequest) {
+  selectedRequest.value = request
+  detailModalOpen.value = true
+}
+
+function closeDetailModal() {
+  detailModalOpen.value = false
+  selectedRequest.value = null
+}
+
 function openFiltersModal() {
   areaFilterDraft.value = appliedAreaFilter.value
   filtersModalOpen.value = true
@@ -293,14 +384,24 @@ function clearFilters() {
 }
 
 function getRequestActions(request: PrayerRequest): RowActionMenuItem[] {
-  return [
+  const actions: RowActionMenuItem[] = [
     {
+      label: 'Ver detalhes',
+      icon: EyeIcon,
+      onClick: () => openDetailModal(request),
+    },
+  ]
+
+  if (canDelete.value) {
+    actions.push({
       label: 'Excluir',
       icon: TrashIcon,
       variant: 'danger',
       onClick: () => deleteRequest(request),
-    },
-  ]
+    })
+  }
+
+  return actions
 }
 
 function handleSort(key: string) {
@@ -332,6 +433,9 @@ async function deleteRequest(request: PrayerRequest) {
       const index = requests.value.findIndex((r) => r.id === request.id)
       if (index > -1) {
         requests.value.splice(index, 1)
+      }
+      if (selectedRequest.value?.id === request.id) {
+        closeDetailModal()
       }
     },
   })

@@ -88,6 +88,7 @@ import { assetsService } from '@/services/assets'
 import type { AssetLocation } from '@/types/assets'
 import { useAuthStore } from '@/stores/auth'
 import { confirmDelete } from '@/composables/useConfirm'
+import { includesSearch } from '@/utils/searchText'
 
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_patrimonio'))
@@ -108,9 +109,8 @@ const headers: TableHeader<AssetLocation>[] = [
 ]
 
 const filteredLocations = computed(() => {
-  const term = searchTerm.value.trim().toLowerCase()
-  if (!term) return locations.value
-  return locations.value.filter((l) => l.name.toLowerCase().includes(term))
+  if (!searchTerm.value.trim()) return locations.value
+  return locations.value.filter((l) => includesSearch(l.name, searchTerm.value))
 })
 
 async function loadLocations() {

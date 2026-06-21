@@ -198,6 +198,7 @@ import {
 import { useAuthStore } from '@/stores/auth'
 import { DepartmentType, MemberDepartmentRole, enumToSelectOptions, getDepartmentTypeBadgeClass } from '@/constants/organization'
 import { confirmDelete } from '@/composables/useConfirm'
+import { includesSearchAny } from '@/utils/searchText'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -278,13 +279,9 @@ function departmentHasLeader(department: Department): boolean {
 }
 
 const filteredDepartments = computed(() => {
-  const term = searchTerm.value.trim().toLowerCase()
-  if (!term) return departments.value
-  return departments.value.filter(
-    (d) =>
-      d.name.toLowerCase().includes(term) ||
-      d.type.toLowerCase().includes(term) ||
-      d.parent?.name?.toLowerCase().includes(term),
+  if (!searchTerm.value.trim()) return departments.value
+  return departments.value.filter((d) =>
+    includesSearchAny(searchTerm.value, d.name, d.type, d.parent?.name),
   )
 })
 

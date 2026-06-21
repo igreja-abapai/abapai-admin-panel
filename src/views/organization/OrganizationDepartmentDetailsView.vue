@@ -355,6 +355,7 @@ import {
 import { membersService, type Member } from '@/services/members'
 import { useAuthStore } from '@/stores/auth'
 import { confirmRemove } from '@/composables/useConfirm'
+import { includesSearchAny } from '@/utils/searchText'
 import {
   DepartmentType,
   MemberDepartmentRole,
@@ -453,12 +454,9 @@ const suggestedPositionNames = computed(() =>
 )
 
 const filteredMembers = computed(() => {
-  const term = memberSearchTerm.value.trim().toLowerCase()
-  if (!term) return departmentMembers.value
-  return departmentMembers.value.filter(
-    (link) =>
-      link.member?.name?.toLowerCase().includes(term) ||
-      link.role.toLowerCase().includes(term),
+  if (!memberSearchTerm.value.trim()) return departmentMembers.value
+  return departmentMembers.value.filter((link) =>
+    includesSearchAny(memberSearchTerm.value, link.member?.name, link.role),
   )
 })
 

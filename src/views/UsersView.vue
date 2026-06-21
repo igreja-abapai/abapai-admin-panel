@@ -103,6 +103,7 @@ import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 import RowActionMenu, { type RowActionMenuItem } from '@/components/RowActionMenu.vue'
 import { usersService, type User } from '@/services/users'
 import { confirmDelete } from '@/composables/useConfirm'
+import { includesSearchAny } from '@/utils/searchText'
 
 const loading = ref(false)
 const users = ref<User[]>([])
@@ -121,12 +122,14 @@ const filteredUsers = computed(() => {
   let filtered = users.value
 
   if (searchTerm.value) {
-    const search = searchTerm.value.toLowerCase()
-    filtered = filtered.filter(
-      (user) =>
-        user.firstName.toLowerCase().includes(search) ||
-        user.lastName.toLowerCase().includes(search) ||
-        user.email.toLowerCase().includes(search),
+    filtered = filtered.filter((user) =>
+      includesSearchAny(
+        searchTerm.value,
+        user.firstName,
+        user.lastName,
+        user.email,
+        `${user.firstName} ${user.lastName}`,
+      ),
     )
   }
 

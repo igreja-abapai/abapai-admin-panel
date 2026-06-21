@@ -107,6 +107,7 @@ import { organizationService, type ChurchPosition } from '@/services/organizatio
 import { useAuthStore } from '@/stores/auth'
 import { ChurchPositionCategory, enumToSelectOptions } from '@/constants/organization'
 import { confirmDelete } from '@/composables/useConfirm'
+import { includesSearchAny } from '@/utils/searchText'
 
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_cargos_igreja'))
@@ -142,10 +143,9 @@ const positionHeaders = computed<TableHeader<ChurchPosition>[]>(() => [
 ])
 
 const filteredPositions = computed(() => {
-  const term = searchTerm.value.trim().toLowerCase()
-  if (!term) return positions.value
-  return positions.value.filter(
-    (p) => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term),
+  if (!searchTerm.value.trim()) return positions.value
+  return positions.value.filter((p) =>
+    includesSearchAny(searchTerm.value, p.name, p.category),
   )
 })
 

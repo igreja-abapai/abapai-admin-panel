@@ -86,6 +86,7 @@ import { assetsService } from '@/services/assets'
 import type { AssetCategory } from '@/types/assets'
 import { useAuthStore } from '@/stores/auth'
 import { confirmDelete } from '@/composables/useConfirm'
+import { includesSearch } from '@/utils/searchText'
 
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_patrimonio'))
@@ -106,9 +107,8 @@ const headers: TableHeader<AssetCategory>[] = [
 ]
 
 const filteredCategories = computed(() => {
-  const term = searchTerm.value.trim().toLowerCase()
-  if (!term) return categories.value
-  return categories.value.filter((c) => c.name.toLowerCase().includes(term))
+  if (!searchTerm.value.trim()) return categories.value
+  return categories.value.filter((c) => includesSearch(c.name, searchTerm.value))
 })
 
 async function loadCategories() {
