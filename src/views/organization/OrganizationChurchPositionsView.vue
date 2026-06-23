@@ -1,6 +1,9 @@
 <template>
   <div class="w-full">
-    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+    <div
+      v-if="!embedded"
+      class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8"
+    >
       <div>
         <h1 class="text-neutral-900 font-semibold text-[28px] leading-tight">Cargos</h1>
         <p class="text-sm text-neutral-500 mt-1">
@@ -109,6 +112,15 @@ import { ChurchPositionCategory, enumToSelectOptions } from '@/constants/organiz
 import { confirmDelete } from '@/composables/useConfirm'
 import { includesSearchAny } from '@/utils/searchText'
 
+withDefaults(
+  defineProps<{
+    embedded?: boolean
+  }>(),
+  {
+    embedded: false,
+  },
+)
+
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_cargos_igreja'))
 
@@ -216,5 +228,9 @@ function getPositionActions(position: ChurchPosition): RowActionMenuItem[] {
 
 onMounted(() => {
   loadData()
+})
+
+defineExpose({
+  openCreate: () => openPositionModal(),
 })
 </script>

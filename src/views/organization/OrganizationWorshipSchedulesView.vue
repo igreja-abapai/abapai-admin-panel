@@ -190,7 +190,7 @@
                     <div class="flex -space-x-2.5">
                       <Tooltip
                         v-for="(volunteer, index) in getAssignedVolunteers(service).slice(0, 4)"
-                        :key="`${service.id}-${volunteer.member?.id ?? volunteer.guestName}-${index}`"
+                        :key="`${service.id}-${volunteer.member?.id ?? volunteer.preacherId ?? volunteer.guestName}-${index}`"
                         position="center"
                         width="auto"
                       >
@@ -634,6 +634,21 @@ import {
 } from '@/utils/worshipSchedulePdf'
 import { generateImageFromElement, generatePdfFromElement } from '@/utils/generatePdf'
 import { confirmAction, confirmDelete, showAlert } from '@/composables/useConfirm'
+import {
+  churchDateInputToIso,
+  churchDatetimeLocalToIso,
+  combineChurchDateWithTime,
+  formatChurchDateTime,
+  formatChurchTime,
+  getChurchDateKey,
+  getChurchDayNumber,
+  getChurchMonth,
+  getChurchTodayKey,
+  getChurchWeekdayIndex,
+  getChurchYear,
+  getNextWeekdayOccurrencesInChurch,
+  toChurchDatetimeLocalValue,
+} from '@/utils/churchDateTime'
 
 const WEEKDAY_ABBREVIATIONS: Record<string, string> = {
   [Weekday.SUNDAY]: 'DOM',
@@ -660,9 +675,8 @@ const router = useRouter()
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_escalas'))
 
-const now = new Date()
-const viewMonth = ref(String(now.getMonth() + 1))
-const viewYear = ref(String(now.getFullYear()))
+const viewMonth = ref(String(getChurchMonth()))
+const viewYear = ref(String(getChurchYear()))
 
 const loading = ref(false)
 const saving = ref(false)
@@ -710,15 +724,15 @@ const editForm = ref({
 })
 
 const generateServicesForm = ref({
-  month: String(now.getMonth() + 1),
-  year: String(now.getFullYear()),
+  month: String(getChurchMonth()),
+  year: String(getChurchYear()),
   alsoGenerateAssignments: false,
   autoAssignRoleIds: [] as number[],
 })
 
 const generateAssignmentsForm = ref({
-  month: String(now.getMonth() + 1),
-  year: String(now.getFullYear()),
+  month: String(getChurchMonth()),
+  year: String(getChurchYear()),
   autoAssignRoleIds: [] as number[],
 })
 
@@ -779,7 +793,7 @@ const monthOptions = [
 ]
 
 const yearOptions = computed(() => {
-  const current = now.getFullYear()
+  const current = getChurchYear()
   return [current - 1, current, current + 1].map((y) => ({
     value: String(y),
     label: String(y),
@@ -854,21 +868,20 @@ interface ScheduleDateGroup {
 
 const groupedServices = computed<ScheduleDateGroup[]>(() => {
   const groups = new Map<string, ScheduleDateGroup>()
-  const todayKey = toDateKey(new Date())
+  const todayKey = getChurchTodayKey()
 
   const sorted = [...services.value].sort(
     (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime(),
   )
 
   for (const service of sorted) {
-    const date = new Date(service.scheduledAt)
-    const dateKey = toDateKey(date)
+    const dateKey = getChurchDateKey(service.scheduledAt)
 
     if (!groups.has(dateKey)) {
       groups.set(dateKey, {
         dateKey,
-        dayAbbr: getDayAbbreviation(date, service.worshipServiceType?.defaultWeekday),
-        dayNumber: date.getDate(),
+        dayAbbr: getDayAbbreviation(service.scheduledAt, service.worshipServiceType?.defaultWeekday),
+        dayNumber: getChurchDayNumber(service.scheduledAt),
         isToday: dateKey === todayKey,
         services: [],
       })
@@ -903,24 +916,11 @@ const weekdayPreviewDates = computed(() => {
     return []
   }
 
-  const startFrom = createForm.value.startFrom
-    ? new Date(`${createForm.value.startFrom}T00:00:00`)
-    : new Date()
-  startFrom.setHours(0, 0, 0, 0)
-
+  const startFrom = createForm.value.startFrom || getChurchTodayKey()
   const time = selectedCreateTemplate.value?.defaultTime || '19:00'
-  const dates = getNextWeekdayOccurrences(startFrom, jsWeekday, Math.min(count, 52))
+  const dates = getNextWeekdayOccurrencesInChurch(startFrom, jsWeekday, Math.min(count, 52))
 
-  return dates.map((date) =>
-    combineDateWithTime(date, time).toLocaleString('pt-BR', {
-      weekday: 'long',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
-  )
+  return dates.map((date) => formatChurchDateTime(combineChurchDateWithTime(date, time)))
 })
 
 const createSubmitLabel = computed(() => {
@@ -938,23 +938,15 @@ const createSubmitLabel = computed(() => {
   return 'Criar'
 })
 
-function toDateKey(date: Date) {
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
-}
-
-function getDayAbbreviation(date: Date, defaultWeekday?: string) {
+function getDayAbbreviation(value: string | Date, defaultWeekday?: string) {
   if (defaultWeekday && WEEKDAY_ABBREVIATIONS[defaultWeekday]) {
     return WEEKDAY_ABBREVIATIONS[defaultWeekday]
   }
-  return JS_WEEKDAY_ABBREVIATIONS[date.getDay()]
+  return JS_WEEKDAY_ABBREVIATIONS[getChurchWeekdayIndex(value)]
 }
 
 function formatTime(value: string) {
-  return new Date(value).toLocaleTimeString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  return formatChurchTime(value)
 }
 
 function serviceDisplayName(service: WorshipService) {
@@ -991,6 +983,7 @@ function getStatusDisplay(service: WorshipService) {
 
 interface AssignedVolunteer {
   member: Member | null
+  preacherId: number | null
   guestName: string | null
   displayName: string
   roleNames: string[]
@@ -1031,17 +1024,22 @@ function getAssignedVolunteers(service: WorshipService): AssignedVolunteer[] {
     if (!isAssignmentFilled(assignment)) continue
 
     const roleName = assignment.serviceRole?.name || 'Função'
+    const preacherName = assignment.preacher?.name?.trim()
     const guestName = assignment.guestName?.trim()
 
-    if (guestName) {
-      const guestKey = `guest:${guestName.toLowerCase()}`
+    if (preacherName || guestName) {
+      const displayName = preacherName || guestName!
+      const guestKey = preacherName
+        ? `preacher:${assignment.preacherId}`
+        : `guest:${guestName!.toLowerCase()}`
       const existing = volunteers.get(guestKey)
 
       if (!existing) {
         volunteers.set(guestKey, {
           member: null,
-          guestName,
-          displayName: guestName,
+          preacherId: assignment.preacherId ?? null,
+          guestName: guestName ?? null,
+          displayName,
           roleNames: [roleName],
           serviceRoleId: assignment.serviceRoleId,
           slotNumber: assignment.slotNumber,
@@ -1068,6 +1066,7 @@ function getAssignedVolunteers(service: WorshipService): AssignedVolunteer[] {
     if (!existing) {
       volunteers.set(memberKey, {
         member: assignment.member,
+        preacherId: null,
         guestName: null,
         displayName: assignment.member.name,
         roleNames: [roleName],
@@ -1123,44 +1122,8 @@ function goToDetail(service: WorshipService) {
   router.push(`/organizacao/escalas/${service.id}`)
 }
 
-function toDatetimeLocalValue(value: string) {
-  const date = new Date(value)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-
 function toDateInputValue(date = new Date()) {
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
-}
-
-function getNextWeekdayOccurrences(startFrom: Date, jsWeekday: number, count: number) {
-  const dates: Date[] = []
-  const cursor = new Date(startFrom)
-
-  while (cursor.getDay() !== jsWeekday) {
-    cursor.setDate(cursor.getDate() + 1)
-  }
-
-  while (dates.length < count) {
-    dates.push(new Date(cursor))
-    cursor.setDate(cursor.getDate() + 7)
-  }
-
-  return dates
-}
-
-function combineDateWithTime(date: Date, time: string) {
-  const [hours, minutes] = time.split(':').map((part) => Number(part))
-  return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-    Number.isNaN(hours) ? 19 : hours,
-    Number.isNaN(minutes) ? 0 : minutes,
-    0,
-    0,
-  )
+  return getChurchDateKey(date)
 }
 
 function onCreateTemplateChange() {
@@ -1193,7 +1156,7 @@ function openEditModal(service: WorshipService) {
   editingService.value = service
   editForm.value = {
     name: service.name || '',
-    scheduledAt: toDatetimeLocalValue(service.scheduledAt),
+    scheduledAt: toChurchDatetimeLocalValue(service.scheduledAt),
     notes: service.notes || '',
   }
   formError.value = ''
@@ -1207,7 +1170,7 @@ async function saveService() {
   try {
     await organizationService.updateWorshipService(editingService.value.id, {
       name: editForm.value.name || undefined,
-      scheduledAt: new Date(editForm.value.scheduledAt).toISOString(),
+      scheduledAt: churchDatetimeLocalToIso(editForm.value.scheduledAt),
       notes: editForm.value.notes || undefined,
     })
     showEditModal.value = false
@@ -1566,13 +1529,7 @@ async function runGenerationWithConfirmation<T extends { proceedWithWarnings?: b
 }
 
 function formatServiceDateTime(value: string) {
-  return new Date(value).toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  return formatChurchDateTime(value)
 }
 
 function buildIncompleteServicesMessage(incompleteServices: AutoAssignIncompleteService[]) {
@@ -1723,7 +1680,7 @@ async function createService() {
         count,
         weekday: createForm.value.weekday,
         startFrom: createForm.value.startFrom
-          ? new Date(`${createForm.value.startFrom}T00:00:00`).toISOString()
+          ? churchDateInputToIso(createForm.value.startFrom)
           : undefined,
         name: createForm.value.name || undefined,
         asDraft: createForm.value.createAsDraft,
@@ -1743,7 +1700,7 @@ async function createService() {
       return
     }
 
-    const scheduledAt = new Date(createForm.value.scheduledAt).toISOString()
+    const scheduledAt = churchDatetimeLocalToIso(createForm.value.scheduledAt)
     const service = await organizationService.createWorshipServiceFromTemplate({
       worshipServiceTypeId: Number(createForm.value.worshipServiceTypeId),
       scheduledAt,

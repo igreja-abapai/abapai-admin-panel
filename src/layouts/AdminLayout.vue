@@ -297,18 +297,18 @@
               </li>
               <li>
                 <router-link
-                  to="/organizacao/cargos"
-                  :class="subNavItemClass($route.path === '/organizacao/cargos')"
+                  to="/organizacao/escalas"
+                  :class="subNavItemClass($route.path.startsWith('/organizacao/escalas'))"
                 >
-                  Cargos
+                  Escalas
                 </router-link>
               </li>
               <li>
                 <router-link
-                  to="/organizacao/funcoes"
-                  :class="subNavItemClass($route.path === '/organizacao/funcoes')"
+                  to="/organizacao/pregadores"
+                  :class="subNavItemClass($route.path.startsWith('/organizacao/pregadores'))"
                 >
-                  Funções de Serviço
+                  Pregadores
                 </router-link>
               </li>
               <li>
@@ -321,18 +321,18 @@
               </li>
               <li>
                 <router-link
-                  to="/organizacao/escalas"
-                  :class="subNavItemClass($route.path.startsWith('/organizacao/escalas'))"
-                >
-                  Escalas
-                </router-link>
-              </li>
-              <li>
-                <router-link
                   to="/organizacao/grupos"
                   :class="subNavItemClass($route.path === '/organizacao/grupos')"
                 >
                   Grupos de Serviço
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  to="/organizacao/configuracoes"
+                  :class="subNavItemClass($route.path.startsWith('/organizacao/configuracoes'))"
+                >
+                  Configurações
                 </router-link>
               </li>
             </ul>
@@ -370,18 +370,10 @@
               </li>
               <li>
                 <router-link
-                  to="/patrimonio/locais"
-                  :class="subNavItemClass($route.path === '/patrimonio/locais')"
+                  to="/patrimonio/configuracoes"
+                  :class="subNavItemClass($route.path.startsWith('/patrimonio/configuracoes'))"
                 >
-                  Locais
-                </router-link>
-              </li>
-              <li>
-                <router-link
-                  to="/patrimonio/categorias"
-                  :class="subNavItemClass($route.path === '/patrimonio/categorias')"
-                >
-                  Categorias
+                  Configurações
                 </router-link>
               </li>
             </ul>

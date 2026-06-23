@@ -157,7 +157,7 @@
                   <MemberAvatar
                     v-if="getAssignmentAvatarName(assignment)"
                     :name="getAssignmentAvatarName(assignment)"
-                    :photo-url="assignment.member?.photoUrl"
+                    :photo-url="getAssignmentPhotoUrl(assignment)"
                     size="md"
                   />
                   <div
@@ -176,7 +176,7 @@
                         </span>
                       </p>
                       <span
-                        v-if="assignment.guestName?.trim()"
+                        v-if="isGuestAssignment(assignment)"
                         class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-violet-50 text-violet-700"
                       >
                         Convidado
@@ -212,13 +212,23 @@
                     {{ slotStatusLabel(assignment) }}
                   </span>
                   <button
+                    v-if="canManage && isAssignmentFilled(assignment)"
+                    type="button"
+                    class="btn btn-secondary text-sm py-2 !text-red-600 !border-red-200 hover:!bg-red-50"
+                    :disabled="saving"
+                    @click="clearAssignment(assignment)"
+                  >
+                    Remover
+                  </button>
+                  <button
                     v-if="canManage"
                     type="button"
                     class="btn btn-secondary text-sm py-2"
+                    :disabled="saving"
                     @click="openAssignModal(assignment)"
                   >
-                    <PlusIcon class="w-4 h-4 mr-1" />
-                    Atribuir
+                    <PlusIcon v-if="!isAssignmentFilled(assignment)" class="w-4 h-4 mr-1" />
+                    {{ isAssignmentFilled(assignment) ? 'Alterar' : 'Atribuir' }}
                   </button>
                 </div>
               </div>
@@ -279,8 +289,13 @@
         />
       </div>
       <div v-else>
-        <label class="block text-sm font-medium text-neutral-700 mb-1">Nome do convidado</label>
-        <Input v-model="assignForm.guestName" placeholder="Ex.: Pr. João Silva" />
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Pregador convidado</label>
+        <SelectWithAddButton
+          v-model="assignForm.preacherId"
+          :options="preacherOptions"
+          add-button-title="Cadastrar novo pregador"
+          @add="showPreacherModal = true"
+        />
       </div>
       <div>
         <label class="block text-sm font-medium text-neutral-700 mb-1">Observações</label>
@@ -299,6 +314,11 @@
         <ModalSubmitButton :loading="saving">Salvar</ModalSubmitButton>
       </template>
     </BaseModal>
+
+    <PreacherFormModal
+      v-model="showPreacherModal"
+      @saved="handlePreacherCreated"
+    />
 
     <!-- Copy modal -->
     <BaseModal
@@ -342,15 +362,18 @@ import {
 } from '@heroicons/vue/24/outline'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
+import SelectWithAddButton from '@/components/SelectWithAddButton.vue'
 import BaseModal from '@/components/BaseModal.vue'
 import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
 import MemberAvatar from '@/components/MemberAvatar.vue'
+import PreacherFormModal from '@/components/organization/PreacherFormModal.vue'
 import { getCategoryIcon, getCategoryStyle } from '@/utils/serviceRoleCategory'
 import {
   organizationService,
   type WorshipService,
   type ServiceAssignment,
   type WorshipServiceTypeRole,
+  type Preacher,
 } from '@/services/organization'
 import type { Member } from '@/services/members'
 import { useAuthStore } from '@/stores/auth'
@@ -360,12 +383,15 @@ import {
   ServiceRoleCategory,
   SERVICE_ROLE_CATEGORY_ORDER,
 } from '@/constants/organization'
-import { confirmAction } from '@/composables/useConfirm'
+import { confirmAction, confirmRemove } from '@/composables/useConfirm'
 import {
   getAssignmentAvatarName,
   getAssignmentDisplayName,
+  getAssignmentPhotoUrl,
   isAssignmentFilled,
+  isGuestAssignment,
 } from '@/utils/serviceAssignment'
+import { formatChurchDateTime, formatChurchScheduleDate, formatChurchTime } from '@/utils/churchDateTime'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -386,7 +412,9 @@ const typeRoles = ref<WorshipServiceTypeRole[]>([])
 
 const showAssignModal = ref(false)
 const showCopyModal = ref(false)
+const showPreacherModal = ref(false)
 const assigningAssignment = ref<ServiceAssignment | null>(null)
+const preachers = ref<Preacher[]>([])
 
 const assignModalSubtitle = computed(() => {
   const assignment = assigningAssignment.value
@@ -403,7 +431,7 @@ const assignModalSubtitle = computed(() => {
 const assignForm = ref({
   assigneeType: 'member' as 'member' | 'guest',
   memberId: '',
-  guestName: '',
+  preacherId: '',
   notes: '',
 })
 
@@ -481,6 +509,12 @@ const eligibleMemberOptions = computed(() =>
   eligibleMembers.value.map((m) => ({ value: String(m.id), label: m.name })),
 )
 
+const preacherOptions = computed(() =>
+  preachers.value
+    .filter((preacher) => preacher.isActive || preacher.id === Number(assignForm.value.preacherId))
+    .map((preacher) => ({ value: String(preacher.id), label: preacher.name })),
+)
+
 const otherServiceOptions = computed(() =>
   allServices.value
     .filter((s) => s.id !== service.value?.id)
@@ -491,30 +525,15 @@ const otherServiceOptions = computed(() =>
 )
 
 function formatDateTime(value: string) {
-  return new Date(value).toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  return formatChurchDateTime(value)
 }
 
 function formatScheduleDate(value: string) {
-  const formatted = new Date(value).toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
-  return formatted.charAt(0).toUpperCase() + formatted.slice(1)
+  return formatChurchScheduleDate(value)
 }
 
 function formatTime(value: string) {
-  return new Date(value).toLocaleTimeString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  return formatChurchTime(value)
 }
 
 function summaryStatusBadgeClass(status: string) {
@@ -531,7 +550,9 @@ function summaryStatusBadgeClass(status: string) {
 
 function isAssignmentRequired(assignment: ServiceAssignment) {
   const typeRole = typeRoles.value.find(
-    (role) => role.serviceRoleId === assignment.serviceRoleId,
+    (role) =>
+      role.serviceRoleId === assignment.serviceRoleId &&
+      role.slotNumber === assignment.slotNumber,
   )
   return typeRole?.isRequired ?? false
 }
@@ -582,17 +603,29 @@ async function loadService(options?: { silent?: boolean }) {
   }
 }
 
+async function loadPreachers() {
+  try {
+    preachers.value = await organizationService.getPreachers()
+  } catch {
+    preachers.value = []
+  }
+}
+
 async function openAssignModal(assignment: ServiceAssignment) {
   assigningAssignment.value = assignment
-  const hasGuest = Boolean(assignment.guestName?.trim())
+  const hasGuest = isGuestAssignment(assignment)
   assignForm.value = {
     assigneeType: hasGuest ? 'guest' : 'member',
     memberId: assignment.memberId ? String(assignment.memberId) : '',
-    guestName: assignment.guestName?.trim() || '',
+    preacherId: assignment.preacherId ? String(assignment.preacherId) : '',
     notes: assignment.notes || '',
   }
   formError.value = ''
   showAssignModal.value = true
+
+  if (hasGuest || assignment.serviceRole?.allowsGuestAssignment) {
+    await loadPreachers()
+  }
 
   if (!assignment.serviceRole?.allowsGuestAssignment || !hasGuest) {
     try {
@@ -610,17 +643,49 @@ function closeAssignModal() {
   assigningAssignment.value = null
 }
 
+async function handlePreacherCreated(preacher: Preacher) {
+  await loadPreachers()
+  assignForm.value.preacherId = String(preacher.id)
+  assignForm.value.assigneeType = 'guest'
+}
+
+async function clearAssignment(assignment: ServiceAssignment) {
+  if (!service.value) return
+
+  await confirmRemove({
+    message: 'Remover a atribuição desta vaga?',
+    onConfirm: async () => {
+      saving.value = true
+      try {
+        await organizationService.assignServiceAssignment(service.value!.id, {
+          assignmentId: assignment.id,
+          preacherId: null,
+          guestName: null,
+          notes: null,
+        })
+        await loadService({ silent: true })
+      } catch (err: any) {
+        error.value = err.response?.data?.message || 'Erro ao remover atribuição'
+      } finally {
+        saving.value = false
+      }
+    },
+  })
+}
+
 async function saveAssignment() {
   if (!service.value || !assigningAssignment.value) return
   saving.value = true
   formError.value = ''
 
-  const guestName = assignForm.value.guestName.trim()
+  const preacherId = assignForm.value.preacherId
+    ? Number(assignForm.value.preacherId)
+    : undefined
   const memberId = assignForm.value.memberId ? Number(assignForm.value.memberId) : undefined
 
   if (allowsGuestAssignment.value && assignForm.value.assigneeType === 'guest') {
-    if (!guestName) {
-      formError.value = 'Informe o nome do convidado'
+    if (!preacherId) {
+      formError.value = 'Selecione o pregador convidado'
       saving.value = false
       return
     }
@@ -636,10 +701,11 @@ async function saveAssignment() {
       memberId: allowsGuestAssignment.value && assignForm.value.assigneeType === 'guest'
         ? undefined
         : memberId,
-      guestName:
+      preacherId:
         allowsGuestAssignment.value && assignForm.value.assigneeType === 'guest'
-          ? guestName
+          ? preacherId
           : null,
+      guestName: null,
       notes: assignForm.value.notes.trim() || null,
     })
     await loadService({ silent: true })

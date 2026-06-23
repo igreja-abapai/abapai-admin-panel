@@ -235,41 +235,14 @@
                 <div class="min-w-0 flex-1">
                   <p class="text-sm font-semibold text-neutral-900 leading-tight">
                     {{ typeRole.serviceRole?.name || 'Função' }}
+                    <span v-if="typeRole.slotNumber > 1" class="text-neutral-400 font-medium">
+                      (#{{ typeRole.slotNumber }})
+                    </span>
                   </p>
                   <p class="text-xs text-neutral-500 mt-0.5">{{ group.category }}</p>
                 </div>
 
                 <div class="flex items-center gap-2.5 shrink-0">
-                  <div
-                    v-if="canManage"
-                    class="inline-flex h-8 items-center rounded-lg border border-neutral-200 bg-white"
-                  >
-                    <button
-                      type="button"
-                      class="flex h-full w-8 items-center justify-center text-neutral-400 hover:text-neutral-700 transition-colors disabled:opacity-40"
-                      :disabled="updatingTypeRoleId === typeRole.id || typeRole.quantity <= 1"
-                      @click="updateTypeRoleQuantity(typeRole, -1)"
-                    >
-                      <MinusIcon class="w-3.5 h-3.5" />
-                    </button>
-                    <span
-                      class="min-w-[1.75rem] text-center text-sm font-semibold text-neutral-900 tabular-nums"
-                    >
-                      {{ typeRole.quantity }}
-                    </span>
-                    <button
-                      type="button"
-                      class="flex h-full w-8 items-center justify-center text-neutral-400 hover:text-neutral-700 transition-colors disabled:opacity-40"
-                      :disabled="updatingTypeRoleId === typeRole.id"
-                      @click="updateTypeRoleQuantity(typeRole, 1)"
-                    >
-                      <PlusIcon class="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <span v-else class="text-sm font-semibold text-neutral-700 tabular-nums">
-                    {{ typeRole.quantity }}
-                  </span>
-
                   <span
                     :class="[
                       'inline-flex px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap',
@@ -362,7 +335,11 @@
       :error="formError"
       @submit="saveTypeRole"
     >
-      <div>
+      <div v-if="editingTypeRole">
+        <label class="block text-sm font-medium text-neutral-700 mb-1">Função</label>
+        <Input :model-value="editingTypeRole.serviceRole?.name || 'Função'" disabled />
+      </div>
+      <div v-else>
         <label class="block text-sm font-medium text-neutral-700 mb-1">Função</label>
         <Select
           v-model="typeRoleForm.serviceRoleId"
@@ -370,11 +347,11 @@
           placeholder="Selecione"
         />
       </div>
-      <div>
+      <div v-if="!editingTypeRole">
         <label class="block text-sm font-medium text-neutral-700 mb-1">Quantidade</label>
-        <Input v-model="typeRoleForm.quantity" type="number" min="1" />
+        <Input v-model="typeRoleForm.quantity" type="number" min="1" max="20" />
       </div>
-      <Checkbox v-model="typeRoleForm.isRequired">Obrigatória</Checkbox>
+      <Checkbox v-if="editingTypeRole" v-model="typeRoleForm.isRequired">Obrigatória</Checkbox>
 
       <template #footer-actions>
         <button type="button" class="btn btn-secondary" @click="showTypeRoleModal = false">
@@ -390,7 +367,6 @@
 import { ref, computed, onMounted } from 'vue'
 import {
   PlusIcon,
-  MinusIcon,
   PencilIcon,
   TrashIcon,
   ChevronRightIcon,
@@ -447,7 +423,6 @@ const canManage = computed(() => authStore.hasPermission('gerenciar_escalas'))
 const loading = ref(false)
 const saving = ref(false)
 const formError = ref('')
-const updatingTypeRoleId = ref<number | null>(null)
 
 const templates = ref<WorshipServiceType[]>([])
 const typeRoles = ref<WorshipServiceTypeRole[]>([])
@@ -508,18 +483,11 @@ const groupedTemplateRoles = computed(() => {
     }))
 })
 
-const roleOptions = computed(() => {
-  const linkedRoleIds = new Set(
-    templateRoles.value
-      .filter((tr) => !editingTypeRole.value || tr.id !== editingTypeRole.value.id)
-      .map((tr) => tr.serviceRoleId),
-  )
-
-  return serviceRoles.value
+const roleOptions = computed(() =>
+  serviceRoles.value
     .filter((role) => role.isActive)
-    .filter((role) => !linkedRoleIds.has(role.id) || role.id === Number(typeRoleForm.value.serviceRoleId))
-    .map((role) => ({ value: String(role.id), label: role.name }))
-})
+    .map((role) => ({ value: String(role.id), label: role.name })),
+)
 
 function getWeekdayAbbreviation(weekday?: string) {
   if (!weekday) return '—'
@@ -534,7 +502,7 @@ function getTemplateStats(template: WorshipServiceType) {
   const roles = typeRoles.value.filter((tr) => tr.worshipServiceTypeId === template.id)
   return {
     rolesCount: roles.length,
-    peopleCount: roles.reduce((sum, role) => sum + role.quantity, 0),
+    peopleCount: roles.length,
     requiredCount: roles.filter((role) => role.isRequired).length,
   }
 }
@@ -620,7 +588,7 @@ function openTypeRoleModal(typeRole?: WorshipServiceTypeRole) {
   editingTypeRole.value = typeRole || null
   typeRoleForm.value = {
     serviceRoleId: typeRole ? String(typeRole.serviceRoleId) : '',
-    quantity: String(typeRole?.quantity || 1),
+    quantity: '1',
     isRequired: typeRole?.isRequired ?? true,
   }
   formError.value = ''
@@ -632,18 +600,21 @@ async function saveTypeRole() {
   saving.value = true
   formError.value = ''
   try {
-    const payload = {
-      serviceRoleId: Number(typeRoleForm.value.serviceRoleId),
-      quantity: Number(typeRoleForm.value.quantity) || 1,
-      isRequired: typeRoleForm.value.isRequired,
-    }
-
     if (editingTypeRole.value) {
-      await organizationService.updateWorshipServiceTypeRole(editingTypeRole.value.id, payload)
+      await organizationService.updateWorshipServiceTypeRole(editingTypeRole.value.id, {
+        isRequired: typeRoleForm.value.isRequired,
+      })
     } else {
+      const quantity = Number(typeRoleForm.value.quantity) || 1
+      if (quantity < 1 || quantity > 20) {
+        formError.value = 'Informe uma quantidade entre 1 e 20'
+        return
+      }
+
       await organizationService.createWorshipServiceTypeRole({
         worshipServiceTypeId: selectedTemplate.value.id,
-        ...payload,
+        serviceRoleId: Number(typeRoleForm.value.serviceRoleId),
+        quantity,
       })
     }
 
@@ -654,23 +625,6 @@ async function saveTypeRole() {
     formError.value = err.response?.data?.message || 'Erro ao salvar função'
   } finally {
     saving.value = false
-  }
-}
-
-async function updateTypeRoleQuantity(typeRole: WorshipServiceTypeRole, delta: number) {
-  const newQuantity = typeRole.quantity + delta
-  if (newQuantity < 1) return
-
-  updatingTypeRoleId.value = typeRole.id
-  try {
-    await organizationService.updateWorshipServiceTypeRole(typeRole.id, {
-      quantity: newQuantity,
-    })
-    await loadData()
-  } catch (err: any) {
-    formError.value = err.response?.data?.message || 'Erro ao atualizar quantidade'
-  } finally {
-    updatingTypeRoleId.value = null
   }
 }
 

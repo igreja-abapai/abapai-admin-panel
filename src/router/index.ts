@@ -128,16 +128,22 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, permission: 'visualizar_patrimonio' },
       },
       {
-        path: 'patrimonio/locais',
-        name: 'patrimony-locations',
-        component: () => import('@/views/patrimony/AssetLocationsView.vue'),
+        path: 'patrimonio/configuracoes',
+        redirect: '/patrimonio/configuracoes/categorias',
+      },
+      {
+        path: 'patrimonio/configuracoes/:tab',
+        name: 'patrimony-settings',
+        component: () => import('@/views/patrimony/PatrimonySettingsView.vue'),
         meta: { requiresAuth: true, permission: 'visualizar_patrimonio' },
       },
       {
+        path: 'patrimonio/locais',
+        redirect: '/patrimonio/configuracoes/locais',
+      },
+      {
         path: 'patrimonio/categorias',
-        name: 'patrimony-categories',
-        component: () => import('@/views/patrimony/AssetCategoriesView.vue'),
-        meta: { requiresAuth: true, permission: 'visualizar_patrimonio' },
+        redirect: '/patrimonio/configuracoes/categorias',
       },
       {
         path: 'website',
@@ -158,16 +164,22 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, permission: 'visualizar_organizacao' },
       },
       {
-        path: 'organizacao/cargos',
-        name: 'organization-church-positions',
-        component: () => import('@/views/organization/OrganizationChurchPositionsView.vue'),
+        path: 'organizacao/configuracoes',
+        redirect: '/organizacao/configuracoes/cargos',
+      },
+      {
+        path: 'organizacao/configuracoes/:tab',
+        name: 'organization-settings',
+        component: () => import('@/views/organization/OrganizationSettingsView.vue'),
         meta: { requiresAuth: true, permission: 'visualizar_organizacao' },
       },
       {
+        path: 'organizacao/cargos',
+        redirect: '/organizacao/configuracoes/cargos',
+      },
+      {
         path: 'organizacao/funcoes',
-        name: 'organization-service-roles',
-        component: () => import('@/views/organization/OrganizationServiceRolesView.vue'),
-        meta: { requiresAuth: true, permission: 'visualizar_organizacao' },
+        redirect: '/organizacao/configuracoes/funcoes',
       },
       {
         path: 'organizacao/cultos',
@@ -179,6 +191,18 @@ const routes: RouteRecordRaw[] = [
         path: 'organizacao/grupos',
         name: 'organization-serving-groups',
         component: () => import('@/views/organization/OrganizationServingGroupsView.vue'),
+        meta: { requiresAuth: true, permission: 'visualizar_organizacao' },
+      },
+      {
+        path: 'organizacao/pregadores',
+        name: 'organization-preachers',
+        component: () => import('@/views/organization/OrganizationPreachersView.vue'),
+        meta: { requiresAuth: true, permission: 'visualizar_organizacao' },
+      },
+      {
+        path: 'organizacao/pregadores/:id',
+        name: 'organization-preacher-details',
+        component: () => import('@/views/organization/OrganizationPreacherDetailsView.vue'),
         meta: { requiresAuth: true, permission: 'visualizar_organizacao' },
       },
       {

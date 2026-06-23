@@ -1,6 +1,9 @@
 <template>
   <div class="w-full">
-    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+    <div
+      v-if="!embedded"
+      class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8"
+    >
       <div>
         <h1 class="text-neutral-900 font-semibold text-[28px] leading-tight">Categorias</h1>
         <p class="text-sm text-neutral-500 mt-1">Gerencie as categorias de bens patrimoniais.</p>
@@ -87,6 +90,15 @@ import type { AssetCategory } from '@/types/assets'
 import { useAuthStore } from '@/stores/auth'
 import { confirmDelete } from '@/composables/useConfirm'
 import { includesSearch } from '@/utils/searchText'
+
+withDefaults(
+  defineProps<{
+    embedded?: boolean
+  }>(),
+  {
+    embedded: false,
+  },
+)
 
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_patrimonio'))
@@ -177,5 +189,9 @@ function getCategoryActions(category: AssetCategory): RowActionMenuItem[] {
 
 onMounted(() => {
   loadCategories()
+})
+
+defineExpose({
+  openCreate: () => openModal(),
 })
 </script>

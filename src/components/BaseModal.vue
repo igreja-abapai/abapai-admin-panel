@@ -82,7 +82,7 @@ const props = withDefaults(
     subtitle?: string
     error?: string
     maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
-    zIndex?: 'default' | 'confirm'
+    zIndex?: 'default' | 'stacked' | 'confirm'
     showClose?: boolean
     closeOnBackdrop?: boolean
     form?: boolean
@@ -124,9 +124,11 @@ const maxWidthClass = computed(() => {
   return widths[props.maxWidth]
 })
 
-const zIndexClass = computed(() =>
-  props.zIndex === 'confirm' ? 'z-[10001]' : 'z-[10000]',
-)
+const zIndexClass = computed(() => {
+  if (props.zIndex === 'confirm') return 'z-[10002]'
+  if (props.zIndex === 'stacked') return 'z-[10001]'
+  return 'z-[10000]'
+})
 
 const panelClass = computed(
   () =>

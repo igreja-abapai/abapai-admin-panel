@@ -1,5 +1,10 @@
 import type { ServiceAssignment, WorshipService, WorshipServiceType } from '@/services/organization'
 import { getAssignmentDisplayName } from '@/utils/serviceAssignment'
+import {
+  formatChurchDayMonth,
+  formatChurchTime,
+  formatChurchWeekday,
+} from '@/utils/churchDateTime'
 
 export interface WorshipSchedulePdfRow {
   roleName: string
@@ -38,17 +43,12 @@ function getRoleGroupOrder(service: WorshipService): Map<number, number> {
   return order
 }
 
-function formatWeekdayLabel(date: Date): string {
-  const weekday = date.toLocaleDateString('pt-BR', { weekday: 'long' })
-  return weekday
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('-')
+function formatWeekdayLabel(value: string | Date): string {
+  return formatChurchWeekday(value)
 }
 
-function formatDayMonth(date: Date): string {
-  const pad = (value: number) => String(value).padStart(2, '0')
-  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}`
+function formatDayMonth(value: string | Date): string {
+  return formatChurchDayMonth(value)
 }
 
 export function buildWorshipSchedulePdfServices(
@@ -83,12 +83,9 @@ export function buildWorshipSchedulePdfServices(
 
       if (rows.length === 0) return null
 
-      const date = new Date(service.scheduledAt)
+      const date = service.scheduledAt
       const serviceName = service.name || service.worshipServiceType?.name || 'Culto'
-      const timeLabel = date.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
+      const timeLabel = formatChurchTime(date)
 
       return {
         key: String(service.id),

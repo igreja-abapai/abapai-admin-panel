@@ -1,6 +1,9 @@
 <template>
   <div class="w-full">
-    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+    <div
+      v-if="!embedded"
+      class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8"
+    >
       <div>
         <h1 class="text-neutral-900 font-semibold text-[28px] leading-tight">Funções de Serviço</h1>
         <p class="text-sm text-neutral-500 mt-1">
@@ -112,6 +115,15 @@ import { ServiceRoleCategory, enumToSelectOptions } from '@/constants/organizati
 import { confirmDelete } from '@/composables/useConfirm'
 import { includesSearchAny } from '@/utils/searchText'
 
+withDefaults(
+  defineProps<{
+    embedded?: boolean
+  }>(),
+  {
+    embedded: false,
+  },
+)
+
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_funcoes_servico'))
 
@@ -222,5 +234,9 @@ function getRoleActions(role: ServiceRole): RowActionMenuItem[] {
 
 onMounted(() => {
   loadData()
+})
+
+defineExpose({
+  openCreate: () => openRoleModal(),
 })
 </script>

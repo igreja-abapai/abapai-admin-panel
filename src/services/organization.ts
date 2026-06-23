@@ -110,9 +110,29 @@ export interface WorshipServiceTypeRole {
   worshipServiceTypeId: number
   serviceRoleId: number
   quantity: number
+  slotNumber: number
   isRequired: boolean
   sortOrder: number
   serviceRole?: ServiceRole
+}
+
+export interface Preacher {
+  id: number
+  name: string
+  phone?: string | null
+  photoUrl?: string | null
+  isActive: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface PreacherScheduleHistoryItem {
+  assignmentId: number
+  worshipServiceId: number
+  serviceName: string
+  serviceRoleName: string
+  scheduledAt: string
+  status: string
 }
 
 export interface ServiceAssignment {
@@ -127,9 +147,11 @@ export interface ServiceAssignment {
   assignedAt?: string
   notes?: string
   guestName?: string | null
+  preacherId?: number | null
   serviceRole?: ServiceRole
   member?: Member
   servingGroup?: ServingGroup
+  preacher?: Preacher
 }
 
 export interface WorshipService {
@@ -404,8 +426,6 @@ class OrganizationService {
   updateWorshipServiceTypeRole(
     id: number,
     data: {
-      serviceRoleId?: number
-      quantity?: number
       isRequired?: boolean
       sortOrder?: number
     },
@@ -575,6 +595,7 @@ class OrganizationService {
       memberId?: number
       servingGroupId?: number
       guestName?: string | null
+      preacherId?: number | null
       notes?: string | null
     },
   ) {
@@ -609,6 +630,45 @@ class OrganizationService {
     return httpService.get<Member[]>(
       `/organization/worship-schedules/assignments/${assignmentId}/eligible-members`,
     )
+  }
+
+  getPreachers() {
+    return httpService.get<Preacher[]>('/organization/preachers')
+  }
+
+  getPreacher(id: number) {
+    return httpService.get<Preacher>(`/organization/preachers/${id}`)
+  }
+
+  getPreacherScheduleHistory(id: number) {
+    return httpService.get<PreacherScheduleHistoryItem[]>(
+      `/organization/preachers/${id}/schedule-history`,
+    )
+  }
+
+  createPreacher(data: {
+    name: string
+    phone?: string
+    photoUrl?: string
+    isActive?: boolean
+  }) {
+    return httpService.post<Preacher>('/organization/preachers', data)
+  }
+
+  updatePreacher(
+    id: number,
+    data: {
+      name?: string
+      phone?: string
+      photoUrl?: string | null
+      isActive?: boolean
+    },
+  ) {
+    return httpService.patch<Preacher>(`/organization/preachers/${id}`, data)
+  }
+
+  deletePreacher(id: number) {
+    return httpService.delete<void>(`/organization/preachers/${id}`)
   }
 }
 
