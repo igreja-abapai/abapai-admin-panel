@@ -68,6 +68,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, permission: 'visualizar_membros' },
       },
       {
+        path: 'membros/dados-incompletos',
+        name: 'incomplete-members',
+        component: () => import('@/views/IncompleteMembersView.vue'),
+        meta: { requiresAuth: true, permission: 'visualizar_membros' },
+      },
+      {
         path: 'pedidos-de-oracao',
         name: 'prayer-requests',
         component: () => import('@/views/PrayerRequestsView.vue'),

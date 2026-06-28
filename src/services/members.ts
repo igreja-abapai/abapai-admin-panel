@@ -143,6 +143,7 @@ export interface GetMembersParams {
   deletedOnly?: boolean
   isPaginated?: boolean
   withPrimaryPosition?: boolean
+  incompleteProfile?: boolean
 }
 
 export class MembersService {
@@ -162,6 +163,8 @@ export class MembersService {
       queryParams.append('isPaginated', params.isPaginated.toString())
     if (params?.withPrimaryPosition !== undefined)
       queryParams.append('withPrimaryPosition', params.withPrimaryPosition.toString())
+    if (params?.incompleteProfile !== undefined)
+      queryParams.append('incompleteProfile', params.incompleteProfile.toString())
 
     const queryString = queryParams.toString()
     const url = queryString ? `/member?${queryString}` : '/member'

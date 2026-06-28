@@ -49,11 +49,18 @@
           </button>
           <div
             v-if="membersMenuOpen"
-            class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-20"
+            class="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-20"
           >
             <router-link
+              to="/membros/dados-incompletos"
+              class="block w-full px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors whitespace-nowrap"
+              @click="membersMenuOpen = false"
+            >
+              Membros com dados incompletos
+            </router-link>
+            <router-link
               to="/membros/ex-membros"
-              class="block w-full px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
+              class="block w-full px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors whitespace-nowrap"
               @click="membersMenuOpen = false"
             >
               Ver ex-membros
