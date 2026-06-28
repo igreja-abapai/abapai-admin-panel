@@ -63,83 +63,75 @@
       </template>
 
       <template #column-name="{ item }">
-          <div class="flex items-center min-w-0">
-            <MemberAvatar :name="item.name" :photo-url="item.photoUrl" size="md" />
-            <div class="ml-3 min-w-0">
-              <p class="font-medium text-neutral-900 truncate text-sm">{{ item.name }}</p>
-            </div>
+        <div class="flex items-center min-w-0">
+          <MemberAvatar :name="item.name" :photo-url="item.photoUrl" size="md" />
+          <div class="ml-3 min-w-0">
+            <p class="font-medium text-neutral-900 truncate text-sm">{{ item.name }}</p>
           </div>
-        </template>
+        </div>
+      </template>
 
-        <template #column-birthdate="{ item }">
-          <span class="text-sm text-neutral-700">
-            {{ formatBirthdate(item as Member) }}
-          </span>
-        </template>
+      <template #column-birthdate="{ item }">
+        <span class="text-sm text-neutral-700">
+          {{ formatBirthdate(item as Member) }}
+        </span>
+      </template>
 
-        <template #column-isBaptized="{ item }">
-          <span
-            v-if="item.isBaptized"
-            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700"
-          >
-            Batizado
-          </span>
-          <span
-            v-else
-            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700"
-          >
-            Não Batizado
-          </span>
-        </template>
+      <template #column-isBaptized="{ item }">
+        <span
+          v-if="item.isBaptized"
+          class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700"
+        >
+          Batizado
+        </span>
+        <span
+          v-else
+          class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700"
+        >
+          Não Batizado
+        </span>
+      </template>
 
-        <template #column-status="{ item }">
-          <span
-            v-if="item.isActive"
-            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700"
-          >
-            Ativo
-          </span>
-          <span
-            v-else
-            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700"
-          >
-            Ausente
-          </span>
-        </template>
+      <template #column-status="{ item }">
+        <span
+          v-if="item.isActive"
+          class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700"
+        >
+          Ativo
+        </span>
+        <span
+          v-else
+          class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700"
+        >
+          Ausente
+        </span>
+      </template>
 
-        <template #column-phone="{ item }">
-          <span class="text-sm text-neutral-700">
-            {{ item.phone ? formatPhoneNumber(item.phone) : '—' }}
-          </span>
-        </template>
+      <template #column-phone="{ item }">
+        <span class="text-sm text-neutral-700">
+          {{ item.phone ? formatPhoneNumber(item.phone) : '—' }}
+        </span>
+      </template>
 
-        <template #actions="{ item }">
-          <RowActionMenu
-            :actions="getMemberActions(item as Member)"
-            aria-label="Opções do membro"
-          />
-        </template>
+      <template #actions="{ item }">
+        <RowActionMenu :actions="getMemberActions(item as Member)" aria-label="Opções do membro" />
+      </template>
 
-        <template #empty>
-          <div class="py-10 text-center">
-            <UserGroupIcon class="w-12 h-12 text-neutral-300 mx-auto mb-4" />
-            <p class="text-neutral-500">
-              {{
-                searchTerm || appliedBaptismFilter
-                  ? 'Nenhum membro encontrado com os filtros aplicados'
-                  : 'Nenhum membro encontrado'
-              }}
-            </p>
-          </div>
-        </template>
+      <template #empty>
+        <div class="py-10 text-center">
+          <UserGroupIcon class="w-12 h-12 text-neutral-300 mx-auto mb-4" />
+          <p class="text-neutral-500">
+            {{
+              searchTerm || appliedBaptismFilter
+                ? 'Nenhum membro encontrado com os filtros aplicados'
+                : 'Nenhum membro encontrado'
+            }}
+          </p>
+        </div>
+      </template>
     </DataTable>
 
-    <BaseModal
-      v-model="filtersModalOpen"
-      title="Filtros"
-      max-width="md"
-      @close="closeFiltersModal"
-    >
+    <BaseModal v-model="filtersModalOpen" title="Filtros" max-width="md" @close="closeFiltersModal">
       <div>
         <label class="block text-sm font-medium text-neutral-700 mb-2">Batismo</label>
         <Select
@@ -162,12 +154,8 @@
         </button>
       </template>
       <template #footer-actions>
-        <button type="button" class="btn btn-secondary" @click="closeFiltersModal">
-          Cancelar
-        </button>
-        <button type="button" class="btn btn-primary" @click="applyFiltersModal">
-          Aplicar
-        </button>
+        <button type="button" class="btn btn-secondary" @click="closeFiltersModal">Cancelar</button>
+        <button type="button" class="btn btn-primary" @click="applyFiltersModal">Aplicar</button>
       </template>
     </BaseModal>
   </div>

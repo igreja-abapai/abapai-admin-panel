@@ -52,19 +52,30 @@
     <template v-else-if="asset">
       <div class="space-y-6">
         <div class="bg-white rounded-lg shadow p-6">
-          <div class="flex flex-col sm:flex-row gap-6">
-            <div
-              class="w-36 h-36 rounded-lg border border-neutral-200 overflow-hidden bg-neutral-50 shrink-0"
+          <div class="flex flex-col sm:flex-row sm:items-start gap-6">
+            <button
+              v-if="asset.photoUrl"
+              type="button"
+              :class="[
+                assetPhotoDisplayFrameClass,
+                'border border-neutral-200 cursor-zoom-in transition-all duration-200 ease-out hover:shadow-md hover:brightness-[0.97] active:scale-[0.99]',
+              ]"
+              aria-label="Ampliar foto do patrimônio"
+              @click="showPhotoLightbox = true"
             >
               <img
-                v-if="asset.photoUrl"
                 :src="getImageUrl(asset.photoUrl)"
                 :alt="asset.description"
-                class="w-full h-full object-cover"
+                :class="assetPhotoImageClass"
+                decoding="async"
               />
+            </button>
+            <div
+              v-else
+              :class="[assetPhotoDisplayFrameClass, 'border border-neutral-200']"
+            >
               <div
-                v-else
-                class="w-full h-full flex flex-col items-center justify-center text-neutral-400"
+                class="absolute inset-0 flex flex-col items-center justify-center text-neutral-400"
               >
                 <PhotoIcon class="w-10 h-10" />
                 <p class="text-xs mt-2">Sem foto</p>
@@ -362,6 +373,14 @@
         </ModalSubmitButton>
       </template>
     </BaseModal>
+
+    <ImageLightbox
+      v-if="asset?.photoUrl"
+      v-model="showPhotoLightbox"
+      :src="getImageUrl(asset.photoUrl)"
+      :alt="asset.description"
+      :caption="`${asset.code} · ${asset.description}`"
+    />
   </div>
 </template>
 
@@ -376,6 +395,7 @@ import Spinner from '@/components/Spinner.vue'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
 import BaseModal from '@/components/BaseModal.vue'
+import ImageLightbox from '@/components/ImageLightbox.vue'
 import ModalSubmitButton from '@/components/ModalSubmitButton.vue'
 import { assetsService } from '@/services/assets'
 import { organizationService } from '@/services/organization'
@@ -401,6 +421,7 @@ import {
 } from '@/constants/assets'
 import { useAuthStore } from '@/stores/auth'
 import { getImageUrl } from '@/utils/imageUrl'
+import { assetPhotoDisplayFrameClass, assetPhotoImageClass } from '@/utils/normalizeImageFile'
 import { uploadFileToS3 } from '@/utils/s3Upload'
 
 const route = useRoute()
@@ -421,6 +442,7 @@ const uploadingPhoto = ref(false)
 
 const showEditModal = ref(false)
 const showDisposeModal = ref(false)
+const showPhotoLightbox = ref(false)
 
 const categories = ref<{ id: number; name: string }[]>([])
 const locations = ref<{ id: number; name: string }[]>([])

@@ -4,10 +4,10 @@
     <div class="w-full flex justify-between mb-8">
       <h1 class="text-neutral-900 font-medium text-[28px]">Detalhes do Membro</h1>
       <div class="flex gap-2 no-print">
-        <router-link to="/membros" class="btn btn-secondary">
+        <button type="button" class="btn btn-secondary" @click="handleBack">
           <ArrowLeftIcon class="w-4 h-4 mr-2" />
           Voltar
-        </router-link>
+        </button>
         <SplitButton
           label="Editar"
           :icon="PencilIcon"
@@ -628,9 +628,12 @@ import MemberAvatar from '@/components/MemberAvatar.vue'
 import Spinner from '@/components/Spinner.vue'
 import { environment } from '@/config/environment'
 import { getImageUrl } from '@/utils/imageUrl'
+import { useGoBack } from '@/composables/useGoBack'
 
 const route = useRoute()
 const router = useRouter()
+const { goBack: handleBack } = useGoBack('/membros')
+
 const member = ref<Member | null>(null)
 const createdByUser = ref<User | null>(null)
 const updatedByUser = ref<User | null>(null)
@@ -1110,7 +1113,7 @@ async function handleDeleteMember() {
   deleting.value = true
   try {
     await membersService.deleteMember(member.value?.id as string)
-    router.push('/membros')
+    handleBack()
   } catch (err: any) {
     console.error('Error deleting member:', err)
     error.value = err.response?.data?.message || 'Erro ao excluir membro'

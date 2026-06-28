@@ -3,10 +3,10 @@
     <div class="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
       <h1 class="text-neutral-900 font-medium text-[28px]">Detalhes do Departamento</h1>
       <div class="flex gap-2">
-        <router-link to="/organizacao/departamentos" class="btn btn-secondary">
+        <button type="button" class="btn btn-secondary" @click="goBack">
           <ArrowLeftIcon class="w-4 h-4 mr-2" />
           Voltar
-        </router-link>
+        </button>
         <button
           v-if="canManage && department"
           type="button"
@@ -355,6 +355,7 @@ import {
 import { membersService, type Member } from '@/services/members'
 import { useAuthStore } from '@/stores/auth'
 import { confirmRemove } from '@/composables/useConfirm'
+import { useGoBack } from '@/composables/useGoBack'
 import { includesSearchAny } from '@/utils/searchText'
 import {
   DepartmentType,
@@ -363,6 +364,7 @@ import {
 } from '@/constants/organization'
 
 const route = useRoute()
+const { goBack } = useGoBack('/organizacao/departamentos')
 const authStore = useAuthStore()
 const canManage = computed(() => authStore.hasPermission('gerenciar_departamentos'))
 const canManageRoles = computed(() => authStore.hasPermission('gerenciar_funcoes_servico'))

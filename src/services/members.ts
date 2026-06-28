@@ -142,6 +142,7 @@ export interface GetMembersParams {
   isActive?: boolean
   deletedOnly?: boolean
   isPaginated?: boolean
+  withPrimaryPosition?: boolean
 }
 
 export class MembersService {
@@ -159,6 +160,8 @@ export class MembersService {
       queryParams.append('deletedOnly', params.deletedOnly.toString())
     if (params?.isPaginated !== undefined)
       queryParams.append('isPaginated', params.isPaginated.toString())
+    if (params?.withPrimaryPosition !== undefined)
+      queryParams.append('withPrimaryPosition', params.withPrimaryPosition.toString())
 
     const queryString = queryParams.toString()
     const url = queryString ? `/member?${queryString}` : '/member'

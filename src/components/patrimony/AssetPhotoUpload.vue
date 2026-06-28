@@ -5,23 +5,23 @@
     </label>
     <div class="flex flex-col sm:flex-row items-start gap-4">
       <div
-        class="relative w-32 h-32 rounded-lg border-2 border-dashed border-neutral-300 overflow-hidden bg-neutral-50 shrink-0"
+        :class="[assetPhotoUploadFrameClass, 'border-2 border-dashed border-neutral-300']"
       >
         <img
           v-if="displayPreview"
           :src="displayPreview"
           alt="Foto do patrimônio"
-          class="w-full h-full object-cover"
+          :class="assetPhotoImageClass"
         />
         <div
           v-else
-          class="w-full h-full flex flex-col items-center justify-center text-neutral-400 p-2"
+          class="absolute inset-0 flex flex-col items-center justify-center text-neutral-400 p-2"
         >
           <PhotoIcon class="w-8 h-8 mb-1" />
           <p class="text-xs text-center">Sem foto</p>
         </div>
         <div
-          v-if="uploading"
+          v-if="uploading || processing"
           class="absolute inset-0 bg-black/50 flex items-center justify-center"
         >
           <Spinner size="md" class="text-white" />
@@ -39,7 +39,7 @@
         <button
           type="button"
           class="btn btn-secondary text-sm"
-          :disabled="uploading || disabled"
+          :disabled="uploading || processing || disabled"
           @click="fileInputRef?.click()"
         >
           {{ displayPreview ? 'Alterar foto' : 'Escolher foto' }}
@@ -48,7 +48,7 @@
           v-if="displayPreview"
           type="button"
           class="text-sm text-red-600 hover:text-red-700 text-left"
-          :disabled="uploading || disabled"
+          :disabled="uploading || processing || disabled"
           @click="removePhoto"
         >
           Remover foto
@@ -65,6 +65,11 @@ import { computed, ref, watch } from 'vue'
 import { PhotoIcon } from '@heroicons/vue/24/outline'
 import Spinner from '@/components/Spinner.vue'
 import { getImageUrl } from '@/utils/imageUrl'
+import {
+  assetPhotoUploadFrameClass,
+  assetPhotoImageClass,
+  normalizeImageFileWithPreview,
+} from '@/utils/normalizeImageFile'
 import { isValidFileSize, isValidImageFile } from '@/utils/s3Upload'
 
 const props = withDefaults(
@@ -85,6 +90,7 @@ const photoFile = defineModel<File | null>('photoFile', { default: null })
 
 const fileInputRef = ref<HTMLInputElement>()
 const localPreview = ref('')
+const processing = ref(false)
 const error = ref('')
 
 const displayPreview = computed(() => {
@@ -102,7 +108,7 @@ watch(
   },
 )
 
-function handleFileChange(event: Event) {
+async function handleFileChange(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (!file) return
 
@@ -118,12 +124,19 @@ function handleFileChange(event: Event) {
     return
   }
 
-  photoFile.value = file
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    localPreview.value = e.target?.result as string
+  processing.value = true
+
+  try {
+    const { file: normalizedFile, previewDataUrl } = await normalizeImageFileWithPreview(file)
+    photoFile.value = normalizedFile
+    localPreview.value = previewDataUrl
+  } catch {
+    error.value = 'Não foi possível processar a imagem.'
+    photoFile.value = null
+    localPreview.value = ''
+  } finally {
+    processing.value = false
   }
-  reader.readAsDataURL(file)
 }
 
 function removePhoto() {

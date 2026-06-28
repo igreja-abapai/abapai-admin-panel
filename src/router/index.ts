@@ -164,6 +164,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, permission: 'visualizar_organizacao' },
       },
       {
+        path: 'organizacao/obreiros-voluntarios',
+        name: 'organization-service-volunteers',
+        component: () => import('@/views/organization/OrganizationServiceVolunteersView.vue'),
+        meta: { requiresAuth: true, permission: 'visualizar_organizacao' },
+      },
+      {
         path: 'organizacao/configuracoes',
         redirect: '/organizacao/configuracoes/cargos',
       },

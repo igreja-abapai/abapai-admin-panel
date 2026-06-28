@@ -297,6 +297,14 @@
               </li>
               <li>
                 <router-link
+                  to="/organizacao/obreiros-voluntarios"
+                  :class="subNavItemClass($route.path === '/organizacao/obreiros-voluntarios')"
+                >
+                  Obreiros e Voluntários
+                </router-link>
+              </li>
+              <li>
+                <router-link
                   to="/organizacao/escalas"
                   :class="subNavItemClass($route.path.startsWith('/organizacao/escalas'))"
                 >

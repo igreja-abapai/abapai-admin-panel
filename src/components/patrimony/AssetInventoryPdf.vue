@@ -3,7 +3,7 @@
     <header class="pdf-header">
       <p class="church-name">{{ churchName }}</p>
       <h1>Inventário de Patrimônio</h1>
-      <p>{{ generatedAt }}</p>
+      <p class="generated-at">{{ generatedAt }}</p>
     </header>
 
     <table>
@@ -86,13 +86,13 @@ const totalValue = computed(() =>
 }
 
 .church-name {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  color: #404040;
-  margin: 0 0 6px;
+  color: #262626;
+  margin: 0 0 8px;
 }
 
-.pdf-header p {
+.pdf-header .generated-at {
   font-size: 12px;
   color: #737373;
   margin: 0;
