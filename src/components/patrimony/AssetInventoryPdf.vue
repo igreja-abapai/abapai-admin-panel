@@ -1,6 +1,7 @@
 <template>
   <div class="asset-inventory-pdf">
     <header class="pdf-header">
+      <p class="church-name">{{ churchName }}</p>
       <h1>Inventário de Patrimônio</h1>
       <p>{{ generatedAt }}</p>
     </header>
@@ -42,11 +43,15 @@
 import { computed } from 'vue'
 import type { Asset } from '@/types/assets'
 import { formatCurrency } from '@/constants/assets'
+import { CHURCH_NAME } from '@/constants/church'
 
 const props = defineProps<{
   assets: Asset[]
   generatedAt: string
+  churchName?: string
 }>()
+
+const churchName = computed(() => props.churchName || CHURCH_NAME)
 
 const totalQuantity = computed(() =>
   props.assets.reduce((sum, asset) => sum + asset.quantity, 0),
@@ -78,6 +83,13 @@ const totalValue = computed(() =>
   font-size: 20px;
   font-weight: 700;
   margin: 0 0 4px;
+}
+
+.church-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #404040;
+  margin: 0 0 6px;
 }
 
 .pdf-header p {
