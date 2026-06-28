@@ -53,9 +53,7 @@ const props = defineProps<{
 
 const churchName = computed(() => props.churchName || CHURCH_NAME)
 
-const totalQuantity = computed(() =>
-  props.assets.reduce((sum, asset) => sum + asset.quantity, 0),
-)
+const totalQuantity = computed(() => props.assets.reduce((sum, asset) => sum + asset.quantity, 0))
 
 const totalValue = computed(() =>
   props.assets.reduce((sum, asset) => {

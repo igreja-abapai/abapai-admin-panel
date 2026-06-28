@@ -37,159 +37,160 @@
 
     <template v-else-if="department">
       <div class="space-y-6">
-      <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-2xl font-semibold text-neutral-900">{{ department.name }}</h2>
-        <div class="flex flex-wrap items-center gap-2 mt-2">
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            {{ department.type }}
-          </span>
-          <span
-            :class="[
-              'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-              department.isActive
-                ? 'bg-green-100 text-green-800'
-                : 'bg-neutral-100 text-neutral-600',
-            ]"
-          >
-            {{ department.isActive ? 'Ativo' : 'Inativo' }}
-          </span>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-base font-semibold text-neutral-900 mb-4">Informações</h2>
-        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-          <div>
-            <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Nome</dt>
-            <dd class="text-sm text-neutral-900 mt-1">{{ department.name }}</dd>
-          </div>
-          <div>
-            <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Tipo</dt>
-            <dd class="text-sm text-neutral-900 mt-1">{{ department.type }}</dd>
-          </div>
-          <div>
-            <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-              Departamento pai
-            </dt>
-            <dd class="text-sm text-neutral-900 mt-1">
-              {{ department.parent?.name || '—' }}
-            </dd>
-          </div>
-          <div>
-            <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Status</dt>
-            <dd class="text-sm text-neutral-900 mt-1">
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-2xl font-semibold text-neutral-900">{{ department.name }}</h2>
+          <div class="flex flex-wrap items-center gap-2 mt-2">
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+            >
+              {{ department.type }}
+            </span>
+            <span
+              :class="[
+                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                department.isActive
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-neutral-100 text-neutral-600',
+              ]"
+            >
               {{ department.isActive ? 'Ativo' : 'Inativo' }}
-            </dd>
+            </span>
           </div>
-          <div class="sm:col-span-2">
-            <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-              Funções de Serviço
-            </dt>
-            <dd class="mt-1.5">
-              <div
-                v-if="departmentRoleEligibilities.length"
-                class="flex flex-wrap gap-1.5"
-              >
-                <div
-                  v-for="elig in departmentRoleEligibilities"
-                  :key="elig.id"
-                  class="inline-flex items-center gap-2 rounded-md border border-neutral-200 bg-surface-page px-2.5 py-1.5"
-                >
-                  <span class="text-xs font-medium text-neutral-900">
-                    {{ elig.serviceRole?.name || '—' }}
-                  </span>
-                  <span
-                    :class="[
-                      'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold',
-                      elig.isDefault
-                        ? 'bg-amber-50 text-amber-700'
-                        : 'bg-neutral-100 text-neutral-600',
-                    ]"
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-base font-semibold text-neutral-900 mb-4">Informações</h2>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+            <div>
+              <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Nome</dt>
+              <dd class="text-sm text-neutral-900 mt-1">{{ department.name }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Tipo</dt>
+              <dd class="text-sm text-neutral-900 mt-1">{{ department.type }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Departamento pai
+              </dt>
+              <dd class="text-sm text-neutral-900 mt-1">
+                {{ department.parent?.name || '—' }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Status</dt>
+              <dd class="text-sm text-neutral-900 mt-1">
+                {{ department.isActive ? 'Ativo' : 'Inativo' }}
+              </dd>
+            </div>
+            <div class="sm:col-span-2">
+              <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Funções de Serviço
+              </dt>
+              <dd class="mt-1.5">
+                <div v-if="departmentRoleEligibilities.length" class="flex flex-wrap gap-1.5">
+                  <div
+                    v-for="elig in departmentRoleEligibilities"
+                    :key="elig.id"
+                    class="inline-flex items-center gap-2 rounded-md border border-neutral-200 bg-surface-page px-2.5 py-1.5"
                   >
+                    <span class="text-xs font-medium text-neutral-900">
+                      {{ elig.serviceRole?.name || '—' }}
+                    </span>
                     <span
                       :class="[
-                        'w-1 h-1 rounded-full',
-                        elig.isDefault ? 'bg-amber-500' : 'bg-neutral-400',
+                        'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold',
+                        elig.isDefault
+                          ? 'bg-amber-50 text-amber-700'
+                          : 'bg-neutral-100 text-neutral-600',
                       ]"
-                    />
-                    {{ elig.isDefault ? 'Obrigatória' : 'Opcional' }}
-                  </span>
+                    >
+                      <span
+                        :class="[
+                          'w-1 h-1 rounded-full',
+                          elig.isDefault ? 'bg-amber-500' : 'bg-neutral-400',
+                        ]"
+                      />
+                      {{ elig.isDefault ? 'Obrigatória' : 'Opcional' }}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <span v-else class="text-sm text-neutral-900">—</span>
-            </dd>
-          </div>
-          <div class="sm:col-span-2">
-            <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Descrição</dt>
-            <dd class="text-sm text-neutral-900 mt-1">
-              {{ department.description || '—' }}
-            </dd>
-          </div>
-        </dl>
-      </div>
+                <span v-else class="text-sm text-neutral-900">—</span>
+              </dd>
+            </div>
+            <div class="sm:col-span-2">
+              <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Descrição
+              </dt>
+              <dd class="text-sm text-neutral-900 mt-1">
+                {{ department.description || '—' }}
+              </dd>
+            </div>
+          </dl>
+        </div>
 
-      <DataTable
-        :card="true"
-        :search="memberSearchTerm"
-        search-placeholder="Buscar membros..."
-        :total-count="filteredMembers.length"
-        total-label="Membros"
-        :data="filteredMembers"
-        :headers="memberHeaders"
-        min-width="700px"
-        row-key="id"
-        @update:search="memberSearchTerm = $event"
-      >
-        <template #toolbar-actions>
-          <button
-            v-if="canManage"
-            type="button"
-            class="btn btn-primary shrink-0"
-            @click="openMemberModal()"
-          >
-            <PlusIcon class="w-4 h-4 mr-2" />
-            Vincular Membro
-          </button>
-        </template>
-        <template #column-member="{ item }">
-          <span class="text-sm font-medium text-neutral-900">
-            {{ (item as MemberDepartment).member?.name || '—' }}
-          </span>
-        </template>
-        <template #column-role="{ item }">
-          <span class="text-sm text-neutral-700">{{ (item as MemberDepartment).role }}</span>
-        </template>
-        <template #column-isActive="{ item }">
-          <span
-            :class="[
-              'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
-              (item as MemberDepartment).isActive
-                ? 'bg-green-100 text-green-800'
-                : 'bg-neutral-100 text-neutral-600',
-            ]"
-          >
-            {{ (item as MemberDepartment).isActive ? 'Ativo' : 'Inativo' }}
-          </span>
-        </template>
-        <template #actions="{ item }">
-          <RowActionMenu
-            v-if="canManage"
-            :actions="getMemberLinkActions(item as MemberDepartment)"
-            aria-label="Opções do vínculo"
-          />
-        </template>
-        <template #empty>
-          <div class="py-10 text-center">
-            <p class="text-neutral-500">
-              {{
-                memberSearchTerm
-                  ? 'Nenhum membro encontrado com os filtros aplicados'
-                  : 'Nenhum membro vinculado a este departamento'
-              }}
-            </p>
-          </div>
-        </template>
-      </DataTable>
+        <DataTable
+          :card="true"
+          :search="memberSearchTerm"
+          search-placeholder="Buscar membros..."
+          :total-count="filteredMembers.length"
+          total-label="Membros"
+          :data="filteredMembers"
+          :headers="memberHeaders"
+          min-width="700px"
+          row-key="id"
+          @update:search="memberSearchTerm = $event"
+        >
+          <template #toolbar-actions>
+            <button
+              v-if="canManage"
+              type="button"
+              class="btn btn-primary shrink-0"
+              @click="openMemberModal()"
+            >
+              <PlusIcon class="w-4 h-4 mr-2" />
+              Vincular Membro
+            </button>
+          </template>
+          <template #column-member="{ item }">
+            <span class="text-sm font-medium text-neutral-900">
+              {{ (item as MemberDepartment).member?.name || '—' }}
+            </span>
+          </template>
+          <template #column-role="{ item }">
+            <span class="text-sm text-neutral-700">{{ (item as MemberDepartment).role }}</span>
+          </template>
+          <template #column-isActive="{ item }">
+            <span
+              :class="[
+                'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
+                (item as MemberDepartment).isActive
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-neutral-100 text-neutral-600',
+              ]"
+            >
+              {{ (item as MemberDepartment).isActive ? 'Ativo' : 'Inativo' }}
+            </span>
+          </template>
+          <template #actions="{ item }">
+            <RowActionMenu
+              v-if="canManage"
+              :actions="getMemberLinkActions(item as MemberDepartment)"
+              aria-label="Opções do vínculo"
+            />
+          </template>
+          <template #empty>
+            <div class="py-10 text-center">
+              <p class="text-neutral-500">
+                {{
+                  memberSearchTerm
+                    ? 'Nenhum membro encontrado com os filtros aplicados'
+                    : 'Nenhum membro vinculado a este departamento'
+                }}
+              </p>
+            </div>
+          </template>
+        </DataTable>
       </div>
     </template>
 
@@ -255,8 +256,8 @@
             </label>
           </div>
           <p class="text-xs text-neutral-500 leading-relaxed">
-            Funções obrigatórias são atribuídas automaticamente aos membros do departamento.
-            Funções opcionais apenas os tornam elegíveis para escalas.
+            Funções obrigatórias são atribuídas automaticamente aos membros do departamento. Funções
+            opcionais apenas os tornam elegíveis para escalas.
           </p>
         </div>
       </div>
@@ -300,7 +301,9 @@
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-neutral-700 mb-1">Função no departamento</label>
+        <label class="block text-sm font-medium text-neutral-700 mb-1"
+          >Função no departamento</label
+        >
         <Select
           v-model="memberForm.role"
           :options="memberDepartmentRoleOptions"
@@ -311,7 +314,9 @@
         v-if="suggestedPositionNames.length"
         class="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2.5"
       >
-        <p class="text-xs font-medium text-blue-900 mb-1">Cargos sugeridos para este departamento</p>
+        <p class="text-xs font-medium text-blue-900 mb-1">
+          Cargos sugeridos para este departamento
+        </p>
         <p class="text-sm text-blue-800">{{ suggestedPositionNames.join(', ') }}</p>
       </div>
 
@@ -328,12 +333,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import {
-  PlusIcon,
-  PencilIcon,
-  TrashIcon,
-  ArrowLeftIcon,
-} from '@heroicons/vue/24/outline'
+import { PlusIcon, PencilIcon, TrashIcon, ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import DataTable, { type TableHeader } from '@/components/DataTable.vue'
 import RowActionMenu, { type RowActionMenuItem } from '@/components/RowActionMenu.vue'
 import Spinner from '@/components/Spinner.vue'
@@ -357,11 +357,7 @@ import { useAuthStore } from '@/stores/auth'
 import { confirmRemove } from '@/composables/useConfirm'
 import { useGoBack } from '@/composables/useGoBack'
 import { includesSearchAny } from '@/utils/searchText'
-import {
-  DepartmentType,
-  MemberDepartmentRole,
-  enumToSelectOptions,
-} from '@/constants/organization'
+import { DepartmentType, MemberDepartmentRole, enumToSelectOptions } from '@/constants/organization'
 
 const route = useRoute()
 const { goBack } = useGoBack('/organizacao/departamentos')
@@ -611,9 +607,7 @@ async function saveDepartment() {
       type: departmentForm.value.type,
       description: departmentForm.value.description || undefined,
       isActive: departmentForm.value.isActive,
-      parentId: departmentForm.value.parentId
-        ? Number(departmentForm.value.parentId)
-        : undefined,
+      parentId: departmentForm.value.parentId ? Number(departmentForm.value.parentId) : undefined,
     })
     await syncDepartmentRoleEligibilities()
     await syncDepartmentPositionEligibilities()
