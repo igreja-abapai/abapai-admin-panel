@@ -33,7 +33,7 @@
     <!-- Dropdown Menu -->
     <div
       v-if="isOpen"
-      class="absolute right-0 top-full mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden"
+      class="absolute right-0 top-full mt-2 min-w-[18rem] w-max rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden"
     >
       <div class="py-1">
         <slot name="menu"></slot>

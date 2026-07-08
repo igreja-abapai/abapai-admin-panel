@@ -74,6 +74,12 @@
           <MemberAvatar :name="item.name" :photo-url="item.photoUrl" size="md" />
           <div class="ml-3 min-w-0">
             <p class="font-medium text-neutral-900 truncate text-sm">{{ item.name }}</p>
+            <span
+              v-if="item.hasDiscipleshipPending"
+              class="inline-flex mt-1 items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100 text-amber-800"
+            >
+              Discipulado pendente
+            </span>
           </div>
         </div>
       </template>
@@ -129,7 +135,7 @@
           <UserGroupIcon class="w-12 h-12 text-neutral-300 mx-auto mb-4" />
           <p class="text-neutral-500">
             {{
-              searchTerm || appliedBaptismFilter
+              searchTerm || appliedBaptismFilter || appliedDiscipleshipFilter
                 ? 'Nenhum membro encontrado com os filtros aplicados'
                 : 'Nenhum membro encontrado'
             }}
@@ -147,6 +153,14 @@
             { value: 'true', label: 'Batizados' },
             { value: 'false', label: 'Não batizados' },
           ]"
+          placeholder="Todos"
+        />
+      </div>
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-neutral-700 mb-2">Discipulado</label>
+        <Select
+          v-model="discipleshipFilterDraft"
+          :options="[{ value: 'pending', label: 'Com discipulado pendente' }]"
           placeholder="Todos"
         />
       </div>
@@ -196,6 +210,8 @@ const members = ref<Member[]>([])
 const searchTerm = ref('')
 const baptismFilterDraft = ref('')
 const appliedBaptismFilter = ref('')
+const discipleshipFilterDraft = ref('')
+const appliedDiscipleshipFilter = ref('')
 const statusTab = ref<StatusTab>('all')
 const filtersModalOpen = ref(false)
 const error = ref('')
@@ -205,6 +221,7 @@ const membersMenuRef = ref<HTMLElement | null>(null)
 const activeFiltersCount = computed(() => {
   let count = 0
   if (appliedBaptismFilter.value) count++
+  if (appliedDiscipleshipFilter.value) count++
   return count
 })
 
@@ -334,6 +351,7 @@ function toggleMembersMenu() {
 
 function openFiltersModal() {
   baptismFilterDraft.value = appliedBaptismFilter.value
+  discipleshipFilterDraft.value = appliedDiscipleshipFilter.value
   filtersModalOpen.value = true
 }
 
@@ -343,6 +361,7 @@ function closeFiltersModal() {
 
 function applyFiltersModal() {
   appliedBaptismFilter.value = baptismFilterDraft.value
+  appliedDiscipleshipFilter.value = discipleshipFilterDraft.value
   currentPage.value = 1
   closeFiltersModal()
   loadMembers()
@@ -350,6 +369,7 @@ function applyFiltersModal() {
 
 function clearFilters() {
   baptismFilterDraft.value = ''
+  discipleshipFilterDraft.value = ''
 }
 
 function handleRowClick(member: Member) {
@@ -407,6 +427,7 @@ async function loadMembers() {
       limit: number
       search?: string
       isBaptized?: boolean
+      discipleshipPending?: boolean
       isActive?: boolean
       sortBy?: string
       sortOrder?: 'ASC' | 'DESC'
@@ -421,6 +442,10 @@ async function loadMembers() {
 
     if (appliedBaptismFilter.value) {
       params.isBaptized = appliedBaptismFilter.value === 'true'
+    }
+
+    if (appliedDiscipleshipFilter.value === 'pending') {
+      params.discipleshipPending = true
     }
 
     if (statusTab.value === 'active') {
@@ -449,7 +474,7 @@ async function loadMembers() {
 
 applyFiltersFromQuery()
 
-watch([searchTerm, appliedBaptismFilter, statusTab], () => {
+watch([searchTerm, appliedBaptismFilter, appliedDiscipleshipFilter, statusTab], () => {
   currentPage.value = 1
   loadMembers()
 })

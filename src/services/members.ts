@@ -2,6 +2,23 @@ import { httpService } from './http'
 import type { Address } from './address'
 import type { ChurchPosition } from './organization'
 
+export type MemberDiscipleshipCaseStatus = 'PENDING' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED'
+
+export interface MemberDiscipleshipCase {
+  id: number
+  memberId: number
+  status: MemberDiscipleshipCaseStatus
+  reason?: string | null
+  notes?: string | null
+  openedAt: string
+  closedAt?: string | null
+  closedBy?: number | null
+  createdAt?: string
+  updatedAt?: string
+  createdBy?: number
+  updatedBy?: number
+}
+
 export interface Member {
   id: string
   name: string
@@ -47,6 +64,8 @@ export interface Member {
   updatedAt?: string
   createdBy?: number
   updatedBy?: number
+  hasDiscipleshipPending?: boolean
+  currentDiscipleshipCase?: MemberDiscipleshipCase | null
 }
 
 export interface CreateMemberRequest {
@@ -144,6 +163,19 @@ export interface GetMembersParams {
   isPaginated?: boolean
   withPrimaryPosition?: boolean
   incompleteProfile?: boolean
+  discipleshipPending?: boolean
+}
+
+export interface UpsertMemberDiscipleshipRequest {
+  needsDiscipleship: boolean
+  reason?: string
+  notes?: string
+}
+
+export interface UpdateMemberDiscipleshipCaseRequest {
+  status: MemberDiscipleshipCaseStatus
+  reason?: string
+  notes?: string
 }
 
 export class MembersService {
@@ -165,6 +197,8 @@ export class MembersService {
       queryParams.append('withPrimaryPosition', params.withPrimaryPosition.toString())
     if (params?.incompleteProfile !== undefined)
       queryParams.append('incompleteProfile', params.incompleteProfile.toString())
+    if (params?.discipleshipPending !== undefined)
+      queryParams.append('discipleshipPending', params.discipleshipPending.toString())
 
     const queryString = queryParams.toString()
     const url = queryString ? `/member?${queryString}` : '/member'
@@ -189,6 +223,25 @@ export class MembersService {
 
   async restoreMember(id: string): Promise<Member> {
     return await httpService.patch<Member>(`/member/${id}/restore`, {})
+  }
+
+  async getDiscipleshipCases(memberId: string): Promise<MemberDiscipleshipCase[]> {
+    return await httpService.get<MemberDiscipleshipCase[]>(`/member/${memberId}/discipleship-cases`)
+  }
+
+  async upsertDiscipleship(memberId: string, data: UpsertMemberDiscipleshipRequest): Promise<Member> {
+    return await httpService.patch<Member>(`/member/${memberId}/discipleship`, data)
+  }
+
+  async updateDiscipleshipCase(
+    memberId: string,
+    caseId: number,
+    data: UpdateMemberDiscipleshipCaseRequest,
+  ): Promise<MemberDiscipleshipCase> {
+    return await httpService.patch<MemberDiscipleshipCase>(
+      `/member/${memberId}/discipleship-cases/${caseId}`,
+      data,
+    )
   }
 }
 

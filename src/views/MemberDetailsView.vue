@@ -26,6 +26,24 @@
             </button>
 
             <button
+              v-if="!hasDiscipleshipPending"
+              @click="openDiscipleshipModal('open')"
+              class="flex items-center w-full px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
+            >
+              <AcademicCapIcon class="w-5 h-5 mr-3 text-neutral-400" />
+              Adicionar necessidade de discipulado
+            </button>
+
+            <button
+              v-else
+              @click="openDiscipleshipModal('close')"
+              class="flex items-center w-full px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
+            >
+              <AcademicCapIcon class="w-5 h-5 mr-3 text-neutral-400" />
+              Concluir necessidade de discipulado
+            </button>
+
+            <button
               v-if="member?.isActive"
               @click="openAusenteModal"
               class="flex items-center w-full px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
@@ -83,6 +101,15 @@
             <div class="min-w-0">
               <h2 class="text-2xl font-semibold text-neutral-900">{{ member.name }}</h2>
               <p class="text-neutral-500">{{ member.occupation }}</p>
+              <button
+                v-if="hasDiscipleshipPending"
+                type="button"
+                class="inline-flex mt-2 items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors"
+                @click="openDiscipleshipDetailsModal"
+              >
+                <AcademicCapIcon class="w-3.5 h-3.5" />
+                Precisa de discipulado
+              </button>
               <div class="flex items-center flex-wrap gap-2 mt-2">
                 <span
                   v-if="!member.isActive"
@@ -594,6 +621,88 @@
         </button>
       </template>
     </BaseModal>
+
+    <BaseModal
+      v-model="showDiscipleshipModal"
+      :title="
+        discipleshipModalMode === 'open'
+          ? 'Marcar para discipulado'
+          : 'Concluir discipulado pendente'
+      "
+      max-width="md"
+      :error="discipleshipError"
+      @close="closeDiscipleshipModal"
+    >
+      <div class="space-y-4">
+        <p class="text-sm text-neutral-600">
+          {{
+            discipleshipModalMode === 'open'
+              ? 'Registre o motivo e observações para iniciar o acompanhamento de discipulado.'
+              : 'Registre observações finais para concluir o discipulado pendente.'
+          }}
+        </p>
+
+        <div>
+          <label class="block text-sm font-medium text-neutral-700 mb-2">Motivo</label>
+          <textarea
+            v-model="discipleshipReason"
+            rows="2"
+            class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            placeholder="Ex.: Novo convertido, precisa de acompanhamento inicial"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-neutral-700 mb-2">Observações</label>
+          <textarea
+            v-model="discipleshipNotes"
+            rows="3"
+            class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            placeholder="Anotações de acompanhamento"
+          />
+        </div>
+      </div>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-secondary" @click="closeDiscipleshipModal">Cancelar</button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          :disabled="savingDiscipleship"
+          @click="handleSaveDiscipleship"
+        >
+          {{ savingDiscipleship ? 'Salvando...' : 'Confirmar' }}
+        </button>
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      v-model="showDiscipleshipDetailsModal"
+      title="Necessidade de discipulado"
+      max-width="md"
+      @close="closeDiscipleshipDetailsModal"
+    >
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-neutral-700 mb-1.5">Motivo</label>
+          <p class="text-sm text-neutral-800 whitespace-pre-wrap">
+            {{ currentDiscipleshipCase?.reason || 'Não informado' }}
+          </p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-neutral-700 mb-1.5">Observações</label>
+          <p class="text-sm text-neutral-800 whitespace-pre-wrap">
+            {{ currentDiscipleshipCase?.notes || 'Não informado' }}
+          </p>
+        </div>
+      </div>
+
+      <template #footer-actions>
+        <button type="button" class="btn btn-primary" @click="closeDiscipleshipDetailsModal">
+          Fechar
+        </button>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -608,10 +717,14 @@ import {
   ArrowDownTrayIcon,
   UserMinusIcon,
   UserPlusIcon,
+  AcademicCapIcon,
   EllipsisHorizontalIcon,
   ChevronDownIcon,
 } from '@heroicons/vue/24/outline'
-import { membersService, type Member } from '@/services/members'
+import {
+  membersService,
+  type Member,
+} from '@/services/members'
 import { usersService, type User } from '@/services/users'
 import {
   organizationService,
@@ -647,6 +760,13 @@ const showAusenteConfirmation = ref(false)
 const absenceReason = ref('')
 const absenceReasonError = ref('')
 const togglingStatus = ref(false)
+const savingDiscipleship = ref(false)
+const showDiscipleshipModal = ref(false)
+const showDiscipleshipDetailsModal = ref(false)
+const discipleshipModalMode = ref<'open' | 'close'>('open')
+const discipleshipReason = ref('')
+const discipleshipNotes = ref('')
+const discipleshipError = ref('')
 
 const loadingCapabilities = ref(false)
 const memberCapabilities = ref<MemberServiceCapability[]>([])
@@ -662,6 +782,9 @@ const activeMemberDepartments = computed(() =>
   ),
 )
 
+const currentDiscipleshipCase = computed(() => member.value?.currentDiscipleshipCase || null)
+const hasDiscipleshipPending = computed(() => Boolean(member.value?.hasDiscipleshipPending))
+
 function openAusenteModal() {
   absenceReason.value = ''
   absenceReasonError.value = ''
@@ -672,6 +795,33 @@ function closeAusenteModal() {
   showAusenteConfirmation.value = false
   absenceReason.value = ''
   absenceReasonError.value = ''
+}
+
+function openDiscipleshipModal(mode: 'open' | 'close') {
+  discipleshipModalMode.value = mode
+  discipleshipError.value = ''
+  if (mode === 'open') {
+    discipleshipReason.value = currentDiscipleshipCase.value?.reason || ''
+    discipleshipNotes.value = currentDiscipleshipCase.value?.notes || ''
+  } else {
+    discipleshipReason.value = currentDiscipleshipCase.value?.reason || ''
+    discipleshipNotes.value = ''
+  }
+  showDiscipleshipModal.value = true
+}
+
+function closeDiscipleshipModal() {
+  showDiscipleshipModal.value = false
+  discipleshipError.value = ''
+}
+
+function openDiscipleshipDetailsModal() {
+  if (!hasDiscipleshipPending.value) return
+  showDiscipleshipDetailsModal.value = true
+}
+
+function closeDiscipleshipDetailsModal() {
+  showDiscipleshipDetailsModal.value = false
 }
 
 function handleEdit() {
@@ -1081,6 +1231,29 @@ async function loadMember() {
     error.value = err.response?.data?.message || 'Erro ao carregar detalhes do membro'
   } finally {
     loading.value = false
+  }
+}
+
+async function handleSaveDiscipleship() {
+  if (!member.value) return
+  savingDiscipleship.value = true
+  discipleshipError.value = ''
+
+  try {
+    const updatedMember = await membersService.upsertDiscipleship(member.value.id, {
+      needsDiscipleship: discipleshipModalMode.value === 'open',
+      reason: discipleshipReason.value.trim() || undefined,
+      notes: discipleshipNotes.value.trim() || undefined,
+    })
+
+    member.value = updatedMember
+    closeDiscipleshipModal()
+  } catch (err: any) {
+    console.error('Error saving discipleship state:', err)
+    discipleshipError.value =
+      err.response?.data?.message || 'Erro ao atualizar situação de discipulado.'
+  } finally {
+    savingDiscipleship.value = false
   }
 }
 
