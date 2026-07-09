@@ -612,9 +612,16 @@ class OrganizationService {
     )
   }
 
-  completeWorshipService(id: number) {
+  confirmWorshipService(id: number) {
     return httpService.patch<WorshipService>(
-      `/organization/worship-schedules/services/${id}/complete`,
+      `/organization/worship-schedules/services/${id}/confirm`,
+      {},
+    )
+  }
+
+  confirmWorshipServicesForMonth(month: number, year: number) {
+    return httpService.patch<{ confirmedCount: number }>(
+      `/organization/worship-schedules/services/month/confirm?month=${month}&year=${year}`,
       {},
     )
   }

@@ -6,7 +6,8 @@
       :aria-label="ariaLabel"
       @click="toggle"
     >
-      <EllipsisVerticalIcon class="w-5 h-5" />
+      <EllipsisHorizontalIcon v-if="horizontal" class="w-5 h-5" />
+      <EllipsisVerticalIcon v-else class="w-5 h-5" />
     </button>
   </div>
 
@@ -46,7 +47,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onUnmounted, type Component } from 'vue'
-import { EllipsisVerticalIcon } from '@heroicons/vue/24/outline'
+import { EllipsisHorizontalIcon, EllipsisVerticalIcon } from '@heroicons/vue/24/outline'
 import {
   calculateRowMenuPosition,
   closeActiveRowActionMenu,
@@ -71,10 +72,12 @@ const props = withDefaults(
     ariaLabel?: string
     menuWidth?: number
     menuHeight?: number
+    horizontal?: boolean
   }>(),
   {
     ariaLabel: 'Opções',
     menuWidth: DEFAULT_ROW_MENU_WIDTH,
+    horizontal: false,
   },
 )
 
@@ -87,7 +90,11 @@ const resolvedMenuHeight = computed(
   () => props.menuHeight ?? visibleActions.value.length * DEFAULT_ROW_MENU_ITEM_HEIGHT,
 )
 
-const menuWidthClass = computed(() => (props.menuWidth === 176 ? 'w-44' : 'w-40'))
+const menuWidthClass = computed(() => {
+  if (props.menuWidth >= 208) return 'min-w-[13rem] w-max'
+  if (props.menuWidth === 176) return 'w-44'
+  return 'w-40'
+})
 
 function actionClass(action: RowActionMenuItem) {
   return [

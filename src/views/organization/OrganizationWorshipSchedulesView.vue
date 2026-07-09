@@ -89,19 +89,13 @@
             <ChevronRightIcon class="w-5 h-5" />
           </button>
         </div>
-        <div v-if="canManage && monthStats.total > 0" class="flex items-center gap-2 shrink-0">
-          <button
-            v-if="monthAssignedSlots > 0"
-            type="button"
-            class="btn btn-secondary text-sm"
-            @click="handleClearAssignments"
-          >
-            Limpar escalados
-          </button>
-          <button type="button" class="btn btn-secondary text-sm" @click="handleClearMonth">
-            Deletar cultos
-          </button>
-        </div>
+        <RowActionMenu
+          v-if="canManage && monthStats.total > 0"
+          :actions="monthActions"
+          aria-label="Opções do mês"
+          :menu-width="208"
+          horizontal
+        />
       </div>
 
       <div v-if="loading">
@@ -593,7 +587,9 @@ import {
   EyeIcon,
   PencilIcon,
   TrashIcon,
+  CheckIcon,
   ArrowDownTrayIcon,
+  UserMinusIcon,
 } from '@heroicons/vue/24/outline'
 import Input from '@/components/Input.vue'
 import Select from '@/components/Select.vue'
@@ -622,7 +618,6 @@ import { useAuthStore } from '@/stores/auth'
 import {
   Weekday,
   WorshipServiceStatus,
-  AssignmentStatus,
   enumToSelectOptions,
 } from '@/constants/organization'
 import { formatVolunteerTooltipLabel } from '@/utils/nameFormat'
@@ -854,6 +849,29 @@ const monthStats = computed(() => {
   return { total, published, openSlots }
 })
 
+const monthPublishedCount = computed(() => monthStats.value.published)
+
+const monthActions = computed<RowActionMenuItem[]>(() => [
+  {
+    label: 'Confirmar escalas',
+    icon: CheckIcon,
+    hidden: monthPublishedCount.value === 0,
+    onClick: () => handleConfirmMonth(),
+  },
+  {
+    label: 'Limpar escalados',
+    icon: UserMinusIcon,
+    hidden: monthAssignedSlots.value === 0,
+    onClick: () => handleClearAssignments(),
+  },
+  {
+    label: 'Deletar cultos',
+    icon: TrashIcon,
+    variant: 'danger',
+    onClick: () => handleClearMonth(),
+  },
+])
+
 const monthAssignedSlots = computed(() =>
   services.value.reduce((sum, service) => sum + filledSlots(service), 0),
 )
@@ -957,25 +975,15 @@ function getServiceAccent(typeId?: number) {
   return SERVICE_ACCENTS[(typeId || 0) % SERVICE_ACCENTS.length]
 }
 
-function isServiceConfirmed(service: WorshipService) {
-  const assignments = service.assignments || []
-  if (assignments.length === 0) return false
-  return assignments.every((assignment) => assignment.status === AssignmentStatus.CONFIRMED)
-}
-
 function getStatusDisplay(service: WorshipService) {
   const base = 'inline-flex px-2 py-0.5 rounded-md text-[11px] font-semibold'
 
-  if (isServiceConfirmed(service)) {
+  if (service.status === WorshipServiceStatus.CONFIRMED) {
     return { label: 'Confirmada', badgeClass: `${base} bg-green-50 text-green-700` }
   }
 
   if (service.status === WorshipServiceStatus.PUBLISHED) {
     return { label: 'Publicada', badgeClass: `${base} bg-blue-50 text-blue-700` }
-  }
-
-  if (service.status === WorshipServiceStatus.COMPLETED) {
-    return { label: 'Concluída', badgeClass: `${base} bg-green-50 text-green-700` }
   }
 
   return { label: 'Rascunho', badgeClass: `${base} bg-neutral-100 text-neutral-600` }
@@ -1135,11 +1143,17 @@ function onCreateTemplateChange() {
 
 function getServiceActions(service: WorshipService): RowActionMenuItem[] {
   return [
+    {
+      label: 'Confirmar escala',
+      icon: CheckIcon,
+      hidden: !canManage.value || service.status !== WorshipServiceStatus.PUBLISHED,
+      onClick: () => handleConfirmService(service),
+    },
     { label: 'Ver detalhes', icon: EyeIcon, onClick: () => goToDetail(service) },
     {
       label: 'Editar',
       icon: PencilIcon,
-      hidden: !canManage.value,
+      hidden: !canManage.value || service.status === WorshipServiceStatus.CONFIRMED,
       onClick: () => openEditModal(service),
     },
     {
@@ -1189,6 +1203,37 @@ async function handleDeleteService(service: WorshipService) {
     message: `Tem certeza que deseja excluir "${label}"?`,
     onConfirm: async () => {
       await organizationService.deleteWorshipService(service.id)
+      await loadServices()
+    },
+  })
+}
+
+async function handleConfirmService(service: WorshipService) {
+  const label = service.name || service.worshipServiceType?.name || 'esta escala'
+  await confirmAction({
+    title: 'Confirmar escala',
+    message: `Confirmar a escala de "${label}"? Após confirmada, as atribuições não poderão mais ser alteradas.`,
+    variant: 'primary',
+    confirmLabel: 'Confirmar',
+    onConfirm: async () => {
+      await organizationService.confirmWorshipService(service.id)
+      await loadServices()
+    },
+  })
+}
+
+async function handleConfirmMonth() {
+  const count = monthPublishedCount.value
+  await confirmAction({
+    title: 'Confirmar escalas',
+    message: `Confirmar todas as ${count} escalas publicadas de ${viewMonthLabel.value}? Após confirmadas, as atribuições não poderão mais ser alteradas.`,
+    variant: 'primary',
+    confirmLabel: 'Confirmar todas',
+    onConfirm: async () => {
+      await organizationService.confirmWorshipServicesForMonth(
+        Number(viewMonth.value),
+        Number(viewYear.value),
+      )
       await loadServices()
     },
   })

@@ -293,7 +293,12 @@
         </div>
         <div>
           <label class="block text-sm font-medium text-neutral-700 mb-1">Valor de aquisição (Unitário)</label>
-          <Input v-model.number="form.acquisitionValue" type="number" min="0" step="0.01" />
+          <Input
+            v-model="acquisitionValueInput"
+            inputmode="decimal"
+            placeholder="R$ 0,00"
+            @update:model-value="handleAcquisitionValueInput"
+          />
         </div>
         <div>
           <label class="block text-sm font-medium text-neutral-700 mb-1">Fornecedor / Doador</label>
@@ -423,6 +428,11 @@ import { useAuthStore } from '@/stores/auth'
 import { getImageUrl } from '@/utils/imageUrl'
 import { assetPhotoDisplayFrameClass, assetPhotoImageClass } from '@/utils/normalizeImageFile'
 import { uploadFileToS3 } from '@/utils/s3Upload'
+import {
+  formatBRLInput,
+  formatNumberToBRLInput,
+  parseBRLInputToNumber,
+} from '@/utils/currencyInput'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -443,6 +453,7 @@ const uploadingPhoto = ref(false)
 const showEditModal = ref(false)
 const showDisposeModal = ref(false)
 const showPhotoLightbox = ref(false)
+const acquisitionValueInput = ref('')
 
 const categories = ref<{ id: number; name: string }[]>([])
 const locations = ref<{ id: number; name: string }[]>([])
@@ -553,8 +564,15 @@ function openEditModal() {
     conservationState: asset.value.conservationState ?? '',
     notes: asset.value.notes ?? '',
   }
+  acquisitionValueInput.value = formatNumberToBRLInput(form.value.acquisitionValue)
   formError.value = ''
   showEditModal.value = true
+}
+
+function handleAcquisitionValueInput(value: string | number | null | undefined) {
+  const raw = String(value ?? '')
+  acquisitionValueInput.value = formatBRLInput(raw)
+  form.value.acquisitionValue = parseBRLInputToNumber(raw)
 }
 
 function handleAttachmentAdded(attachment: AssetAttachment) {

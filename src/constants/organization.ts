@@ -48,7 +48,7 @@ export const Weekday = {
 export const WorshipServiceStatus = {
   DRAFT: 'Rascunho',
   PUBLISHED: 'Publicada',
-  COMPLETED: 'Concluída',
+  CONFIRMED: 'Confirmada',
 } as const
 
 export const AssignmentStatus = {

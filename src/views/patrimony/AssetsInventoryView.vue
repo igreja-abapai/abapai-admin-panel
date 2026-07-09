@@ -187,7 +187,12 @@
             Valor de aquisição (Unitário)
             <span v-if="assetForm.origin === 'Compra'" class="text-red-500">*</span>
           </label>
-          <Input v-model.number="assetForm.acquisitionValue" type="number" min="0" step="0.01" />
+          <Input
+            v-model="acquisitionValueInput"
+            inputmode="decimal"
+            placeholder="R$ 0,00"
+            @update:model-value="handleAcquisitionValueInput"
+          />
         </div>
         <div>
           <label class="block text-sm font-medium text-neutral-700 mb-1">Fornecedor / Doador</label>
@@ -419,6 +424,11 @@ import { useAuthStore } from '@/stores/auth'
 import { useDebouncedRef } from '@/composables/useDebouncedRef'
 import { generatePdfFromElement } from '@/utils/generatePdf'
 import { uploadFileToS3 } from '@/utils/s3Upload'
+import {
+  formatBRLInput,
+  formatNumberToBRLInput,
+  parseBRLInputToNumber,
+} from '@/utils/currencyInput'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -485,6 +495,7 @@ const uploadingPhoto = ref(false)
 const modalAttachments = ref<AssetAttachment[]>([])
 const pendingAttachments = ref<PendingAttachment[]>([])
 const attachmentsFieldRef = ref<InstanceType<typeof AssetAttachmentsField> | null>(null)
+const acquisitionValueInput = ref('')
 
 const pdfContainerRef = ref<HTMLElement>()
 const pdfAssets = ref<Asset[]>([])
@@ -699,8 +710,15 @@ async function openAssetModal(asset?: Asset) {
     conservationState: source?.conservationState ?? '',
     notes: source?.notes ?? '',
   }
+  acquisitionValueInput.value = formatNumberToBRLInput(assetForm.value.acquisitionValue)
   formError.value = ''
   showAssetModal.value = true
+}
+
+function handleAcquisitionValueInput(value: string | number | null | undefined) {
+  const raw = String(value ?? '')
+  acquisitionValueInput.value = formatBRLInput(raw)
+  assetForm.value.acquisitionValue = parseBRLInputToNumber(raw)
 }
 
 function validateAssetForm(): boolean {

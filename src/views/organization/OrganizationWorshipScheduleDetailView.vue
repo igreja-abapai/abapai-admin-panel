@@ -101,6 +101,16 @@
                 <CheckIcon class="w-4 h-4 mr-2" />
                 Publicar
               </button>
+              <button
+                v-if="canManage && service.status === WorshipServiceStatus.PUBLISHED"
+                type="button"
+                class="btn btn-primary shadow-[0_4px_12px_rgba(34,197,94,0.35)]"
+                :disabled="actionLoading"
+                @click="confirmService"
+              >
+                <CheckIcon class="w-4 h-4 mr-2" />
+                Confirmar escala
+              </button>
             </div>
           </div>
         </div>
@@ -212,7 +222,7 @@
                     {{ slotStatusLabel(assignment) }}
                   </span>
                   <button
-                    v-if="canManage && isAssignmentFilled(assignment)"
+                    v-if="canEditAssignments && isAssignmentFilled(assignment)"
                     type="button"
                     class="btn btn-secondary text-sm py-2 !text-red-600 !border-red-200 hover:!bg-red-50"
                     :disabled="saving"
@@ -221,7 +231,7 @@
                     Remover
                   </button>
                   <button
-                    v-if="canManage"
+                    v-if="canEditAssignments"
                     type="button"
                     class="btn btn-secondary text-sm py-2"
                     :disabled="saving"
@@ -398,6 +408,11 @@ const authStore = useAuthStore()
 
 const canManage = computed(() => authStore.hasPermission('gerenciar_escalas'))
 const canPublish = computed(() => authStore.hasPermission('publicar_escalas'))
+const canEditAssignments = computed(
+  () =>
+    canManage.value &&
+    service.value?.status !== WorshipServiceStatus.CONFIRMED,
+)
 
 const loading = ref(true)
 const saving = ref(false)
@@ -542,7 +557,7 @@ function summaryStatusBadgeClass(status: string) {
   if (status === WorshipServiceStatus.PUBLISHED) {
     return `${base} border-blue-200 bg-blue-50 text-blue-700`
   }
-  if (status === WorshipServiceStatus.COMPLETED) {
+  if (status === WorshipServiceStatus.CONFIRMED) {
     return `${base} border-green-200 bg-green-50 text-green-700`
   }
   return `${base} border-neutral-200 bg-surface-page text-neutral-600`
@@ -719,6 +734,26 @@ async function saveAssignment() {
   } finally {
     saving.value = false
   }
+}
+
+async function confirmService() {
+  if (!service.value) return
+
+  await confirmAction({
+    title: 'Confirmar escala',
+    message:
+      'Confirmar esta escala? Após confirmada, as atribuições não poderão mais ser alteradas.',
+    variant: 'primary',
+    confirmLabel: 'Confirmar',
+    onConfirm: async () => {
+      actionLoading.value = true
+      try {
+        service.value = await organizationService.confirmWorshipService(service.value!.id)
+      } finally {
+        actionLoading.value = false
+      }
+    },
+  })
 }
 
 async function publishService() {
