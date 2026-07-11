@@ -1,43 +1,62 @@
-/**
- * Extracts a 4-digit year from partial admission date strings.
- * Supports: yyyy, mm/yyyy, dd/mm/yyyy, and ISO yyyy-mm-dd.
- */
-export function extractAdmissionYear(admissionDate?: string | null): string | null {
-  if (!admissionDate?.trim()) return null
+export const FLEXIBLE_DATE_PLACEHOLDER = 'aaaa, mm/aaaa ou dd/mm/aaaa'
 
-  const value = admissionDate.trim()
+/**
+ * Parses flexible date strings used for member ecclesiastical dates.
+ * Supports: yyyy, mm/yyyy, dd/mm/yyyy, and ISO yyyy-mm-dd (also partial yyyy-mm).
+ */
+export function parseFlexibleDate(dateStr?: string | null): Date | null {
+  if (!dateStr?.trim()) return null
+
+  const value = dateStr.trim()
 
   if (/^\d{4}$/.test(value)) {
-    return value
+    return new Date(parseInt(value, 10), 0, 1)
   }
 
-  const isoMatch = value.match(/^(\d{4})(?:-\d{2})?(?:-\d{2})?$/)
+  const isoMatch = value.match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$/)
   if (isoMatch) {
-    return isoMatch[1]
+    const year = parseInt(isoMatch[1], 10)
+    const month = isoMatch[2] ? parseInt(isoMatch[2], 10) - 1 : 0
+    const day = isoMatch[3] ? parseInt(isoMatch[3], 10) : 1
+    const parsed = new Date(year, month, day)
+    return isNaN(parsed.getTime()) ? null : parsed
   }
 
   const parts = value.split('/').map((part) => part.trim()).filter(Boolean)
 
   if (parts.length === 3) {
-    const year = parts[2]
-    return /^\d{4}$/.test(year) ? year : null
+    const day = parseInt(parts[0], 10)
+    const month = parseInt(parts[1], 10) - 1
+    const year = parseInt(parts[2], 10)
+    const parsed = new Date(year, month, day)
+    return isNaN(parsed.getTime()) ? null : parsed
   }
 
   if (parts.length === 2) {
-    const year = parts[1]
-    return /^\d{4}$/.test(year) ? year : null
+    const month = parseInt(parts[0], 10) - 1
+    const year = parseInt(parts[1], 10)
+    const parsed = new Date(year, month, 1)
+    return isNaN(parsed.getTime()) ? null : parsed
   }
 
-  if (parts.length === 1 && /^\d{4}$/.test(parts[0])) {
-    return parts[0]
-  }
+  const fallback = new Date(value)
+  return isNaN(fallback.getTime()) ? null : fallback
+}
 
-  const parsed = new Date(value)
-  if (!isNaN(parsed.getTime())) {
-    return String(parsed.getFullYear())
-  }
+/**
+ * Extracts a 4-digit year from partial date strings.
+ * Supports: yyyy, mm/yyyy, dd/mm/yyyy, and ISO yyyy-mm-dd.
+ */
+export function extractFlexibleDateYear(dateStr?: string | null): string | null {
+  const parsed = parseFlexibleDate(dateStr)
+  return parsed ? String(parsed.getFullYear()) : null
+}
 
-  return null
+/**
+ * @deprecated Use extractFlexibleDateYear
+ */
+export function extractAdmissionYear(admissionDate?: string | null): string | null {
+  return extractFlexibleDateYear(admissionDate)
 }
 
 /**

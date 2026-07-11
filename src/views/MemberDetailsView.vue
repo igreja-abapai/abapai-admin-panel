@@ -293,8 +293,8 @@
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-sm font-medium text-neutral-500 mb-1">Ano de Conversão</label>
-            <p class="text-neutral-900">{{ member.yearOfConversion || 'Não informado' }}</p>
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Data de Conversão</label>
+            <p class="text-neutral-900">{{ member.conversionDate || 'Não informado' }}</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-neutral-500 mb-1">Última Igreja</label>
@@ -405,8 +405,8 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-500 mb-1">Ano do Batismo</label>
-            <p class="text-neutral-900">{{ member.yearOfBaptism || 'Não informado' }}</p>
+            <label class="block text-sm font-medium text-neutral-500 mb-1">Data de Batismo</label>
+            <p class="text-neutral-900">{{ member.baptismDate || 'Não informado' }}</p>
           </div>
 
           <div>

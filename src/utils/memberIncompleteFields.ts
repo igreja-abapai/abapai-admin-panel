@@ -11,10 +11,10 @@ export function getMemberMissingFieldLabels(member: Member): string[] {
   if (!member.birthdate) missing.push('Data de nascimento')
   if (isBlank(member.phone)) missing.push('Telefone')
   if (isBlank(member.address?.streetName)) missing.push('Rua')
-  if (isBlank(member.yearOfConversion)) missing.push('Ano de conversão')
+  if (isBlank(member.conversionDate)) missing.push('Data de conversão')
   if (isBlank(member.admissionDate)) missing.push('Data de admissão')
   if (member.isBaptized == null) missing.push('Batismo nas águas')
-  if (member.isBaptized && isBlank(member.yearOfBaptism)) missing.push('Ano do batismo')
+  if (member.isBaptized && isBlank(member.baptismDate)) missing.push('Data de batismo')
 
   return missing
 }

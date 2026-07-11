@@ -395,34 +395,31 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">CPF *</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">CPF</label>
             <input
               v-model="form.cpf"
               @input="handleCPFInput"
               type="text"
-              required
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="000.000.000-00"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">RG *</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">RG</label>
             <input
               v-model="form.rg"
               type="text"
-              required
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="00.000.000-0"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Órgão Expedidor *</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Órgão Expedidor</label>
             <input
               v-model="form.issuingBody"
               type="text"
-              required
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="SSP"
             />
@@ -438,12 +435,12 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Ano de Conversão</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Data de Conversão</label>
             <input
-              v-model="form.yearOfConversion"
+              v-model="form.conversionDate"
               type="text"
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: 2020"
+              :placeholder="FLEXIBLE_DATE_PLACEHOLDER"
             />
           </div>
 
@@ -463,7 +460,7 @@
               v-model="form.admissionDate"
               type="text"
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="dd/mm/aaaa"
+              :placeholder="FLEXIBLE_DATE_PLACEHOLDER"
             />
           </div>
 
@@ -565,12 +562,12 @@
           </div>
 
           <div v-if="form.isBaptized">
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Ano do Batismo</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Data de Batismo</label>
             <input
-              v-model="form.yearOfBaptism"
+              v-model="form.baptismDate"
               type="text"
               class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Ex: 2021"
+              :placeholder="FLEXIBLE_DATE_PLACEHOLDER"
             />
           </div>
 
@@ -723,7 +720,7 @@ import { uploadFileToS3, isValidImageFile, isValidFileSize } from '@/utils/s3Upl
 import { formatPhoneNumber, unformatPhoneNumber } from '@/utils/phoneMask'
 import { formatCPF, unformatCPF } from '@/utils/cpfMask'
 import { formatCEP, unformatCEP } from '@/utils/cepMask'
-import { formatDateForInput } from '@/utils/dateFormat'
+import { formatDateForInput, FLEXIBLE_DATE_PLACEHOLDER } from '@/utils/dateFormat'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import CustomSelect from '@/components/CustomSelect.vue'
@@ -798,8 +795,8 @@ const form = reactive({
   maritalStatus: '',
   spouseName: '',
   educationLevel: '',
-  yearOfConversion: '',
-  yearOfBaptism: '',
+  conversionDate: '',
+  baptismDate: '',
   placeOfBirth: '',
   occupation: '',
   rg: '',
@@ -936,8 +933,8 @@ function populateForm() {
     maritalStatus: member.value.maritalStatus,
     spouseName: member.value.spouseName || '',
     educationLevel: member.value.educationLevel,
-    yearOfConversion: member.value.yearOfConversion || '',
-    yearOfBaptism: member.value.yearOfBaptism || '',
+    conversionDate: member.value.conversionDate || '',
+    baptismDate: member.value.baptismDate || '',
     placeOfBirth: member.value.placeOfBirth || '',
     occupation: member.value.occupation,
     rg: member.value.rg,

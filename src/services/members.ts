@@ -30,13 +30,13 @@ export interface Member {
   maritalStatus: string
   spouseName?: string
   educationLevel: string
-  yearOfConversion?: string
-  yearOfBaptism?: string
+  conversionDate?: string
+  baptismDate?: string
   placeOfBirth?: string
   occupation: string
-  rg: string
-  issuingBody: string
-  cpf: string
+  rg?: string
+  issuingBody?: string
+  cpf?: string
   lastChurch?: string
   lastPositionHeld?: string
   isBaptized: boolean
@@ -78,13 +78,13 @@ export interface CreateMemberRequest {
   maritalStatus: string
   spouseName?: string
   educationLevel: string
-  yearOfConversion?: string
-  yearOfBaptism?: string
+  conversionDate?: string
+  baptismDate?: string
   placeOfBirth?: string
   occupation: string
-  rg: string
-  issuingBody: string
-  cpf: string
+  rg?: string
+  issuingBody?: string
+  cpf?: string
   lastChurch?: string
   lastPositionHeld?: string
   isBaptized: boolean
@@ -115,8 +115,8 @@ export interface UpdateMemberRequest {
   maritalStatus?: string
   spouseName?: string
   educationLevel?: string
-  yearOfConversion?: string
-  yearOfBaptism?: string
+  conversionDate?: string
+  baptismDate?: string
   placeOfBirth?: string
   occupation?: string
   rg?: string

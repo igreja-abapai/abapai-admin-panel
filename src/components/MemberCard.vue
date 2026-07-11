@@ -159,8 +159,8 @@
       <h3 class="section-title">Informações Espirituais e Eclesiásticas</h3>
       <div class="info-grid">
         <div class="info-item">
-          <span class="info-label">Ano de Conversão:</span>
-          <span class="info-value">{{ member.yearOfConversion || 'Não informado' }}</span>
+          <span class="info-label">Data de Conversão:</span>
+          <span class="info-value">{{ member.conversionDate || 'Não informado' }}</span>
         </div>
         <div class="info-item">
           <span class="info-label">Última Igreja:</span>
@@ -197,8 +197,8 @@
           <span class="info-value">{{ member.isBaptized ? 'Sim' : 'Não' }}</span>
         </div>
         <div class="info-item">
-          <span class="info-label">Ano do Batismo:</span>
-          <span class="info-value">{{ member.yearOfBaptism || 'Não informado' }}</span>
+          <span class="info-label">Data de Batismo:</span>
+          <span class="info-value">{{ member.baptismDate || 'Não informado' }}</span>
         </div>
         <div class="info-item">
           <span class="info-label">Local do Batismo:</span>

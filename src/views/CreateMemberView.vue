@@ -298,24 +298,23 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">CPF *</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">CPF</label>
             <Input
               v-model="form.cpf"
               type="text"
-              required
               placeholder="000.000.000-00"
               @input="handleCPFInput"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">RG *</label>
-            <Input v-model="form.rg" type="text" required placeholder="00.000.000-0" />
+            <label class="block text-sm font-medium text-neutral-700 mb-2">RG</label>
+            <Input v-model="form.rg" type="text" placeholder="00.000.000-0" />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Órgão Expedidor *</label>
-            <Input v-model="form.issuingBody" type="text" required placeholder="SSP" />
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Órgão Expedidor</label>
+            <Input v-model="form.issuingBody" type="text" placeholder="SSP" />
           </div>
         </div>
       </div>
@@ -328,8 +327,12 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Ano de Conversão</label>
-            <Input v-model="form.yearOfConversion" type="text" placeholder="Ex: 2020" />
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Data de Conversão</label>
+            <Input
+              v-model="form.conversionDate"
+              type="text"
+              :placeholder="FLEXIBLE_DATE_PLACEHOLDER"
+            />
           </div>
 
           <div>
@@ -339,7 +342,7 @@
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Data de Admissão</label>
-            <Input v-model="form.admissionDate" type="text" placeholder="dd/mm/aaaa" />
+            <Input v-model="form.admissionDate" type="text" :placeholder="FLEXIBLE_DATE_PLACEHOLDER" />
           </div>
 
           <div>
@@ -420,8 +423,12 @@
           </div>
 
           <div v-if="form.isBaptized">
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Ano do Batismo</label>
-            <Input v-model="form.yearOfBaptism" type="text" placeholder="Ex: 2021" />
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Data de Batismo</label>
+            <Input
+              v-model="form.baptismDate"
+              type="text"
+              :placeholder="FLEXIBLE_DATE_PLACEHOLDER"
+            />
           </div>
 
           <div v-if="form.isBaptized">
@@ -570,7 +577,7 @@ import { uploadFileToS3, isValidImageFile, isValidFileSize } from '@/utils/s3Upl
 import { formatPhoneNumber, unformatPhoneNumber } from '@/utils/phoneMask'
 import { formatCPF, unformatCPF } from '@/utils/cpfMask'
 import { formatCEP, unformatCEP } from '@/utils/cepMask'
-import { formatDateForInput } from '@/utils/dateFormat'
+import { formatDateForInput, FLEXIBLE_DATE_PLACEHOLDER } from '@/utils/dateFormat'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import Input from '@/components/Input.vue'
@@ -611,8 +618,8 @@ const form = reactive({
   maritalStatus: '',
   spouseName: '',
   educationLevel: '',
-  yearOfConversion: '',
-  yearOfBaptism: '',
+  conversionDate: '',
+  baptismDate: '',
   placeOfBirth: '',
   occupation: '',
   rg: '',
