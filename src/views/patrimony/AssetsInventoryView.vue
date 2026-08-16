@@ -372,7 +372,7 @@
       </template>
     </BaseModal>
 
-    <div style="position: absolute; left: -9999px; top: 0; width: 210mm" ref="pdfContainerRef">
+    <div style="position: absolute; left: -9999px; top: 0; width: 297mm" ref="pdfContainerRef">
       <AssetInventoryPdf
         v-if="pdfAssets.length > 0"
         :assets="pdfAssets"
@@ -886,6 +886,8 @@ async function exportPdf() {
   await generatePdfFromElement(element, {
     filename: `patrimonio-${date}.pdf`,
     orientation: 'landscape',
+    // Avoid-all pushes the whole table to page 2 when it doesn't fit after the header.
+    pagebreakMode: ['css', 'legacy'],
   })
 }
 
